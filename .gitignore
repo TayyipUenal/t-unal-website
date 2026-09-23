@@ -1,0 +1,8 @@
+node_modules/
+dist/
+preview/
+.playwright-mcp/
+.DS_Store
+booking/vendor/
+booking/var/
+booking/config.php

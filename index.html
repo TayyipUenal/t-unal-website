@@ -1,0 +1,50 @@
+<!doctype html>
+<html lang="de">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <meta name="theme-color" content="#ffffff" />
+    <script>
+      // Paper intro gate (see src/components/PaperIntro.tsx): the hero is
+      // assembled by flying sheets on every load of the home page, except for
+      // visitors who ask for reduced motion. A reload starts at the top so the
+      // intro is visible; links with #anchors still jump to their section.
+      (function () {
+        try {
+          var root = document.documentElement;
+          if (location.pathname !== "/") return;
+          if (window.matchMedia("(prefers-reduced-motion: reduce)").matches) return;
+          if (!location.hash && "scrollRestoration" in history) history.scrollRestoration = "manual";
+          root.classList.add("intro");
+          setTimeout(function () {
+            if (window.__tuIntro) return;
+            root.classList.remove("intro");
+            root.classList.add("intro-done");
+          }, 3000);
+        } catch (error) {}
+      })();
+    </script>
+    <meta
+      name="description"
+      content="Audits, Zertifizierungen und praxisnahe Schulungen mit Tayyip Ünal — persönlich, klar und rechtssicher."
+    />
+    <link rel="icon" href="/favicon.ico" sizes="any" />
+    <link rel="icon" type="image/png" sizes="32x32" href="/favicon-32x32.png" />
+    <link rel="icon" type="image/png" sizes="16x16" href="/favicon-16x16.png" />
+    <link rel="apple-touch-icon" href="/apple-touch-icon.png" />
+    <link rel="manifest" href="/site.webmanifest" />
+    <title>Tayyip Ünal — Audits & Schulungen</title>
+    <noscript>
+      <style>
+        /* Without JavaScript, scroll reveals never run: show their content. */
+        [style*="opacity:0"], [style*="opacity: 0"] { opacity: 1 !important; }
+        [style*="transform"] { transform: none !important; }
+        [style*="clip-path"] { clip-path: none !important; }
+      </style>
+    </noscript>
+  </head>
+  <body>
+    <div id="root"></div>
+    <script type="module" src="/src/main.tsx"></script>
+  </body>
+</html>

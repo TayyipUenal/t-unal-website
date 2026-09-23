@@ -1,0 +1,665 @@
+/* ---------- 02 · SCC-Schulung & Zertifizierung ---------- */
+.scc {
+  overflow-x: clip;
+  padding: var(--section-y) var(--gutter);
+  background: var(--paper);
+  color: var(--ink);
+}
+
+.scc-layout {
+  display: grid;
+  max-width: 1320px;
+  margin: 0 auto;
+  grid-template-columns: minmax(0, 0.82fr) minmax(0, 1.18fr);
+  align-items: start;
+  gap: clamp(40px, 6vw, 110px);
+}
+
+.scc-intro {
+  position: sticky;
+  top: clamp(96px, 14vh, 140px);
+}
+
+.scc-intro h2 {
+  margin: 0;
+  font-family: "DM Serif Display", serif;
+  font-size: clamp(2.6rem, 4.4vw, 4.4rem);
+  font-weight: 400;
+  letter-spacing: -0.035em;
+  line-height: 1.04;
+}
+
+.scc-lead {
+  max-width: 420px;
+  margin: 22px 0 0;
+  color: var(--ink-soft);
+  font-size: 1rem;
+  line-height: 1.75;
+}
+
+.scc-position {
+  display: flex;
+  align-items: baseline;
+  gap: 10px;
+  margin: 36px 0 18px;
+  font-variant-numeric: tabular-nums;
+}
+
+.scc-position span:first-child {
+  color: var(--blue-600);
+  font-family: "DM Serif Display", serif;
+  font-size: 4rem;
+  line-height: 1;
+}
+
+.scc-position span:last-child {
+  color: var(--muted);
+  font-size: 0.85rem;
+}
+
+.scc-hint {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  color: var(--ink-soft);
+  font-size: 0.74rem;
+}
+
+/* ---------- Timeline ---------- */
+.scc-track {
+  position: relative;
+  min-width: 0;
+}
+
+.scc-timeline {
+  position: relative;
+  margin: 0;
+  padding: 0;
+  list-style: none;
+}
+
+.scc-timeline::before,
+.scc-progress {
+  position: absolute;
+  top: 0;
+  bottom: 0;
+  left: 22px;
+  width: 2px;
+  content: "";
+  background: var(--paper-deep);
+}
+
+.scc-progress {
+  z-index: 1;
+  height: 100%;
+  transform-origin: top;
+  background: var(--blue-600);
+}
+
+.scc-stage {
+  position: relative;
+  padding: 48px 0 48px 80px;
+}
+
+.scc-stage:first-child {
+  padding-top: 36px;
+}
+
+.scc-marker {
+  position: absolute;
+  z-index: 2;
+  top: 92px;
+  left: 0;
+  display: grid;
+  width: 46px;
+  height: 46px;
+  place-items: center;
+  border: 1px solid var(--paper-deep);
+  border-radius: 50%;
+  background: var(--paper);
+  color: var(--ink-soft);
+  font-size: 0.75rem;
+  font-weight: 700;
+  transition:
+    background 0.35s ease,
+    color 0.35s ease,
+    border-color 0.35s ease,
+    box-shadow 0.35s ease;
+}
+
+.scc-stage.is-current .scc-marker,
+.scc-stage.is-done .scc-marker {
+  border-color: var(--navy-900);
+  background: var(--navy-900);
+  color: #fff;
+}
+
+.scc-stage.is-current .scc-marker {
+  box-shadow: 0 0 0 7px rgba(10, 39, 56, 0.08);
+}
+
+/* ---------- Stage card: white sheet over an offset paper sheet ---------- */
+.scc-card-wrap {
+  position: relative;
+  isolation: isolate;
+}
+
+.scc-sheet {
+  position: absolute;
+  z-index: 0;
+  inset: 0;
+  border: 1px solid var(--paper-deep);
+  border-radius: 22px;
+  background: #fbf9f4;
+  transform: translate(-10px, 10px) rotate(-1.2deg);
+  transition: transform 0.55s cubic-bezier(0.22, 1, 0.36, 1);
+}
+
+.scc-stage.is-current .scc-sheet {
+  transform: translate(-15px, 15px) rotate(-2.2deg);
+}
+
+.scc-card {
+  position: relative;
+  z-index: 1;
+  padding: 58px clamp(22px, 3vw, 36px) clamp(24px, 3vw, 34px);
+  border: 1px solid var(--line);
+  border-radius: 22px;
+  background: #fff;
+  box-shadow: var(--shadow-sheet);
+  transition:
+    box-shadow 0.55s ease,
+    border-color 0.55s ease;
+}
+
+.scc-stage.is-current .scc-card {
+  border-color: var(--line-strong);
+  box-shadow: var(--shadow-lift);
+}
+
+/* Icon tile sits on the card's top edge, above both sheets. */
+.scc-icon {
+  position: absolute;
+  z-index: 2;
+  top: -30px;
+  left: clamp(22px, 3vw, 36px);
+  display: grid;
+  width: 64px;
+  height: 64px;
+  place-items: center;
+  border-radius: 18px;
+  background: var(--navy-900);
+  color: #fff;
+  box-shadow: 0 16px 30px -16px rgba(10, 39, 56, 0.75);
+  transition:
+    transform 0.55s cubic-bezier(0.22, 1, 0.36, 1),
+    background 0.55s ease;
+}
+
+.scc-stage.is-current .scc-icon {
+  background: var(--blue-600);
+  transform: translateY(-5px) rotate(-5deg);
+}
+
+.draw-icon {
+  display: grid;
+  place-items: center;
+}
+
+.draw-icon svg {
+  display: block;
+  width: 30px;
+  height: 30px;
+}
+
+.scc-tag {
+  margin: 0;
+  color: var(--blue-700);
+  font-size: 0.7rem;
+  font-weight: 800;
+  letter-spacing: 0.12em;
+  text-transform: uppercase;
+}
+
+.scc-card h3 {
+  margin: 10px 0 0;
+  font-family: "DM Serif Display", serif;
+  font-size: clamp(1.8rem, 2.8vw, 2.6rem);
+  font-weight: 400;
+  letter-spacing: -0.02em;
+  line-height: 1.08;
+}
+
+.scc-text {
+  max-width: 540px;
+  margin: 12px 0 0;
+  color: var(--ink-soft);
+  font-size: 0.98rem;
+  line-height: 1.75;
+}
+
+/* Stage 1: the two courses */
+.scc-courses {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 12px;
+  margin-top: 22px;
+}
+
+.scc-course {
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+  padding: 18px;
+  border: 1px solid var(--line);
+  border-radius: 16px;
+  background: var(--mist);
+  transition:
+    transform 0.25s ease,
+    border-color 0.25s ease,
+    box-shadow 0.25s ease;
+}
+
+.scc-course:hover {
+  border-color: var(--line-strong);
+  box-shadow: var(--shadow-sheet);
+  transform: translateY(-3px);
+}
+
+.scc-course-doc {
+  align-self: flex-start;
+  padding: 5px 10px;
+  border-radius: 999px;
+  background: var(--navy-900);
+  color: #fff;
+  font-size: 0.7rem;
+  font-weight: 800;
+  letter-spacing: 0.06em;
+}
+
+.scc-course strong {
+  margin-top: 6px;
+  color: var(--ink);
+  font-size: 1rem;
+  font-weight: 800;
+  line-height: 1.3;
+}
+
+.scc-course p {
+  margin: 0;
+  color: var(--ink-soft);
+  font-size: 0.84rem;
+  line-height: 1.6;
+}
+
+.scc-course button {
+  display: inline-flex;
+  align-items: center;
+  align-self: flex-start;
+  gap: 6px;
+  margin-top: auto;
+  padding: 12px 0 2px;
+  border: 0;
+  background: none;
+  color: var(--blue-700);
+  cursor: pointer;
+  font-size: 0.8rem;
+  font-weight: 800;
+}
+
+.scc-course button svg {
+  transition: transform 0.2s ease;
+}
+
+.scc-course button:hover svg {
+  transform: translate(2px, -2px);
+}
+
+/* Stage 2: focus topics */
+.scc-chips {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px;
+  margin: 20px 0 0;
+  padding: 0;
+  list-style: none;
+}
+
+.scc-chips li {
+  padding: 8px 12px;
+  border: 1px solid var(--line);
+  border-radius: 999px;
+  background: var(--mist);
+  color: var(--ink);
+  font-size: 0.78rem;
+  font-weight: 700;
+}
+
+/* Stage 3: exam facts */
+.scc-facts {
+  display: grid;
+  gap: 8px;
+  margin: 20px 0 0;
+}
+
+.scc-fact {
+  display: grid;
+  grid-template-columns: auto minmax(0, 1fr) auto;
+  align-items: center;
+  gap: 14px;
+  padding: 14px 16px;
+  border: 1px solid var(--line);
+  border-radius: 14px;
+  background: var(--mist);
+}
+
+.scc-fact span {
+  padding: 4px 9px;
+  border-radius: 999px;
+  background: var(--navy-900);
+  color: #fff;
+  font-size: 0.68rem;
+  font-weight: 800;
+  letter-spacing: 0.04em;
+}
+
+.scc-fact strong {
+  color: var(--ink);
+  font-size: 0.9rem;
+  font-weight: 700;
+}
+
+.scc-fact small {
+  color: var(--muted);
+  font-size: 0.74rem;
+  font-weight: 700;
+}
+
+/* Stage 4: certificate breaking out of the card, plus the SCC 2011 notice */
+.scc-card--cert {
+  padding-right: clamp(22px, 30%, 230px);
+}
+
+.scc-note {
+  display: flex;
+  align-items: flex-start;
+  gap: 10px;
+  max-width: 520px;
+  margin: 18px 0 0;
+  padding: 12px 14px;
+  border-left: 3px solid var(--blue-500);
+  border-radius: 0 12px 12px 0;
+  background: var(--mist);
+  color: var(--ink);
+  font-size: 0.84rem;
+  line-height: 1.55;
+}
+
+.scc-note svg {
+  flex: none;
+  margin-top: 2px;
+  color: var(--blue-600);
+}
+
+.scc-cert-art {
+  position: absolute;
+  z-index: 3;
+  top: 50%;
+  right: -28px;
+  width: clamp(150px, 16vw, 190px);
+  aspect-ratio: 0.78;
+  transform: translateY(-50%);
+}
+
+.scc-cert-back,
+.scc-cert-front {
+  position: absolute;
+  inset: 0;
+}
+
+.scc-cert-back {
+  rotate: 7deg;
+  background: #f4f7f9;
+}
+
+.scc-cert-front {
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+  padding: 18px 16px;
+  rotate: -3deg;
+  transition: rotate 0.55s cubic-bezier(0.22, 1, 0.36, 1);
+}
+
+.scc-stage.is-current .scc-cert-front {
+  rotate: 0deg;
+}
+
+.scc-cert-title {
+  color: var(--navy-900);
+  font-family: "DM Serif Display", serif;
+  font-size: 1.7rem;
+  line-height: 1;
+}
+
+.scc-cert-sub {
+  margin-bottom: 8px;
+  color: var(--muted);
+  font-size: 0.66rem;
+  font-weight: 800;
+  letter-spacing: 0.14em;
+  text-transform: uppercase;
+}
+
+.scc-cert-seal {
+  width: 46px;
+  margin-top: auto;
+  align-self: flex-end;
+  fill: var(--navy-900);
+  stroke: #fff;
+  stroke-width: 3.2;
+  stroke-linecap: round;
+  stroke-linejoin: round;
+}
+
+.scc-cert-seal circle {
+  stroke: none;
+}
+
+.scc-cert-seal path {
+  fill: none;
+}
+
+/* ---------- End of the timeline: the two actions ---------- */
+.scc-marker--cta {
+  border-color: var(--blue-600);
+  background: var(--blue-600);
+  color: #fff;
+}
+
+.scc-marker--cta .draw-icon svg {
+  width: 20px;
+  height: 20px;
+}
+
+/* The timeline ends at the actions: hide the line below their marker. */
+.scc-stage--cta {
+  padding-bottom: 0;
+}
+
+.scc-stage--cta::after {
+  position: absolute;
+  z-index: 1;
+  top: 120px;
+  bottom: 0;
+  left: 16px;
+  width: 14px;
+  content: "";
+  background: var(--paper);
+}
+
+.scc-cta {
+  position: relative;
+  overflow: hidden;
+  padding: clamp(28px, 4vw, 44px);
+  border-radius: 24px;
+  color: #e7f2f8;
+  background:
+    radial-gradient(90% 120% at 90% 0%, rgba(26, 96, 138, 0.6), transparent 60%),
+    linear-gradient(150deg, var(--navy-800), var(--navy-950));
+  box-shadow: var(--shadow-lift);
+}
+
+.scc-cta-kicker {
+  margin: 0;
+  color: var(--blue-300);
+  font-size: 0.7rem;
+  font-weight: 800;
+  letter-spacing: 0.14em;
+  text-transform: uppercase;
+}
+
+.scc-cta h3 {
+  margin: 10px 0 0;
+  color: #fff;
+  font-family: "DM Serif Display", serif;
+  font-size: clamp(1.9rem, 3vw, 2.8rem);
+  font-weight: 400;
+  letter-spacing: -0.02em;
+  line-height: 1.08;
+}
+
+.scc-cta-text {
+  max-width: 520px;
+  margin: 12px 0 0;
+  color: #b9cfdc;
+  font-size: 0.98rem;
+  line-height: 1.7;
+}
+
+.scc-cta-actions {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 12px;
+  margin-top: 26px;
+}
+
+.button-outline-light {
+  color: #fff;
+  background: transparent;
+  box-shadow: inset 0 0 0 1.5px rgba(255, 255, 255, 0.55);
+}
+
+.button-outline-light:hover {
+  background: rgba(255, 255, 255, 0.08);
+  box-shadow: inset 0 0 0 1.5px #fff;
+}
+
+.scc-cta-phone {
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+  margin-top: 18px;
+  color: #cfe1ea;
+  font-size: 0.84rem;
+  font-weight: 700;
+  transition: color 0.2s ease;
+}
+
+.scc-cta-phone:hover {
+  color: #fff;
+}
+
+.scc-cta-number {
+  white-space: nowrap;
+}
+
+/* ---------- Responsive ---------- */
+@media (max-width: 980px) {
+  .scc-layout {
+    grid-template-columns: minmax(0, 1fr);
+    gap: 36px;
+  }
+
+  .scc-intro {
+    position: static;
+  }
+
+  .scc-position {
+    display: none;
+  }
+
+  .scc-hint {
+    margin-top: 22px;
+  }
+}
+
+@media (max-width: 640px) {
+  .scc {
+    padding: 88px 20px;
+  }
+
+  .scc-timeline::before,
+  .scc-progress {
+    left: 18px;
+  }
+
+  .scc-stage {
+    padding: 44px 0 36px 56px;
+  }
+
+  .scc-marker {
+    top: 78px;
+    width: 38px;
+    height: 38px;
+    font-size: 0.7rem;
+  }
+
+  .scc-stage--cta::after {
+    top: 104px;
+    left: 12px;
+  }
+
+  .scc-card {
+    padding: 52px 20px 22px;
+  }
+
+  .scc-icon {
+    left: 20px;
+    width: 56px;
+    height: 56px;
+    border-radius: 16px;
+  }
+
+  .draw-icon svg {
+    width: 26px;
+    height: 26px;
+  }
+
+  .scc-courses {
+    grid-template-columns: minmax(0, 1fr);
+  }
+
+  .scc-card--cert {
+    padding-right: 20px;
+  }
+
+  .scc-cert-art {
+    position: relative;
+    top: auto;
+    right: auto;
+    width: 150px;
+    margin: 26px 8px 4px auto;
+    transform: none;
+  }
+
+  .scc-cta-actions .button {
+    width: 100%;
+  }
+}
+
+@media (max-height: 650px) and (min-width: 981px) {
+  .scc-intro {
+    position: static;
+  }
+}

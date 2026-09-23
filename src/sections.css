@@ -1,0 +1,519 @@
+/* ---------- 01 · Configurator: grid surface and a stack of forms ---------- */
+.quote-card-wrap {
+  position: relative;
+}
+
+.quote-card-wrap .quote-card {
+  z-index: 2;
+}
+
+.quote-stack {
+  position: absolute;
+  z-index: 0;
+  inset: 0;
+  pointer-events: none;
+  border: 1px solid var(--line);
+  border-radius: 26px;
+  background: #fff;
+}
+
+.quote-stack--a {
+  z-index: 1;
+  opacity: 0.9;
+  transform: translateY(-11px) rotate(-0.8deg) scale(0.985);
+}
+
+.quote-stack--b {
+  opacity: 0.65;
+  transform: translateY(-22px) rotate(1.2deg) scale(0.965);
+}
+
+/* ---------- 04 · Expertise: layered composition ---------- */
+.expertise {
+  overflow-x: clip;
+  padding: var(--section-y) var(--gutter);
+  background: var(--paper);
+}
+
+.expertise-inner {
+  display: grid;
+  max-width: 1320px;
+  margin: 0 auto;
+  grid-template-columns: minmax(0, 1fr) minmax(0, 1fr);
+  align-items: center;
+  gap: clamp(48px, 7vw, 120px);
+}
+
+/* Disc with a concentric orbit, a round experience badge seated on its
+   edge and a paper quote card in front. Sizes follow the composition's own
+   width (container units), so it keeps its proportions on every screen. */
+.expertise-visual {
+  position: relative;
+  width: 100%;
+  max-width: 520px;
+  aspect-ratio: 1;
+  justify-self: center;
+  container-type: inline-size;
+}
+
+.ev-disc-wrap {
+  position: absolute;
+  top: 5%;
+  left: 3%;
+  width: 78%;
+  aspect-ratio: 1;
+}
+
+.ev-orbit {
+  position: absolute;
+  inset: -6%;
+  border: 1px solid rgba(16, 50, 74, 0.14);
+  border-radius: 50%;
+}
+
+.ev-orbit::after {
+  position: absolute;
+  bottom: 13%;
+  left: 12%;
+  width: 10px;
+  height: 10px;
+  content: "";
+  border-radius: 50%;
+  background: var(--blue-500);
+  box-shadow: 0 0 0 5px rgba(7, 132, 184, 0.14);
+}
+
+.ev-disc {
+  position: absolute;
+  inset: 0;
+  overflow: hidden;
+  border-radius: 50%;
+  background:
+    radial-gradient(circle at 30% 26%, rgba(40, 118, 164, 0.75), transparent 58%),
+    linear-gradient(150deg, var(--navy-800), var(--navy-950));
+  box-shadow: var(--shadow-lift);
+}
+
+.ev-disc-quote {
+  position: absolute;
+  top: 9%;
+  left: 18%;
+  color: rgba(108, 192, 229, 0.5);
+  font-family: "DM Serif Display", serif;
+  font-size: 40cqw;
+  line-height: 1;
+  user-select: none;
+}
+
+.ev-badge-wrap {
+  position: absolute;
+  z-index: 3;
+  top: 1%;
+  right: 3%;
+  width: 29%;
+}
+
+.ev-badge {
+  display: grid;
+  aspect-ratio: 1;
+  margin: 0;
+  place-content: center;
+  justify-items: center;
+  gap: 4px;
+  border: 1px solid var(--line);
+  border-radius: 50%;
+  background: #fff;
+  box-shadow: var(--shadow-lift);
+  text-align: center;
+}
+
+.ev-badge strong {
+  color: var(--blue-600);
+  font-family: "DM Serif Display", serif;
+  font-size: clamp(1.9rem, 10.5cqw, 3.4rem);
+  font-weight: 400;
+  letter-spacing: -0.02em;
+  line-height: 0.9;
+}
+
+.ev-badge span {
+  max-width: 11ch;
+  color: var(--ink-soft);
+  font-size: clamp(0.56rem, 2.3cqw, 0.72rem);
+  font-weight: 800;
+  letter-spacing: 0.1em;
+  line-height: 1.3;
+  text-transform: uppercase;
+}
+
+.ev-card-wrap {
+  position: absolute;
+  z-index: 2;
+  right: 0;
+  bottom: 2%;
+  width: 67%;
+}
+
+.ev-card {
+  margin: 0;
+  padding: clamp(18px, 6cqw, 32px);
+  border: 1px solid #e3ebf0;
+  border-radius: 16px;
+  background: #fff;
+  box-shadow: var(--shadow-lift);
+  rotate: -1.5deg;
+}
+
+.ev-card blockquote {
+  margin: 0;
+  color: var(--ink);
+  font-family: "DM Serif Display", serif;
+  font-size: clamp(1.05rem, 5.2cqw, 1.75rem);
+  letter-spacing: -0.015em;
+  line-height: 1.2;
+}
+
+.ev-card blockquote p {
+  margin: 0;
+}
+
+.ev-card em {
+  color: var(--blue-600);
+  font-style: normal;
+}
+
+.ev-card figcaption {
+  margin-top: clamp(10px, 3cqw, 16px);
+  padding-top: clamp(10px, 3cqw, 14px);
+  border-top: 1px solid var(--line);
+  color: var(--muted);
+  font-size: clamp(0.6rem, 2.2cqw, 0.68rem);
+  font-weight: 800;
+  letter-spacing: 0.12em;
+  text-transform: uppercase;
+}
+
+.expertise-body {
+  min-width: 0;
+}
+
+.expertise-body h2 {
+  margin: 0;
+  color: var(--ink);
+  font-family: "DM Serif Display", serif;
+  font-size: clamp(2.8rem, 5vw, 5rem);
+  font-weight: 400;
+  letter-spacing: -0.035em;
+  line-height: 1;
+  text-wrap: balance;
+}
+
+.expertise-text {
+  max-width: 520px;
+  margin: 26px 0 0;
+  color: var(--ink-soft);
+  font-size: clamp(1rem, 1.3vw, 1.1rem);
+  line-height: 1.75;
+}
+
+.qualification-grid {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 12px;
+  margin-top: 34px;
+}
+
+.qualification {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  padding: 14px 16px;
+  border: 1px solid var(--paper-deep);
+  border-radius: 14px;
+  background: rgba(255, 255, 255, 0.72);
+  color: var(--ink);
+  font-size: 0.84rem;
+  font-weight: 700;
+  line-height: 1.35;
+}
+
+.qualification > span:last-child {
+  min-width: 0;
+  hyphens: manual;
+  overflow-wrap: anywhere;
+}
+
+.qualification-icon {
+  display: grid;
+  width: 38px;
+  height: 38px;
+  flex: none;
+  place-items: center;
+  border-radius: 11px;
+  background: var(--navy-900);
+  color: #fff;
+}
+
+/* ---------- Kontakt: navy panel with a letter tucked behind it ---------- */
+.contact {
+  padding: var(--section-y) var(--gutter) clamp(56px, 7vw, 88px);
+  background: var(--white);
+}
+
+.contact-stage {
+  position: relative;
+  max-width: 1320px;
+  margin: 0 auto;
+  padding-top: clamp(64px, 8vw, 104px);
+}
+
+.contact-letter-wrap {
+  position: absolute;
+  z-index: 0;
+  top: 0;
+  right: clamp(24px, 8%, 120px);
+  width: clamp(220px, 26vw, 340px);
+}
+
+.contact-letter {
+  padding: 20px 22px 70px;
+  rotate: 5deg;
+}
+
+.contact-letter-head {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  margin-bottom: 16px;
+}
+
+.contact-letter strong {
+  display: block;
+  color: var(--ink);
+  font-size: 0.82rem;
+  font-weight: 800;
+}
+
+.contact-letter small {
+  display: block;
+  color: var(--muted);
+  font-size: 0.68rem;
+  font-weight: 600;
+}
+
+.contact-panel {
+  position: relative;
+  z-index: 1;
+  overflow: hidden;
+  padding: clamp(40px, 6vw, 88px);
+  border-radius: 28px;
+  color: #e7f2f8;
+  background:
+    radial-gradient(80% 120% at 88% 0%, rgba(26, 96, 138, 0.65), transparent 60%),
+    linear-gradient(150deg, var(--navy-800), var(--navy-950));
+  box-shadow: var(--shadow-lift);
+}
+
+.contact-panel-copy {
+  position: relative;
+  max-width: 760px;
+}
+
+.contact-panel h2 {
+  margin: 0;
+  color: #fff;
+  font-family: "DM Serif Display", serif;
+  font-size: clamp(2.4rem, 5.2vw, 5rem);
+  font-weight: 400;
+  letter-spacing: -0.035em;
+  line-height: 1.02;
+  text-wrap: balance;
+}
+
+.contact-intro {
+  max-width: 520px;
+  margin: 22px 0 0;
+  color: #b9cfdc;
+  font-size: 1.02rem;
+  line-height: 1.7;
+}
+
+.contact-actions {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 16px 28px;
+  margin-top: 34px;
+}
+
+.contact-mail {
+  display: inline-flex;
+  align-items: center;
+  gap: 9px;
+  padding: 6px 0;
+  border-bottom: 1px solid rgba(231, 242, 248, 0.4);
+  color: #e7f2f8;
+  font-size: 0.88rem;
+  font-weight: 700;
+  transition: border-color 0.2s ease;
+}
+
+.contact-mail:hover {
+  border-color: #fff;
+}
+
+.contact-tiles {
+  display: grid;
+  max-width: 1320px;
+  margin: 22px auto 0;
+  grid-template-columns: repeat(4, minmax(0, 1fr));
+  gap: 14px;
+}
+
+.contact-tile {
+  display: grid;
+  align-content: start;
+  gap: 4px;
+  padding: 22px;
+  border: 1px solid var(--line);
+  border-radius: 18px;
+  background: #fff;
+  color: var(--ink);
+  transition:
+    border-color 0.2s ease,
+    transform 0.2s ease,
+    box-shadow 0.2s ease;
+}
+
+a.contact-tile:hover {
+  border-color: var(--line-strong);
+  box-shadow: var(--shadow-sheet);
+  transform: translateY(-3px);
+}
+
+.contact-tile-icon {
+  display: grid;
+  width: 40px;
+  height: 40px;
+  place-items: center;
+  margin-bottom: 12px;
+  border-radius: 12px;
+  background: var(--mist);
+  color: var(--blue-600);
+}
+
+.contact-tile small {
+  color: var(--muted);
+  font-size: 0.66rem;
+  font-weight: 800;
+  letter-spacing: 0.12em;
+  text-transform: uppercase;
+}
+
+.contact-tile strong {
+  font-size: 0.92rem;
+  font-weight: 700;
+  line-height: 1.5;
+  overflow-wrap: anywhere;
+}
+
+.contact-socials {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 10px;
+  max-width: 1320px;
+  margin: 30px auto 0;
+  padding-top: 24px;
+  border-top: 1px solid var(--line);
+}
+
+.contact-socials > span {
+  margin-right: auto;
+  color: var(--muted);
+  font-size: 0.68rem;
+  font-weight: 800;
+  letter-spacing: 0.12em;
+  text-transform: uppercase;
+}
+
+.contact-socials a {
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+  padding: 9px 14px;
+  border: 1px solid var(--line);
+  border-radius: 999px;
+  color: var(--ink);
+  font-size: 0.76rem;
+  font-weight: 700;
+  transition:
+    background 0.2s ease,
+    border-color 0.2s ease;
+}
+
+.contact-socials a:hover {
+  border-color: var(--line-strong);
+  background: var(--mist);
+}
+
+/* ---------- Responsive ---------- */
+@media (max-width: 1080px) {
+  .contact-tiles {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+  }
+}
+
+@media (max-width: 980px) {
+  .expertise-inner {
+    grid-template-columns: minmax(0, 1fr);
+  }
+
+  .expertise-visual {
+    max-width: 460px;
+  }
+}
+
+@media (max-width: 780px) {
+  .quote-stack {
+    border-radius: 20px;
+  }
+
+  .expertise {
+    padding: 88px 20px;
+  }
+
+  .qualification-grid {
+    grid-template-columns: minmax(0, 1fr);
+  }
+
+  .contact {
+    padding: 72px 20px 48px;
+  }
+
+  .contact-stage {
+    padding-top: 64px;
+  }
+
+  .contact-letter-wrap {
+    right: 14px;
+    width: 196px;
+  }
+
+  .contact-panel {
+    padding: 36px 24px 40px;
+    border-radius: 22px;
+  }
+
+  .contact-actions .button {
+    width: 100%;
+  }
+
+  .contact-tiles {
+    grid-template-columns: minmax(0, 1fr);
+  }
+
+  .contact-socials > span {
+    width: 100%;
+  }
+}

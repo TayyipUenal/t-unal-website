@@ -1,0 +1,327 @@
+/* ---------- Tokens ---------- */
+:root {
+  font-family: "Manrope", sans-serif;
+  color: var(--ink);
+  background: var(--white);
+  font-synthesis: none;
+  text-rendering: optimizeLegibility;
+  -webkit-font-smoothing: antialiased;
+
+  /* Ink and brand blues */
+  --ink: #10324a;
+  --ink-soft: #4d6879;
+  --muted: #6b8494;
+  --navy-950: #071d2b;
+  --navy-900: #0a2738;
+  --navy-800: #0e3450;
+  --navy-700: #144766;
+  --blue-700: #0a5c86;
+  --blue-600: #0a6fa6;
+  --blue-500: #0784b8;
+  --blue-300: #6cc0e5;
+  --blue-100: #dcecf5;
+
+  /* Neutrals: white, cool mist, warm paper */
+  --white: #ffffff;
+  --mist: #eef5f9;
+  --paper: #f6f3ec;
+  --paper-deep: #e9e2d3;
+  --line: #d9e5ec;
+  --line-strong: #bfd3de;
+
+  /* Depth */
+  --shadow-sheet: 0 1px 2px rgba(10, 39, 56, 0.06), 0 14px 34px -16px rgba(10, 39, 56, 0.28);
+  --shadow-lift: 0 36px 80px -36px rgba(10, 39, 56, 0.5), 0 2px 8px rgba(10, 39, 56, 0.06);
+
+  /* Layout */
+  --gutter: max(clamp(22px, 5vw, 80px), calc((100vw - 1320px) / 2));
+  --section-y: clamp(88px, 11vw, 160px);
+  --radius: 24px;
+
+  /* Aliases kept for the legal pages and older rules */
+  --paper-light: #faf8f3;
+  --blue: var(--blue-500);
+  --blue-light: var(--blue-300);
+  --blue-deep: var(--blue-700);
+}
+
+/* ---------- Base ---------- */
+* {
+  box-sizing: border-box;
+}
+
+html {
+  scroll-behavior: smooth;
+  scroll-padding-top: 88px;
+}
+
+body {
+  margin: 0;
+  min-width: 0;
+  min-height: 100vh;
+  overflow-x: hidden;
+  background: var(--white);
+}
+
+::selection {
+  color: white;
+  background: var(--blue-600);
+}
+
+a {
+  color: inherit;
+  text-decoration: none;
+}
+
+button,
+a {
+  -webkit-tap-highlight-color: transparent;
+}
+
+button {
+  font: inherit;
+}
+
+img {
+  display: block;
+  max-width: 100%;
+}
+
+:is(a, button, input, select, textarea, summary):focus-visible {
+  outline: 2px solid var(--blue-500);
+  outline-offset: 4px;
+}
+
+.visually-hidden {
+  position: absolute;
+  width: 1px;
+  height: 1px;
+  padding: 0;
+  margin: -1px;
+  overflow: hidden;
+  clip-path: inset(50%);
+  white-space: nowrap;
+  border: 0;
+}
+
+.scroll-progress {
+  position: fixed;
+  z-index: 100;
+  top: 0;
+  left: 0;
+  width: 100%;
+  height: 3px;
+  transform-origin: 0 50%;
+  background: linear-gradient(90deg, var(--blue-700), var(--blue-300));
+}
+
+/* ---------- Type ---------- */
+.section-kicker {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  margin: 0 0 24px;
+  color: var(--blue-700);
+  font-size: 0.7rem;
+  font-weight: 700;
+  letter-spacing: 0.16em;
+  line-height: 1.4;
+  text-transform: uppercase;
+}
+
+.section-kicker.light {
+  color: var(--blue-300);
+}
+
+.section h2 {
+  margin: 0;
+  font-family: "DM Serif Display", serif;
+  font-weight: 400;
+  letter-spacing: -0.035em;
+}
+
+/* ---------- Actions ---------- */
+.button {
+  display: inline-flex;
+  min-height: 52px;
+  align-items: center;
+  justify-content: center;
+  gap: 12px;
+  padding: 0 24px;
+  border: 0;
+  border-radius: 12px;
+  cursor: pointer;
+  font-size: 0.84rem;
+  font-weight: 700;
+  transition:
+    transform 220ms ease,
+    background 220ms ease,
+    box-shadow 220ms ease,
+    color 220ms ease;
+}
+
+.button svg {
+  transition: transform 220ms ease;
+}
+
+.button:hover {
+  transform: translateY(-2px);
+}
+
+.button:hover svg {
+  transform: translate(2px, -2px);
+}
+
+.button-primary {
+  color: #fff;
+  background: var(--blue-600);
+  box-shadow: 0 12px 28px -14px rgba(10, 111, 166, 0.7);
+}
+
+.button-primary:hover {
+  background: var(--blue-700);
+  box-shadow: 0 16px 34px -14px rgba(10, 92, 134, 0.75);
+}
+
+.button-light {
+  color: var(--navy-900);
+  background: #fff;
+  box-shadow: 0 14px 30px -16px rgba(0, 0, 0, 0.55);
+}
+
+.button-light:hover {
+  background: var(--blue-100);
+}
+
+.text-link {
+  display: inline-flex;
+  align-items: center;
+  gap: 9px;
+  padding: 10px 0;
+  border-bottom: 1px solid currentColor;
+  font-size: 0.82rem;
+  font-weight: 700;
+}
+
+.text-link svg {
+  transition: transform 220ms ease;
+}
+
+.text-link:hover svg {
+  transform: translateY(3px);
+}
+
+/* ---------- Surfaces ---------- */
+.section {
+  padding: var(--section-y) var(--gutter);
+}
+
+/* Shared look of every decorative paper sheet on the page. */
+.sheet {
+  position: relative;
+  border: 1px solid #e3ebf0;
+  border-radius: 10px;
+  background: #fff;
+  box-shadow: var(--shadow-sheet);
+}
+
+.sheet-lines {
+  display: grid;
+  gap: 7px;
+}
+
+.sheet-lines i {
+  display: block;
+  height: 5px;
+  border-radius: 3px;
+  background: #e2ebf1;
+}
+
+.sheet-lines i:nth-child(3n + 2) {
+  width: 82%;
+}
+
+.sheet-lines i:nth-child(3n) {
+  width: 64%;
+}
+
+/* ---------- Footer ---------- */
+.footer {
+  display: grid;
+  grid-template-columns: 1fr 1.4fr auto auto;
+  align-items: center;
+  gap: 32px;
+  padding: 34px var(--gutter);
+  border-top: 1px solid var(--line);
+  background: var(--white);
+  font-size: 0.7rem;
+}
+
+.footer-logo {
+  width: max-content;
+}
+
+.footer-logo .brand-artwork {
+  width: 150px;
+}
+
+.footer p {
+  margin: 0;
+  color: var(--muted);
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+}
+
+.footer > div {
+  display: flex;
+  gap: 20px;
+}
+
+.footer a:not(.footer-logo) {
+  color: var(--ink-soft);
+}
+
+.footer a:not(.footer-logo):hover {
+  color: var(--blue-700);
+}
+
+.footer > span {
+  color: var(--muted);
+}
+
+@media (max-width: 1080px) {
+  .footer {
+    grid-template-columns: 1fr auto;
+  }
+}
+
+@media (max-width: 780px) {
+  html {
+    scroll-padding-top: 76px;
+  }
+
+  .section {
+    padding: 88px 22px;
+  }
+
+  .footer {
+    grid-template-columns: 1fr;
+    gap: 22px;
+    padding: 34px 22px;
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  html {
+    scroll-behavior: auto;
+  }
+
+  *,
+  *::before,
+  *::after {
+    animation-duration: 0.01ms !important;
+    animation-iteration-count: 1 !important;
+    scroll-behavior: auto !important;
+    transition-duration: 0.01ms !important;
+  }
+}

@@ -6,3 +6,6 @@ preview/
 booking/vendor/
 booking/var/
 booking/config.php
+
+# Personal Claude permissions
+.claude/settings.local.json

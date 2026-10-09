@@ -9,6 +9,7 @@
     "video": "node scripts/create-hero-video.mjs",
     "icons": "node scripts/create-favicons.mjs",
     "lint": "eslint .",
+    "test": "node --test scripts/smoke.test.mjs",
     "preview": "vite preview"
   },
   "dependencies": {

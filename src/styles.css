@@ -1,11 +1,16 @@
 /* ---------- Tokens ---------- */
 :root {
-  font-family: "Manrope", sans-serif;
+  font-family: var(--font-body);
   color: var(--ink);
   background: var(--white);
   font-synthesis: none;
   text-rendering: optimizeLegibility;
   -webkit-font-smoothing: antialiased;
+
+  --font-display: "Inter Tight", "Inter", system-ui, sans-serif;
+  --font-body: "Inter", system-ui, -apple-system, "Segoe UI", sans-serif;
+  --surface: #ffffff;
+  color-scheme: light;
 
   /* Ink and brand blues */
   --ink: #10324a;
@@ -135,8 +140,8 @@ img {
 
 .section h2 {
   margin: 0;
-  font-family: "DM Serif Display", serif;
-  font-weight: 400;
+  font-family: var(--font-display);
+  font-weight: 700;
   letter-spacing: -0.035em;
 }
 
@@ -221,7 +226,7 @@ img {
   position: relative;
   border: 1px solid #e3ebf0;
   border-radius: 10px;
-  background: #fff;
+  background: var(--surface);
   box-shadow: var(--shadow-sheet);
 }
 

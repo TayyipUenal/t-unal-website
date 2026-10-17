@@ -1,6 +1,6 @@
 .form-intro,
 .form-note {
-  color: #657984;
+  color: var(--ink-soft);
   font-size: 0.78rem;
   line-height: 1.75;
   margin: 0 0 22px;
@@ -19,14 +19,14 @@
   gap: 8px;
   font-size: 0.76rem;
   font-weight: 600;
-  color: #34556a;
+  color: var(--ink);
 }
 .inquiry-form :is(input:not([type="checkbox"]), textarea, select) {
   width: 100%;
   min-width: 0;
   padding: 13px 14px;
-  color: #234c63;
-  background: #fff;
+  color: var(--ink);
+  background: var(--surface);
   border: 1px solid #cbdde7;
   border-radius: 8px;
   font: inherit;
@@ -39,7 +39,7 @@
 }
 .inquiry-form input::placeholder,
 .inquiry-form textarea::placeholder {
-  color: #8396a1;
+  color: var(--muted);
   font-weight: 400;
 }
 .form-consent {
@@ -48,7 +48,7 @@
   gap: 10px;
   font-size: 0.71rem;
   line-height: 1.7;
-  color: #627984;
+  color: var(--ink-soft);
 }
 .form-consent input {
   width: 18px;
@@ -60,7 +60,7 @@
 .form-consent a {
   text-decoration: underline;
   text-underline-offset: 3px;
-  color: #167299;
+  color: var(--blue-600);
 }
 .form-submit {
   width: 100%;
@@ -99,12 +99,12 @@
   border: 1px solid #a9d5e4;
   border-radius: 14px;
   background: #eef9fd;
-  color: #245e77;
+  color: var(--ink);
   outline: none;
 }
 .inquiry-success h3 {
-  font-family: "DM Serif Display", serif;
-  font-weight: 400;
+  font-family: var(--font-display);
+  font-weight: 700;
   font-size: 1.8rem;
   margin: 20px 0 15px;
 }
@@ -115,7 +115,7 @@
 .inquiry-success > span {
   display: block;
   font-size: 0.69rem;
-  color: #5b8293;
+  color: var(--ink-soft);
   margin-top: 20px;
 }
 .inquiry-success a {
@@ -135,7 +135,7 @@
   border: 1px solid #d1e5ef;
   border-radius: 20px;
   background: #f6fbfe;
-  color: #204d63;
+  color: var(--ink);
   overflow: auto;
   box-shadow: 0 35px 100px #28465d33;
 }
@@ -151,10 +151,10 @@
   height: 40px;
   display: grid;
   place-items: center;
-  background: white;
+  background: var(--surface);
   border: 1px solid #d5e5ed;
   border-radius: 50%;
-  color: #416b81;
+  color: var(--ink-soft);
   cursor: pointer;
 }
 .consultation-dialog > .section-kicker {
@@ -163,22 +163,22 @@
   font-size: 0.6rem;
 }
 .consultation-dialog > h2 {
-  font-family: "DM Serif Display", serif;
+  font-family: var(--font-display);
   font-size: 2.5rem;
-  font-weight: 400;
+  font-weight: 700;
   margin: 0 0 24px;
   line-height: 1.1;
 }
 .audit-detail {
   padding: 35px clamp(22px, 7vw, 112px) 100px;
   background: #f9fcfd;
-  color: #234d62;
+  color: var(--ink);
 }
 .breadcrumbs {
   display: flex;
   flex-wrap: wrap;
   gap: 10px;
-  color: #67818f;
+  color: var(--ink-soft);
   font-size: 0.72rem;
   line-height: 1.8;
   max-width: 1260px;
@@ -186,15 +186,15 @@
 }
 .breadcrumbs a:hover {
   text-decoration: underline;
-  color: #0784b8;
+  color: var(--blue-600);
 }
 .audit-detail-hero {
   max-width: 1260px;
   margin: 60px auto;
 }
 .audit-detail-hero h1 {
-  font-family: "DM Serif Display", serif;
-  font-weight: 400;
+  font-family: var(--font-display);
+  font-weight: 700;
   font-size: clamp(2.7rem, 5.5vw, 5.3rem);
   line-height: 1.05;
   letter-spacing: -0.035em;
@@ -204,7 +204,7 @@
 .audit-detail-hero > p:not(.section-kicker) {
   font-size: 1.02rem;
   line-height: 1.8;
-  color: #5c7582;
+  color: var(--ink-soft);
   max-width: 760px;
 }
 .audit-section-links {
@@ -221,8 +221,8 @@
   border: 1px solid #cfe2ed;
   border-radius: 7px;
   font-size: 0.74rem;
-  background: white;
-  color: #286b8b;
+  background: var(--surface);
+  color: var(--ink-soft);
 }
 .audit-section-links a:hover {
   background: #e8f6fc;
@@ -245,13 +245,13 @@
   font-size: 0.64rem;
   text-transform: uppercase;
   letter-spacing: 0.1em;
-  color: #3384a8;
+  color: var(--blue-600);
 }
 .audit-detail-grid h2,
 .related-audits h2 {
-  font-family: "DM Serif Display", serif;
+  font-family: var(--font-display);
   font-size: clamp(1.8rem, 2.9vw, 2.8rem);
-  font-weight: 400;
+  font-weight: 700;
   line-height: 1.15;
   letter-spacing: -0.02em;
   margin: 18px 0;
@@ -259,7 +259,7 @@
 .audit-detail-grid article p {
   font-size: 0.91rem;
   line-height: 1.85;
-  color: #607782;
+  color: var(--ink-soft);
 }
 .audit-checks {
   list-style: none;
@@ -275,7 +275,7 @@
   line-height: 1.7;
 }
 .audit-checks svg {
-  color: #0784b8;
+  color: var(--blue-600);
   flex-shrink: 0;
   margin-top: 5px;
 }
@@ -285,10 +285,10 @@
 }
 .audit-steps li {
   padding: 0 0 13px 8px;
-  color: #087faa;
+  color: var(--blue-600);
 }
 .audit-steps strong {
-  color: #244f66;
+  color: var(--ink);
   font-size: 0.92rem;
 }
 .audit-steps p {
@@ -301,7 +301,7 @@
 }
 .document-list {
   padding-left: 20px;
-  color: #416779;
+  color: var(--ink-soft);
   font-size: 0.9rem;
   line-height: 2;
 }
@@ -344,7 +344,7 @@
   align-items: center;
   gap: 9px;
   font-size: 0.8rem;
-  color: #538093;
+  color: var(--ink-soft);
 }
 .related-audits > div {
   display: flex;
@@ -360,11 +360,11 @@
   border: 1px solid #cfe2ed;
   border-radius: 10px;
   font-size: 0.83rem;
-  color: #376b83;
-  background: white;
+  color: var(--ink-soft);
+  background: var(--surface);
 }
 .related-audits > div > a span {
-  color: #0784b8;
+  color: var(--blue-600);
   font-weight: 700;
 }
 .related-training {
@@ -373,7 +373,7 @@
   font-size: 0.82rem;
   text-decoration: underline;
   text-underline-offset: 4px;
-  color: #3780a1;
+  color: var(--ink-soft);
 }
 @media (max-width: 1100px) {
   .audit-detail-grid {

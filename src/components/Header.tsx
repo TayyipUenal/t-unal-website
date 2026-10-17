@@ -3,6 +3,7 @@ import { ArrowUpRight, Menu, X } from "lucide-react";
 import { useEffect, useState } from "react";
 import { watchVisibility } from "../reveal";
 import { BrandLogo } from "./BrandLogo";
+import { ThemeToggle } from "./ThemeToggle";
 
 const navLinks = [
   { id: "audits", label: "Audits" },
@@ -104,10 +105,13 @@ export function Header({
         })}
       </nav>
 
-      <button type="button" className="header-contact" onClick={onConsultation}>
-        Erstgespräch
-        <ArrowUpRight aria-hidden="true" size={16} />
-      </button>
+      <div className="header-actions">
+        <ThemeToggle />
+        <button type="button" className="header-contact" onClick={onConsultation}>
+          Erstgespräch
+          <ArrowUpRight aria-hidden="true" size={16} />
+        </button>
+      </div>
 
       <button
         className="menu-button"

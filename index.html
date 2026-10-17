@@ -5,6 +5,17 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
     <meta name="theme-color" content="#ffffff" />
     <script>
+      // Day/night theme before first paint (see src/theme.ts): saved choice,
+      // else the system preference.
+      (function () {
+        try {
+          var saved = localStorage.getItem("tu-theme");
+          var dark = saved ? saved === "dark" : window.matchMedia("(prefers-color-scheme: dark)").matches;
+          if (dark) document.documentElement.dataset.theme = "dark";
+        } catch (error) {}
+      })();
+    </script>
+    <script>
       // Paper intro gate (see src/components/PaperIntro.tsx): the hero is
       // assembled by flying sheets on every load of the home page, except for
       // visitors who ask for reduced motion. A reload starts at the top so the

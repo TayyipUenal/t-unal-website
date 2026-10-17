@@ -5,11 +5,13 @@ import { Expertise } from "./components/Expertise";
 import { Footer } from "./components/Footer";
 import { Header } from "./components/Header";
 import { Hero } from "./components/Hero";
+import { NightGlobe } from "./components/NightGlobe";
 import { Story } from "./components/Story";
 import { PaperIntro } from "./components/PaperIntro";
 import { SccJourney } from "./components/SccJourney";
 import { LegalPage } from "./components/LegalPage";
-import { useState } from "react";
+import { useEffect, useState } from "react";
+import { initFx } from "./fx";
 import { audits } from "./audits";
 import { AuditPage } from "./components/AuditPage";
 import { ConsultationModal } from "./components/ConsultationModal";
@@ -27,6 +29,7 @@ function App({ path = "/" }: { path?: string }) {
         ? "imprint"
         : null;
   const home = !legalPage && !audit;
+  useEffect(() => initFx(), []);
   const { scrollYProgress } = useScroll();
   const scaleX = useSpring(scrollYProgress, {
     stiffness: 120,
@@ -46,6 +49,7 @@ function App({ path = "/" }: { path?: string }) {
         ) : (
           <>
             <Hero onConsultation={() => openConsultation()} />
+            <NightGlobe />
             <QuoteConfigurator onConsultation={() => openConsultation()} />
             <SccJourney onRequest={openConsultation} />
             <Story />

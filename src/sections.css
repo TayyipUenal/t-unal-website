@@ -14,7 +14,7 @@
   pointer-events: none;
   border: 1px solid var(--line);
   border-radius: 26px;
-  background: #fff;
+  background: var(--surface);
 }
 
 .quote-stack--a {
@@ -99,7 +99,7 @@
   top: 9%;
   left: 18%;
   color: rgba(108, 192, 229, 0.5);
-  font-family: "DM Serif Display", serif;
+  font-family: var(--font-display);
   font-size: 40cqw;
   line-height: 1;
   user-select: none;
@@ -122,16 +122,16 @@
   gap: 4px;
   border: 1px solid var(--line);
   border-radius: 50%;
-  background: #fff;
+  background: var(--surface);
   box-shadow: var(--shadow-lift);
   text-align: center;
 }
 
 .ev-badge strong {
   color: var(--blue-600);
-  font-family: "DM Serif Display", serif;
+  font-family: var(--font-display);
   font-size: clamp(1.9rem, 10.5cqw, 3.4rem);
-  font-weight: 400;
+  font-weight: 700;
   letter-spacing: -0.02em;
   line-height: 0.9;
 }
@@ -159,7 +159,7 @@
   padding: clamp(18px, 6cqw, 32px);
   border: 1px solid #e3ebf0;
   border-radius: 16px;
-  background: #fff;
+  background: var(--surface);
   box-shadow: var(--shadow-lift);
   rotate: -1.5deg;
 }
@@ -167,7 +167,7 @@
 .ev-card blockquote {
   margin: 0;
   color: var(--ink);
-  font-family: "DM Serif Display", serif;
+  font-family: var(--font-display);
   font-size: clamp(1.05rem, 5.2cqw, 1.75rem);
   letter-spacing: -0.015em;
   line-height: 1.2;
@@ -200,9 +200,9 @@
 .expertise-body h2 {
   margin: 0;
   color: var(--ink);
-  font-family: "DM Serif Display", serif;
+  font-family: var(--font-display);
   font-size: clamp(2.8rem, 5vw, 5rem);
-  font-weight: 400;
+  font-weight: 700;
   letter-spacing: -0.035em;
   line-height: 1;
   text-wrap: balance;
@@ -230,7 +230,7 @@
   padding: 14px 16px;
   border: 1px solid var(--paper-deep);
   border-radius: 14px;
-  background: rgba(255, 255, 255, 0.72);
+  background: color-mix(in srgb, var(--surface) 72%, transparent);
   color: var(--ink);
   font-size: 0.84rem;
   font-weight: 700;
@@ -322,9 +322,9 @@
 .contact-panel h2 {
   margin: 0;
   color: #fff;
-  font-family: "DM Serif Display", serif;
+  font-family: var(--font-display);
   font-size: clamp(2.4rem, 5.2vw, 5rem);
-  font-weight: 400;
+  font-weight: 700;
   letter-spacing: -0.035em;
   line-height: 1.02;
   text-wrap: balance;
@@ -377,7 +377,7 @@
   padding: 22px;
   border: 1px solid var(--line);
   border-radius: 18px;
-  background: #fff;
+  background: var(--surface);
   color: var(--ink);
   transition:
     border-color 0.2s ease,
@@ -516,4 +516,21 @@ a.contact-tile:hover {
   .contact-socials > span {
     width: 100%;
   }
+}
+
+/* ---------- 3D hover tilt ---------- */
+.tilt {
+  position: relative;
+  border-radius: 16px;
+  transform-style: preserve-3d;
+  will-change: transform;
+}
+
+.tilt-glow {
+  position: absolute;
+  inset: 0;
+  border-radius: inherit;
+  mix-blend-mode: soft-light;
+  pointer-events: none;
+  transition: opacity 0.25s ease;
 }

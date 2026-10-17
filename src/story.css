@@ -48,7 +48,7 @@
   overflow: hidden;
   pointer-events: none;
   color: transparent;
-  font-family: "DM Serif Display", serif;
+  font-family: var(--font-display);
   font-size: clamp(10rem, 28vw, 26rem);
   line-height: 0.8;
   -webkit-text-stroke: 1px rgba(108, 192, 229, 0.24);
@@ -69,9 +69,9 @@
 .story-static h2 {
   margin: 0;
   color: #fff;
-  font-family: "DM Serif Display", serif;
+  font-family: var(--font-display);
   font-size: clamp(2.5rem, 4.4vw, 4.4rem);
-  font-weight: 400;
+  font-weight: 700;
   letter-spacing: -0.035em;
   line-height: 1.02;
 }
@@ -124,9 +124,9 @@
 .story-panel h3 {
   margin: 0;
   color: #fff;
-  font-family: "DM Serif Display", serif;
+  font-family: var(--font-display);
   font-size: clamp(2.1rem, 3.4vw, 3.3rem);
-  font-weight: 400;
+  font-weight: 700;
   letter-spacing: -0.02em;
   line-height: 1.05;
 }
@@ -209,7 +209,7 @@
   gap: calc(var(--card-w) * 0.07);
   overflow: hidden;
   border-radius: 7px;
-  background: #fff;
+  background: var(--surface);
   box-shadow:
     0 24px 40px -22px rgba(0, 0, 0, 0.65),
     0 2px 6px rgba(0, 0, 0, 0.2);
@@ -313,7 +313,7 @@
   flex-direction: column;
   gap: calc(var(--card-w) * 0.12);
   border-radius: 10px;
-  background: #fff;
+  background: var(--surface);
   box-shadow:
     0 40px 80px -30px rgba(0, 0, 0, 0.7),
     0 0 0 1px rgba(255, 255, 255, 0.4);
@@ -508,9 +508,9 @@
 .story-static-steps h3 {
   margin: 0;
   color: #fff;
-  font-family: "DM Serif Display", serif;
+  font-family: var(--font-display);
   font-size: clamp(2rem, 3.4vw, 3.2rem);
-  font-weight: 400;
+  font-weight: 700;
 }
 
 .story-static-steps p {

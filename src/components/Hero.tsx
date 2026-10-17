@@ -1,6 +1,7 @@
 import { motion, useReducedMotion, useScroll, useTransform } from "framer-motion";
 import { ArrowDown, ArrowUpRight, Award, BadgeCheck, ShieldCheck } from "lucide-react";
 import { useMediaQuery } from "../hooks";
+import { HeroScene } from "./HeroScene";
 import { HeroVisual } from "./HeroVisual";
 
 /**
@@ -16,6 +17,13 @@ export function Hero({ onConsultation }: { onConsultation: () => void }) {
   return (
     <section id="top" className="hero" aria-labelledby="hero-title">
       <div className="hero-glow" aria-hidden="true" />
+      <div className="hero-aurora" aria-hidden="true">
+        <i />
+        <i />
+        <i />
+      </div>
+      <div className="hero-floor" aria-hidden="true" />
+      <HeroScene />
       <div className="hero-inner">
         <motion.div className="hero-copy" style={depth ? { y: copyY } : undefined}>
           <p className="hero-eyebrow" data-paper="0">

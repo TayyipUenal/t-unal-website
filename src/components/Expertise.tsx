@@ -2,6 +2,7 @@ import { motion } from "framer-motion";
 import { Award, ClipboardCheck, GraduationCap, HardHat } from "lucide-react";
 import { staggerItem } from "../motion-tokens";
 import { Depth, Kicker, Rise, Stagger, Wipe } from "./motion";
+import { Tilt } from "./Tilt";
 
 const qualifications = [
   { label: "Zertifizierter Auditor", icon: Award },
@@ -29,14 +30,16 @@ export function Expertise() {
             </p>
           </Depth>
           <Depth className="ev-card-wrap" depth={-14}>
-            <figure className="ev-card">
-              <blockquote>
-                <p>
-                  Vertrauen entsteht durch <em>Verständnis</em>, nicht durch Lautstärke.
-                </p>
-              </blockquote>
-              <figcaption>— Tayyip Ünal</figcaption>
-            </figure>
+            <Tilt>
+              <figure className="ev-card">
+                <blockquote>
+                  <p>
+                    Vertrauen entsteht durch <em>Verständnis</em>, nicht durch Lautstärke.
+                  </p>
+                </blockquote>
+                <figcaption>— Tayyip Ünal</figcaption>
+              </figure>
+            </Tilt>
           </Depth>
         </Rise>
 

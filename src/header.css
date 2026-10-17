@@ -38,7 +38,7 @@
    blend, which only works on a solid white backdrop (not on glass). */
 .site-header.is-scrolled {
   border-color: rgba(191, 211, 222, 0.7);
-  background: #fff;
+  background: var(--surface);
   box-shadow: 0 10px 30px -24px rgba(10, 39, 56, 0.45);
 }
 
@@ -89,10 +89,16 @@
   background: var(--blue-500);
 }
 
+.header-actions {
+  display: flex;
+  align-items: center;
+  justify-self: end;
+  gap: 12px;
+}
+
 .header-contact {
   display: inline-flex;
   align-items: center;
-  justify-self: end;
   gap: 8px;
   padding: 11px 16px;
   border: 0;
@@ -131,7 +137,8 @@
 
 @media (max-width: 1080px) {
   .site-header {
-    grid-template-columns: 1fr auto;
+    grid-template-columns: 1fr auto auto;
+    gap: 10px;
   }
 
   .desktop-nav,
@@ -147,7 +154,7 @@
     padding: 0;
     border: 1px solid var(--line);
     border-radius: 50%;
-    background: rgba(255, 255, 255, 0.9);
+    background: color-mix(in srgb, var(--surface) 90%, transparent);
     color: var(--ink);
     cursor: pointer;
   }
@@ -162,7 +169,7 @@
     padding: 18px;
     border: 1px solid var(--line);
     border-radius: 20px;
-    background: rgba(255, 255, 255, 0.97);
+    background: color-mix(in srgb, var(--surface) 97%, transparent);
     box-shadow: 0 24px 70px rgba(10, 39, 56, 0.18);
     -webkit-backdrop-filter: blur(18px);
     backdrop-filter: blur(18px);
@@ -175,7 +182,7 @@
     padding: 16px 12px;
     border-bottom: 1px solid var(--line);
     color: var(--ink);
-    font-family: "DM Serif Display", serif;
+    font-family: var(--font-display);
     font-size: 1.45rem;
   }
 
@@ -185,7 +192,7 @@
 
   .mobile-nav a span {
     color: var(--blue-500);
-    font-family: "Manrope", sans-serif;
+    font-family: var(--font-body);
     font-size: 0.62rem;
     font-weight: 700;
   }

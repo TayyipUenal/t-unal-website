@@ -1,0 +1,151 @@
+/* ---------- Night theme ----------
+   Tokens only: every surface, line and text colour reads from the variables in
+   styles.css, so the night theme just re-points them. Applied with
+   <html data-theme="dark"> (see src/theme.ts). */
+:root[data-theme="dark"] {
+  color-scheme: dark;
+
+  --ink: #e8f2f8;
+  --ink-soft: #a9c0cf;
+  --muted: #7f9aab;
+  --blue-700: #3aa3d8;
+  --blue-600: #4db3e6;
+  --blue-500: #5cc0f0;
+  --blue-300: #8fd3f5;
+  --blue-100: #123a53;
+
+  --white: #06151f;
+  --surface: #0d2434;
+  --mist: #0a1d2b;
+  --paper: #0b2030;
+  --paper-deep: #12303f;
+  --paper-light: #0b2030;
+  --line: #1b3a4d;
+  --line-strong: #2a5068;
+
+  --shadow-sheet: 0 1px 2px rgba(0, 0, 0, 0.4), 0 14px 34px -16px rgba(0, 0, 0, 0.75);
+  --shadow-lift: 0 36px 80px -36px rgba(0, 0, 0, 0.85), 0 2px 8px rgba(0, 0, 0, 0.3);
+}
+
+:root[data-theme="dark"] body {
+  background: var(--white);
+}
+
+/* The logo is a white-backed image blended with multiply; give it a light chip. */
+:root[data-theme="dark"] .brand-artwork {
+  border-radius: 12px;
+  background: #fff;
+}
+
+:root[data-theme="dark"] .site-header.is-scrolled {
+  border-color: var(--line);
+  box-shadow: 0 10px 30px -24px rgba(0, 0, 0, 0.9);
+}
+
+/* Day/night toggle */
+.theme-toggle {
+  position: relative;
+  display: grid;
+  width: 42px;
+  height: 42px;
+  place-items: center;
+  overflow: hidden;
+  border: 1px solid var(--line-strong);
+  border-radius: 50%;
+  color: var(--ink);
+  background: var(--surface);
+  cursor: pointer;
+  transition:
+    transform 0.35s cubic-bezier(0.22, 1, 0.36, 1),
+    box-shadow 0.35s ease,
+    border-color 0.25s ease;
+}
+
+.theme-toggle:hover {
+  border-color: var(--blue-500);
+  box-shadow: 0 0 0 5px rgba(92, 192, 240, 0.16), 0 10px 24px -10px rgba(7, 132, 184, 0.7);
+  transform: rotate(18deg) scale(1.06);
+}
+
+.theme-toggle svg {
+  position: absolute;
+  transition:
+    transform 0.6s cubic-bezier(0.22, 1, 0.36, 1),
+    opacity 0.35s ease;
+}
+
+.theme-toggle .tt-moon {
+  opacity: 0;
+  transform: translateY(150%) rotate(-90deg);
+}
+
+:root[data-theme="dark"] .theme-toggle .tt-sun {
+  opacity: 0;
+  transform: translateY(-150%) rotate(90deg);
+}
+
+:root[data-theme="dark"] .theme-toggle .tt-moon {
+  opacity: 1;
+  transform: none;
+}
+
+/* Circular reveal while switching (View Transitions API). */
+::view-transition-old(root),
+::view-transition-new(root) {
+  animation: none;
+  mix-blend-mode: normal;
+}
+
+::view-transition-new(root) {
+  animation: theme-reveal 0.75s cubic-bezier(0.22, 1, 0.36, 1);
+}
+
+@keyframes theme-reveal {
+  from {
+    clip-path: circle(0 at var(--tx, 50%) var(--ty, 0%));
+  }
+
+  to {
+    clip-path: circle(150% at var(--tx, 50%) var(--ty, 0%));
+  }
+}
+
+/* ---------- Night theme: component overrides for hard-coded colours ---------- */
+:root[data-theme="dark"] .quote-option-icon {
+  background: rgba(92, 192, 240, 0.14);
+  color: var(--blue-300);
+}
+
+:root[data-theme="dark"] .quote-option-text {
+  border-color: var(--line);
+  background: var(--mist);
+}
+
+:root[data-theme="dark"] .quote-option-text small,
+:root[data-theme="dark"] .quote-aside {
+  color: var(--muted);
+}
+
+:root[data-theme="dark"] .quote-option.is-selected .quote-option-text {
+  border-color: var(--blue-600);
+  background: var(--blue-700);
+  color: #fff;
+}
+
+/* Paper stays paper: documents keep the day palette in the night theme. */
+:root[data-theme="dark"] :is(.scc-sheet, .scc-cert-back, .hero-film) {
+  color-scheme: light;
+  --ink: #10324a;
+  --ink-soft: #4d6879;
+  --muted: #6b8494;
+  --blue-700: #0a5c86;
+  --blue-600: #0a6fa6;
+  --blue-500: #0784b8;
+  --blue-300: #6cc0e5;
+  --blue-100: #dcecf5;
+  --surface: #ffffff;
+  --mist: #eef5f9;
+  --line: #d9e5ec;
+  --line-strong: #bfd3de;
+  color: var(--ink);
+}

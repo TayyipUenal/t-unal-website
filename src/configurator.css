@@ -40,20 +40,20 @@
 .quote-heading .section-kicker {
   justify-content: center;
   margin-bottom: 20px;
-  color: #176185;
+  color: var(--ink-soft);
 }
 .quote-heading h2 {
   margin: 0;
-  color: #204d63;
-  font-family: "DM Serif Display", serif;
+  color: var(--ink);
+  font-family: var(--font-display);
   font-size: clamp(2.1rem, 4.2vw, 3.7rem);
-  font-weight: 400;
+  font-weight: 700;
   letter-spacing: -0.035em;
   line-height: 1.06;
   text-wrap: balance;
 }
 .quote-heading h2 em {
-  color: #0583b8;
+  color: var(--blue-600);
   font-style: normal;
 }
 
@@ -67,7 +67,7 @@
   padding: clamp(22px, 3vw, 34px) clamp(20px, 4vw, 44px) clamp(18px, 2.6vw, 26px);
   border: 1px solid #d4e9f2;
   border-radius: 26px;
-  background: #fff;
+  background: var(--surface);
   box-shadow:
     0 30px 80px -34px rgba(12, 74, 110, 0.32),
     0 1px 2px rgba(12, 74, 110, 0.05);
@@ -117,10 +117,10 @@
 .quote-panel h3 {
   margin: 0 auto 22px;
   max-width: 640px;
-  color: #204d63;
-  font-family: "DM Serif Display", serif;
+  color: var(--ink);
+  font-family: var(--font-display);
   font-size: clamp(1.45rem, 2.5vw, 2rem);
-  font-weight: 400;
+  font-weight: 700;
   letter-spacing: -0.02em;
   line-height: 1.15;
   outline: none;
@@ -129,7 +129,7 @@
 }
 .quote-hint {
   margin: -12px auto 20px;
-  color: #6c8794;
+  color: var(--muted);
   font-size: 0.82rem;
   text-align: center;
 }
@@ -157,8 +157,8 @@
   padding: 0;
   border: 1.5px solid #d6e6ee;
   border-radius: 18px;
-  background: #fff;
-  color: #204d63;
+  background: var(--surface);
+  color: var(--ink);
   box-shadow: 0 1px 2px rgba(12, 74, 110, 0.04);
   cursor: pointer;
   text-align: center;
@@ -187,7 +187,7 @@
   place-items: center;
   border-radius: 17px;
   background: #eef7fb;
-  color: #0784b8;
+  color: var(--blue-600);
 }
 .quote-option-icon svg {
   width: 32px;
@@ -239,7 +239,7 @@
   font-weight: 700;
 }
 .quote-option-text small {
-  color: #5f7f8e;
+  color: var(--ink-soft);
   font-size: 0.73rem;
   line-height: 1.45;
   transition: color 220ms ease;
@@ -254,7 +254,7 @@
 }
 .quote-aside {
   margin: 20px 0 0;
-  color: #6c8794;
+  color: var(--muted);
   font-size: 0.8rem;
   text-align: center;
 }
@@ -263,7 +263,7 @@
   border: 0;
   border-bottom: 1px solid currentColor;
   background: none;
-  color: #0a5c86;
+  color: var(--blue-700);
   font-weight: 700;
   cursor: pointer;
 }
@@ -286,7 +286,7 @@
   border: 1px solid #cfe2ed;
   border-radius: 999px;
   background: #f2f9fc;
-  color: #204d63;
+  color: var(--ink);
   font-size: 0.74rem;
   cursor: pointer;
   transition:
@@ -298,10 +298,10 @@
   background: #e6f3fa;
 }
 .quote-recap button span {
-  color: #5f7f8e;
+  color: var(--ink-soft);
 }
 .quote-recap button svg {
-  color: #0784b8;
+  color: var(--blue-600);
 }
 .quote-form {
   max-width: 720px;
@@ -326,7 +326,7 @@
   border: 0;
   border-radius: 10px;
   background: none;
-  color: #3d6478;
+  color: var(--ink-soft);
   font-size: 0.84rem;
   font-weight: 700;
   cursor: pointer;
@@ -336,7 +336,7 @@
 }
 .quote-back:hover {
   background: #f0f7fb;
-  color: #0a5c86;
+  color: var(--blue-700);
 }
 .quote-footer-hint {
   min-height: 1em;
@@ -373,21 +373,21 @@
 }
 .quote-success h3 {
   margin: 0;
-  color: #204d63;
-  font-family: "DM Serif Display", serif;
+  color: var(--ink);
+  font-family: var(--font-display);
   font-size: clamp(1.6rem, 3vw, 2.2rem);
-  font-weight: 400;
+  font-weight: 700;
   letter-spacing: -0.02em;
 }
 .quote-success > p {
   max-width: 480px;
   margin: 12px auto 0;
-  color: #536f7c;
+  color: var(--ink-soft);
   font-size: 0.95rem;
   line-height: 1.7;
 }
 .quote-success > p strong {
-  color: #204d63;
+  color: var(--ink);
   overflow-wrap: anywhere;
 }
 .quote-summary {
@@ -410,12 +410,12 @@
   font-size: 0.76rem;
 }
 .quote-summary li span {
-  color: #6c8794;
+  color: var(--muted);
 }
 .quote-reference {
   display: block;
   margin-top: 18px;
-  color: #5b8293;
+  color: var(--ink-soft);
   font-size: 0.72rem;
 }
 .quote-success-actions {
@@ -428,21 +428,21 @@
 }
 .quote-success-actions .text-link {
   border-color: #0a5c86;
-  color: #0a5c86;
+  color: var(--blue-700);
 }
 .quote-ghost {
   padding: 10px 16px;
   border: 1px solid #cfe2ed;
   border-radius: 999px;
-  background: #fff;
-  color: #3d6478;
+  background: var(--surface);
+  color: var(--ink-soft);
   font-size: 0.78rem;
   font-weight: 700;
   cursor: pointer;
 }
 .quote-ghost:hover {
   border-color: #8cc4de;
-  color: #0a5c86;
+  color: var(--blue-700);
 }
 
 /* ---------- Detail links ---------- */
@@ -457,7 +457,7 @@
 }
 .quote-links > span {
   margin-right: 6px;
-  color: #6c8794;
+  color: var(--muted);
   font-size: 0.7rem;
   font-weight: 700;
   letter-spacing: 0.1em;
@@ -470,8 +470,8 @@
   padding: 9px 14px;
   border: 1px solid #d4e9f2;
   border-radius: 999px;
-  background: rgba(255, 255, 255, 0.7);
-  color: #204d63;
+  background: color-mix(in srgb, var(--surface) 70%, transparent);
+  color: var(--ink);
   font-size: 0.78rem;
   font-weight: 700;
   transition:
@@ -482,10 +482,10 @@
 .quote-links a:hover {
   transform: translateY(-1px);
   border-color: #8cc4de;
-  background: #fff;
+  background: var(--surface);
 }
 .quote-links a svg {
-  color: #0784b8;
+  color: var(--blue-600);
 }
 
 /* ---------- Responsive ---------- */

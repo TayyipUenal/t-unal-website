@@ -431,7 +431,7 @@ export function startHeroScene(canvas: HTMLCanvasElement, options: Options): Her
       rig.scale.setScalar(0.5);
     } else {
       rig.position.set(halfW * 0.5, -0.2, 0);
-      rig.scale.setScalar(Math.min(1.12, halfH / 4.9 + 0.1));
+      rig.scale.setScalar(Math.min(0.8, halfH / 6.2));
     }
   };
   const resize = () => {

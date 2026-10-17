@@ -635,3 +635,84 @@
     animation: none;
   }
 }
+
+/* ---------- Hero right column: room for the 3D certificate ---------- */
+.hero-visual {
+  min-height: clamp(420px, 44vw, 600px);
+  padding: 0;
+}
+
+.hv-notif {
+  top: 6%;
+  right: 0;
+}
+
+.hv-metric {
+  right: 2%;
+  bottom: 8%;
+}
+
+.hv-todo {
+  z-index: 5;
+  bottom: 12%;
+  left: 0;
+  display: grid;
+  min-width: 190px;
+  gap: 10px;
+  padding: 14px 18px;
+  border-radius: 16px;
+  background: color-mix(in srgb, var(--surface) 92%, transparent);
+  box-shadow:
+    0 0 0 1px var(--line),
+    0 24px 50px -20px rgba(7, 29, 43, 0.5);
+  -webkit-backdrop-filter: blur(10px);
+  backdrop-filter: blur(10px);
+  animation: bob 8s 1s ease-in-out infinite;
+}
+
+.hv-todo strong {
+  color: var(--ink);
+  font-size: 0.82rem;
+}
+
+.hv-todo ul {
+  display: grid;
+  gap: 8px;
+  margin: 0;
+  padding: 0;
+  color: var(--ink-soft);
+  font-size: 0.78rem;
+  font-weight: 600;
+  list-style: none;
+}
+
+.hv-todo li {
+  display: flex;
+  align-items: center;
+  gap: 9px;
+}
+
+.hv-todo li span {
+  display: grid;
+  width: 16px;
+  height: 16px;
+  place-items: center;
+  border: 1.5px solid var(--line-strong);
+  border-radius: 50%;
+}
+
+.hv-todo li.is-done span {
+  border-color: var(--blue-500);
+  background: var(--blue-500);
+  color: #fff;
+}
+
+@media (max-width: 780px) {
+  .hero-visual {
+    min-height: 360px;
+  }
+
+  .hv-todo {
+    display: none;
+  }
+}

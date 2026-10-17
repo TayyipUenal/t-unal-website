@@ -16,8 +16,14 @@ export function HeroScene() {
     let scene: Scene | null = null;
     const onTheme = (event: Event) => scene?.setTheme((event as CustomEvent<string>).detail === "dark");
     const start = () => {
-      import("../hero-scene")
-        .then(({ startHeroScene }) => {
+      // The scene paints text into textures, so the web fonts must be ready.
+      const fonts = Promise.all([
+        document.fonts.load('800 64px "Bricolage Grotesque"'),
+        document.fonts.load('600 34px "Figtree"'),
+        document.fonts.load('700 30px "JetBrains Mono"'),
+      ]).catch(() => {});
+      Promise.all([import("../hero-scene"), fonts])
+        .then(([{ startHeroScene }]) => {
           if (cancelled || !canvas.current) return;
           try {
             scene = startHeroScene(canvas.current, {

@@ -7,6 +7,7 @@ import { Header } from "./components/Header";
 import { Hero } from "./components/Hero";
 import { Bento } from "./components/Bento";
 import { Marquee } from "./components/Marquee";
+import { NormCheck } from "./components/NormCheck";
 import { NightGlobe } from "./components/NightGlobe";
 import { Story } from "./components/Story";
 import { PaperIntro } from "./components/PaperIntro";
@@ -57,6 +58,7 @@ function App({ path = "/" }: { path?: string }) {
             <SccJourney onRequest={openConsultation} />
             <Story />
             <Bento />
+            <NormCheck onRequest={() => openConsultation()} />
             <Expertise />
             <Contact onConsultation={() => openConsultation()} />
           </>

@@ -36,7 +36,12 @@ export function Hero({ onConsultation }: { onConsultation: () => void }) {
             </span>
             <span className="hero-line">
               <span className="hero-line-inner">
-                <em>Bis zum Abschluss.</em>
+                <em>
+                  Bis zum Abschluss.
+                  <svg className="hero-underline" viewBox="0 0 300 14" preserveAspectRatio="none" aria-hidden="true">
+                    <path d="M3 10 C 70 3, 150 13, 297 4" />
+                  </svg>
+                </em>
               </span>
             </span>
           </h1>

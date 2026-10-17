@@ -7,8 +7,11 @@
   text-rendering: optimizeLegibility;
   -webkit-font-smoothing: antialiased;
 
-  --font-display: "Inter Tight", "Inter", system-ui, sans-serif;
-  --font-body: "Inter", system-ui, -apple-system, "Segoe UI", sans-serif;
+  --font-display: "Bricolage Grotesque", "Figtree", system-ui, sans-serif;
+  --font-body: "Figtree", system-ui, -apple-system, "Segoe UI", sans-serif;
+  --font-mono: "JetBrains Mono", ui-monospace, Menlo, monospace;
+  --accent: #ff5b22;
+  --accent-2: #ff8a4c;
   --surface: #ffffff;
   color-scheme: light;
 

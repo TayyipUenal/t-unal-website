@@ -1,5 +1,5 @@
 import { motion, useMotionValue, useSpring, useTransform, type MotionValue } from "framer-motion";
-import { Check } from "lucide-react";
+import { BadgeCheck, Check } from "lucide-react";
 import { useEffect, useId } from "react";
 import { HeroVideo } from "./HeroVideo";
 
@@ -128,6 +128,24 @@ export function HeroVisual({ scrollY, depth }: { scrollY: MotionValue<number>; d
             <Check size={26} strokeWidth={2.6} />
           </span>
         </div>
+      </motion.div>
+
+      <motion.div className="hv-layer hv-notif" style={drift(seal, 70)} aria-hidden="true">
+        <span className="hv-notif-icon">
+          <BadgeCheck size={20} />
+        </span>
+        <span>
+          <b>Audit bestanden</b>
+          <small>ISO 9001 · Zertifikat freigegeben</small>
+        </span>
+      </motion.div>
+
+      <motion.div className="hv-layer hv-metric" style={drift(mid, 55)} aria-hidden="true">
+        <small>Auditreife</small>
+        <b>92%</b>
+        <svg viewBox="0 0 120 30" preserveAspectRatio="none">
+          <path d="M2 26 C 20 24, 28 14, 46 16 S 74 8, 90 9 S 108 4, 118 3" />
+        </svg>
       </motion.div>
     </motion.div>
   );

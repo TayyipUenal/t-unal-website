@@ -15,26 +15,6 @@
         } catch (error) {}
       })();
     </script>
-    <script>
-      // Paper intro gate (see src/components/PaperIntro.tsx): the hero is
-      // assembled by flying sheets on every load of the home page, except for
-      // visitors who ask for reduced motion. A reload starts at the top so the
-      // intro is visible; links with #anchors still jump to their section.
-      (function () {
-        try {
-          var root = document.documentElement;
-          if (location.pathname !== "/") return;
-          if (window.matchMedia("(prefers-reduced-motion: reduce)").matches) return;
-          if (!location.hash && "scrollRestoration" in history) history.scrollRestoration = "manual";
-          root.classList.add("intro");
-          setTimeout(function () {
-            if (window.__tuIntro) return;
-            root.classList.remove("intro");
-            root.classList.add("intro-done");
-          }, 3000);
-        } catch (error) {}
-      })();
-    </script>
     <meta
       name="description"
       content="Audits, Zertifizierungen und praxisnahe Schulungen mit Tayyip Ünal — persönlich, klar und rechtssicher."

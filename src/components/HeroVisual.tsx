@@ -38,7 +38,7 @@ export function HeroVisual({ scrollY, depth }: { scrollY: MotionValue<number>; d
 
   return (
     <motion.div className="hero-visual" style={stage} aria-hidden="true">
-      <motion.div className="hv-layer hv-notif" data-paper="5" style={drift(seal, 90)}>
+      <motion.div className="hv-layer hv-notif" style={drift(seal, 90)}>
         <span className="hv-notif-icon">
           <BadgeCheck size={20} />
         </span>
@@ -48,7 +48,7 @@ export function HeroVisual({ scrollY, depth }: { scrollY: MotionValue<number>; d
         </span>
       </motion.div>
 
-      <motion.div className="hv-layer hv-metric" data-paper="6" style={drift(mid, 70)}>
+      <motion.div className="hv-layer hv-metric" style={drift(mid, 70)}>
         <small>Auditreife</small>
         <b>92%</b>
         <svg viewBox="0 0 120 30" preserveAspectRatio="none">
@@ -56,7 +56,7 @@ export function HeroVisual({ scrollY, depth }: { scrollY: MotionValue<number>; d
         </svg>
       </motion.div>
 
-      <motion.div className="hv-layer hv-todo" data-paper="7" style={drift(back, 50)}>
+      <motion.div className="hv-layer hv-todo" style={drift(back, 50)}>
         <strong>Maßnahmenplan</strong>
         <ul>
           <li className="is-done">

@@ -8,10 +8,8 @@ import { Hero } from "./components/Hero";
 import { Bento } from "./components/Bento";
 import { Marquee } from "./components/Marquee";
 import { NormCheck } from "./components/NormCheck";
-import { References } from "./components/References";
 import { NightGlobe } from "./components/NightGlobe";
 import { Story } from "./components/Story";
-import { PaperIntro } from "./components/PaperIntro";
 import { SccJourney } from "./components/SccJourney";
 import { LegalPage } from "./components/LegalPage";
 import { useEffect, useState } from "react";
@@ -59,7 +57,6 @@ function App({ path = "/" }: { path?: string }) {
             <SccJourney onRequest={openConsultation} />
             <Story />
             <Bento />
-            <References />
             <NormCheck onRequest={() => openConsultation()} />
             <Expertise />
             <Contact onConsultation={() => openConsultation()} />
@@ -70,7 +67,6 @@ function App({ path = "/" }: { path?: string }) {
       {consultation && (
         <ConsultationModal preset={consultation} onClose={() => setConsultation(null)} />
       )}
-      {home && <PaperIntro />}
     </MotionConfig>
   );
 }

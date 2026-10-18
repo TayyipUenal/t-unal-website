@@ -12,6 +12,8 @@
           var saved = localStorage.getItem("tu-theme");
           var dark = saved ? saved === "dark" : window.matchMedia("(prefers-color-scheme: dark)").matches;
           if (dark) document.documentElement.dataset.theme = "dark";
+          var wanted = new URLSearchParams(location.search).get("palette") || localStorage.getItem("tu-palette");
+          if (wanted && /^(blau|smaragd|orange|indigo|bordeaux|wald)$/.test(wanted)) document.documentElement.dataset.palette = wanted;
         } catch (error) {}
       })();
     </script>

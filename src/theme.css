@@ -5,23 +5,23 @@
 :root[data-theme="dark"] {
   color-scheme: dark;
 
-  --ink: #e8f2f8;
-  --ink-soft: #a9c0cf;
-  --muted: #7f9aab;
-  --blue-700: #3aa3d8;
-  --blue-600: #4db3e6;
-  --blue-500: #5cc0f0;
-  --blue-300: #8fd3f5;
-  --blue-100: #123a53;
+  --ink: oklch(0.955 calc(0.0134 * var(--ck)) var(--hue));
+  --ink-soft: oklch(0.795 calc(0.033 * var(--ck)) var(--hue));
+  --muted: oklch(0.671 calc(0.0394 * var(--ck)) var(--hue));
+  --blue-700: oklch(0.679 calc(0.1221 * var(--ck)) var(--hue));
+  --blue-600: oklch(0.728 calc(0.1193 * var(--ck)) var(--hue));
+  --blue-500: oklch(0.767 calc(0.1157 * var(--ck)) var(--hue));
+  --blue-300: oklch(0.834 calc(0.0834 * var(--ck)) var(--hue));
+  --blue-100: oklch(0.333 calc(0.0624 * var(--ck)) var(--hue));
 
-  --white: #06151f;
-  --surface: #0d2434;
-  --mist: #0a1d2b;
-  --paper: #0b2030;
-  --paper-deep: #12303f;
-  --paper-light: #0b2030;
-  --line: #1b3a4d;
-  --line-strong: #2a5068;
+  --white: oklch(0.188 calc(0.0295 * var(--ck)) var(--hue));
+  --surface: oklch(0.25 calc(0.042 * var(--ck)) var(--hue));
+  --mist: oklch(0.222 calc(0.0371 * var(--ck)) var(--hue));
+  --paper: oklch(0.235 calc(0.041 * var(--ck)) var(--hue));
+  --paper-deep: oklch(0.294 calc(0.0448 * var(--ck)) var(--hue));
+  --paper-light: oklch(0.235 calc(0.041 * var(--ck)) var(--hue));
+  --line: oklch(0.334 calc(0.0499 * var(--ck)) var(--hue));
+  --line-strong: oklch(0.414 calc(0.0592 * var(--ck)) var(--hue));
 
   --shadow-sheet: 0 1px 2px rgba(0, 0, 0, 0.4), 0 14px 34px -16px rgba(0, 0, 0, 0.75);
   --shadow-lift: 0 36px 80px -36px rgba(0, 0, 0, 0.85), 0 2px 8px rgba(0, 0, 0, 0.3);
@@ -63,7 +63,7 @@
 
 .theme-toggle:hover {
   border-color: var(--blue-500);
-  box-shadow: 0 0 0 5px rgba(92, 192, 240, 0.16), 0 10px 24px -10px rgba(7, 132, 184, 0.7);
+  box-shadow: 0 0 0 5px oklch(0.767 calc(0.1157 * var(--ck)) var(--hue) / 0.16), 0 10px 24px -10px oklch(0.58 calc(0.1223 * var(--ck)) var(--hue) / 0.7);
   transform: rotate(18deg) scale(1.06);
 }
 
@@ -112,7 +112,7 @@
 
 /* ---------- Night theme: component overrides for hard-coded colours ---------- */
 :root[data-theme="dark"] .quote-option-icon {
-  background: rgba(92, 192, 240, 0.14);
+  background: oklch(0.767 calc(0.1157 * var(--ck)) var(--hue) / 0.14);
   color: var(--blue-300);
 }
 
@@ -135,17 +135,17 @@
 /* Paper stays paper: documents keep the day palette in the night theme. */
 :root[data-theme="dark"] :is(.scc-sheet, .scc-cert-back, .hero-film) {
   color-scheme: light;
-  --ink: #10324a;
-  --ink-soft: #4d6879;
-  --muted: #6b8494;
-  --blue-700: #0a5c86;
-  --blue-600: #0a6fa6;
-  --blue-500: #0784b8;
-  --blue-300: #6cc0e5;
-  --blue-100: #dcecf5;
+  --ink: oklch(0.305 calc(0.0584 * var(--ck)) var(--hue));
+  --ink-soft: oklch(0.503 calc(0.0418 * var(--ck)) var(--hue));
+  --muted: oklch(0.599 calc(0.0378 * var(--ck)) var(--hue));
+  --blue-700: oklch(0.452 calc(0.0981 * var(--ck)) var(--hue));
+  --blue-600: oklch(0.518 calc(0.1188 * var(--ck)) var(--hue));
+  --blue-500: oklch(0.58 calc(0.1223 * var(--ck)) var(--hue));
+  --blue-300: oklch(0.769 calc(0.0973 * var(--ck)) var(--hue));
+  --blue-100: oklch(0.934 calc(0.021 * var(--ck)) var(--hue));
   --surface: #ffffff;
   --mist: #eef5f9;
-  --line: #d9e5ec;
-  --line-strong: #bfd3de;
+  --line: oklch(0.915 calc(0.016 * var(--ck)) var(--hue));
+  --line-strong: oklch(0.855 calc(0.0265 * var(--ck)) var(--hue));
   color: var(--ink);
 }

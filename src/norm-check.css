@@ -20,7 +20,7 @@
   left: -120px;
   width: 420px;
   height: 420px;
-  background: rgba(255, 91, 34, 0.16);
+  background: color-mix(in srgb, var(--accent) 16%, transparent);
 }
 
 .nc-section::after {
@@ -28,7 +28,7 @@
   bottom: -160px;
   width: 520px;
   height: 520px;
-  background: rgba(92, 192, 240, 0.22);
+  background: oklch(0.767 calc(0.1157 * var(--ck)) var(--hue) / 0.22);
 }
 
 .nc-inner {
@@ -78,7 +78,7 @@
   background: var(--surface);
   box-shadow:
     0 0 0 1px var(--line),
-    0 40px 80px -50px rgba(7, 29, 43, 0.55);
+    0 40px 80px -50px oklch(0.221 calc(0.0391 * var(--ck)) var(--hue) / 0.55);
 }
 
 .nc-top {
@@ -186,7 +186,7 @@
   background: var(--surface);
   box-shadow:
     0 0 0 1.5px var(--blue-500),
-    0 16px 30px -20px rgba(7, 132, 184, 0.7);
+    0 16px 30px -20px oklch(0.58 calc(0.1223 * var(--ck)) var(--hue) / 0.7);
   transform: translateX(6px);
 }
 
@@ -196,7 +196,7 @@
 }
 
 .nc-opt.is-on small {
-  color: #b9cbd6;
+  color: oklch(0.832 calc(0.0249 * var(--ck)) var(--hue));
 }
 
 /* Result */
@@ -227,11 +227,11 @@
   gap: 8px;
   padding: 26px 22px;
   border-radius: 14px;
-  background: linear-gradient(160deg, #ffffff, #e9f2f8);
+  background: linear-gradient(160deg, #ffffff, oklch(0.956 calc(0.0126 * var(--ck)) var(--hue)));
   box-shadow:
-    0 30px 60px -24px rgba(7, 29, 43, 0.6),
-    inset 0 0 0 1px rgba(10, 92, 134, 0.18);
-  color: #10324a;
+    0 30px 60px -24px oklch(0.221 calc(0.0391 * var(--ck)) var(--hue) / 0.6),
+    inset 0 0 0 1px oklch(0.452 calc(0.0981 * var(--ck)) var(--hue) / 0.18);
+  color: oklch(0.305 calc(0.0584 * var(--ck)) var(--hue));
   text-align: center;
   animation: cert-in 0.9s cubic-bezier(0.22, 1, 0.36, 1) both;
 }
@@ -244,7 +244,7 @@
 }
 
 .nc-cert small {
-  color: #6b8494;
+  color: oklch(0.599 calc(0.0378 * var(--ck)) var(--hue));
   font-family: var(--font-mono);
   font-size: 0.62rem;
   letter-spacing: 0.14em;
@@ -260,7 +260,7 @@
 }
 
 .nc-cert em {
-  color: #0a5c86;
+  color: oklch(0.452 calc(0.0981 * var(--ck)) var(--hue));
   font-size: 0.82rem;
   font-style: normal;
   font-weight: 700;
@@ -271,7 +271,7 @@
   height: 6px;
   margin-top: 4px;
   border-radius: 4px;
-  background: #cfdee7;
+  background: oklch(0.892 calc(0.0203 * var(--ck)) var(--hue));
 }
 
 .nc-cert i.short {
@@ -289,7 +289,7 @@
   place-items: center;
   border-radius: 50%;
   background: var(--accent);
-  box-shadow: 0 14px 26px -10px rgba(255, 91, 34, 0.9);
+  box-shadow: 0 14px 26px -10px color-mix(in srgb, var(--accent) 90%, transparent);
   color: #fff;
   transform: translateZ(40px);
   animation: seal-drop 0.7s 0.6s cubic-bezier(0.34, 1.56, 0.64, 1) both;

@@ -14,7 +14,7 @@
   width: 62%;
   height: 100%;
   pointer-events: none;
-  background: radial-gradient(closest-side, rgba(108, 192, 229, 0.2), transparent 72%);
+  background: radial-gradient(closest-side, oklch(0.769 calc(0.0973 * var(--ck)) var(--hue) / 0.2), transparent 72%);
 }
 
 .hero-inner {
@@ -54,7 +54,7 @@
   height: 8px;
   border-radius: 50%;
   background: var(--blue-500);
-  box-shadow: 0 0 0 4px rgba(7, 132, 184, 0.14);
+  box-shadow: 0 0 0 4px oklch(0.58 calc(0.1223 * var(--ck)) var(--hue) / 0.14);
 }
 
 .hero h1 {
@@ -90,7 +90,7 @@
 
 .hero-secondary {
   color: var(--blue-700);
-  border-color: rgba(10, 92, 134, 0.35);
+  border-color: oklch(0.452 calc(0.0981 * var(--ck)) var(--hue) / 0.35);
 }
 
 .hero-secondary:hover {

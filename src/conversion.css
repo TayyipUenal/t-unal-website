@@ -55,7 +55,7 @@
   height: 18px;
   flex: 0 0 auto;
   margin: 3px 0 0;
-  accent-color: #0784b8;
+  accent-color: oklch(0.58 calc(0.1223 * var(--ck)) var(--hue));
 }
 .form-consent a {
   text-decoration: underline;
@@ -137,10 +137,10 @@
   background: var(--mist);
   color: var(--ink);
   overflow: auto;
-  box-shadow: 0 35px 100px #28465d33;
+  box-shadow: 0 35px 100px oklch(0.381 calc(0.0534 * var(--ck)) var(--hue) / 0.2);
 }
 .consultation-dialog::backdrop {
-  background: #34526866;
+  background: oklch(0.425 calc(0.0512 * var(--ck)) var(--hue) / 0.4);
   backdrop-filter: blur(5px);
 }
 .dialog-close {
@@ -296,7 +296,7 @@
 }
 .audit-scope-note {
   padding: 18px;
-  border-left: 2px solid #68b6d5;
+  border-left: 2px solid oklch(0.738 calc(0.089 * var(--ck)) var(--hue));
   background: var(--mist);
 }
 .document-list {

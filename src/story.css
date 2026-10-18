@@ -31,9 +31,9 @@
   column-gap: clamp(28px, 4vw, 72px);
   padding: clamp(80px, 12vh, 120px) var(--gutter) clamp(36px, 7vh, 72px);
   overflow: hidden;
-  color: #e7f2f8;
+  color: oklch(0.955 calc(0.0142 * var(--ck)) var(--hue));
   background:
-    radial-gradient(90% 80% at 76% 44%, rgba(26, 96, 138, 0.55) 0%, rgba(26, 96, 138, 0) 62%),
+    radial-gradient(90% 80% at 76% 44%, oklch(0.468 calc(0.0954 * var(--ck)) var(--hue) / 0.55) 0%, oklch(0.468 calc(0.0954 * var(--ck)) var(--hue) / 0) 62%),
     linear-gradient(160deg, var(--navy-800), var(--navy-950));
   transform-origin: 50% 50%;
   will-change: transform;
@@ -51,7 +51,7 @@
   font-family: var(--font-display);
   font-size: clamp(10rem, 28vw, 26rem);
   line-height: 0.8;
-  -webkit-text-stroke: 1px rgba(108, 192, 229, 0.24);
+  -webkit-text-stroke: 1px oklch(0.769 calc(0.0973 * var(--ck)) var(--hue) / 0.24);
 }
 
 .story-numeral span {
@@ -79,7 +79,7 @@
 .story-intro {
   max-width: 440px;
   margin: 18px 0 0;
-  color: #a9c3d2;
+  color: oklch(0.803 calc(0.0353 * var(--ck)) var(--hue));
   font-size: 0.95rem;
   line-height: 1.7;
 }
@@ -134,7 +134,7 @@
 .story-panel p {
   max-width: 420px;
   margin: 12px 0 0;
-  color: #c7dbe6;
+  color: oklch(0.88 calc(0.0263 * var(--ck)) var(--hue));
   font-size: 1rem;
   line-height: 1.7;
 }
@@ -168,7 +168,7 @@
 .story-rail-label {
   display: block;
   margin-top: 10px;
-  color: rgba(231, 242, 248, 0.5);
+  color: oklch(0.955 calc(0.0142 * var(--ck)) var(--hue) / 0.5);
   font-size: 0.68rem;
   font-weight: 700;
   letter-spacing: 0.08em;
@@ -183,7 +183,7 @@
 
 .story-cta {
   margin-top: clamp(20px, 4vh, 34px);
-  color: #e7f2f8;
+  color: oklch(0.955 calc(0.0142 * var(--ck)) var(--hue));
 }
 
 /* ---------- Stage ---------- */
@@ -261,12 +261,12 @@
   width: calc(var(--card-w) * 1.9);
   aspect-ratio: 1;
   margin: calc(var(--card-w) * -0.95) 0 0 calc(var(--card-w) * -0.95);
-  border: 1.5px solid rgba(108, 192, 229, 0.85);
+  border: 1.5px solid oklch(0.769 calc(0.0973 * var(--ck)) var(--hue) / 0.85);
   border-radius: 50%;
-  background: radial-gradient(circle, rgba(108, 192, 229, 0.1), rgba(108, 192, 229, 0) 70%);
+  background: radial-gradient(circle, oklch(0.769 calc(0.0973 * var(--ck)) var(--hue) / 0.1), oklch(0.769 calc(0.0973 * var(--ck)) var(--hue) / 0) 70%);
   box-shadow:
-    0 0 0 8px rgba(108, 192, 229, 0.07),
-    0 0 40px rgba(108, 192, 229, 0.2);
+    0 0 0 8px oklch(0.769 calc(0.0973 * var(--ck)) var(--hue) / 0.07),
+    0 0 40px oklch(0.769 calc(0.0973 * var(--ck)) var(--hue) / 0.2);
   pointer-events: none;
 }
 
@@ -279,7 +279,7 @@
 
 .story-labels span {
   position: absolute;
-  color: #a9c3d2;
+  color: oklch(0.803 calc(0.0353 * var(--ck)) var(--hue));
   font-size: 0.66rem;
   font-weight: 800;
   letter-spacing: 0.14em;
@@ -388,8 +388,8 @@
   left: 0;
   width: 2px;
   content: "";
-  background: linear-gradient(to bottom, transparent, rgba(108, 192, 229, 0.95), transparent);
-  box-shadow: 0 0 26px 7px rgba(108, 192, 229, 0.32);
+  background: linear-gradient(to bottom, transparent, oklch(0.769 calc(0.0973 * var(--ck)) var(--hue) / 0.95), transparent);
+  box-shadow: 0 0 26px 7px oklch(0.769 calc(0.0973 * var(--ck)) var(--hue) / 0.32);
 }
 
 /* ---------- Phones: head, stage, body stacked in one screen ---------- */
@@ -462,7 +462,7 @@
 /* ---------- Static version (server render, no JS, reduced motion) ---------- */
 .story.is-static {
   padding: var(--section-y) var(--gutter);
-  color: #e7f2f8;
+  color: oklch(0.955 calc(0.0142 * var(--ck)) var(--hue));
   background: linear-gradient(160deg, var(--navy-800), var(--navy-950));
 }
 
@@ -516,7 +516,7 @@
 .story-static-steps p {
   max-width: 480px;
   margin: 10px 0 0;
-  color: #c7dbe6;
+  color: oklch(0.88 calc(0.0263 * var(--ck)) var(--hue));
   line-height: 1.75;
 }
 

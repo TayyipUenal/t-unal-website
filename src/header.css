@@ -37,9 +37,9 @@
 /* Opaque on purpose: the logo drops its white background with a multiply
    blend, which only works on a solid white backdrop (not on glass). */
 .site-header.is-scrolled {
-  border-color: rgba(191, 211, 222, 0.7);
+  border-color: oklch(0.855 calc(0.0265 * var(--ck)) var(--hue) / 0.7);
   background: var(--surface);
-  box-shadow: 0 10px 30px -24px rgba(10, 39, 56, 0.45);
+  box-shadow: 0 10px 30px -24px oklch(0.26 calc(0.0467 * var(--ck)) var(--hue) / 0.45);
 }
 
 .site-header.is-hidden {
@@ -170,7 +170,7 @@
     border: 1px solid var(--line);
     border-radius: 20px;
     background: color-mix(in srgb, var(--surface) 97%, transparent);
-    box-shadow: 0 24px 70px rgba(10, 39, 56, 0.18);
+    box-shadow: 0 24px 70px oklch(0.26 calc(0.0467 * var(--ck)) var(--hue) / 0.18);
     -webkit-backdrop-filter: blur(18px);
     backdrop-filter: blur(18px);
   }

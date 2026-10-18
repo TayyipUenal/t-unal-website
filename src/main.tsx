@@ -25,6 +25,7 @@ import "./theme.css";
 import "./fx.css";
 import "./fx-sections.css";
 import "./norm-check.css";
+import "./palettes.css";
 
 const root = document.getElementById("root")!;
 const app = (

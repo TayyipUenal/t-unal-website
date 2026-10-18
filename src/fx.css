@@ -17,10 +17,10 @@
 }
 
 .button-primary {
-  background: linear-gradient(115deg, var(--blue-600), var(--blue-500) 45%, #2dd4ee 70%, var(--blue-600));
+  background: linear-gradient(115deg, var(--blue-600), var(--blue-500) 45%, oklch(0.801 calc(0.1314 * var(--ck)) var(--hue)) 70%, var(--blue-600));
   background-size: 220% 100%;
   box-shadow:
-    0 14px 30px -14px rgba(7, 132, 184, 0.85),
+    0 14px 30px -14px oklch(0.58 calc(0.1223 * var(--ck)) var(--hue) / 0.85),
     inset 0 1px 0 rgba(255, 255, 255, 0.35);
   color: #fff;
 }
@@ -34,8 +34,8 @@
 .header-contact:hover {
   background-position: 100% 0;
   box-shadow:
-    0 20px 44px -14px rgba(7, 160, 220, 0.9),
-    0 0 0 4px rgba(92, 192, 240, 0.18),
+    0 20px 44px -14px oklch(0.666 calc(0.1392 * var(--ck)) var(--hue) / 0.9),
+    0 0 0 4px oklch(0.767 calc(0.1157 * var(--ck)) var(--hue) / 0.18),
     inset 0 1px 0 rgba(255, 255, 255, 0.45);
 }
 
@@ -128,13 +128,13 @@
 .hero-aurora i:nth-child(1) {
   top: -18%;
   right: -8%;
-  background: radial-gradient(circle, rgba(108, 192, 229, 0.7), transparent 65%);
+  background: radial-gradient(circle, oklch(0.769 calc(0.0973 * var(--ck)) var(--hue) / 0.7), transparent 65%);
 }
 
 .hero-aurora i:nth-child(2) {
   bottom: -30%;
   left: -12%;
-  background: radial-gradient(circle, rgba(45, 212, 238, 0.4), transparent 65%);
+  background: radial-gradient(circle, oklch(0.801 calc(0.1314 * var(--ck)) var(--hue) / 0.4), transparent 65%);
   animation-delay: -7s;
 }
 
@@ -143,7 +143,7 @@
   left: 30%;
   width: 30vw;
   height: 30vw;
-  background: radial-gradient(circle, rgba(10, 111, 166, 0.35), transparent 65%);
+  background: radial-gradient(circle, oklch(0.518 calc(0.1188 * var(--ck)) var(--hue) / 0.35), transparent 65%);
   animation-delay: -13s;
 }
 
@@ -199,7 +199,7 @@
 }
 
 :root[data-theme="dark"] .hero-glow {
-  background: radial-gradient(closest-side, rgba(45, 160, 220, 0.28), transparent 72%);
+  background: radial-gradient(closest-side, oklch(0.671 calc(0.1322 * var(--ck)) var(--hue) / 0.28), transparent 72%);
 }
 
 :root[data-theme="dark"] .hero-floor::before {
@@ -208,7 +208,7 @@
 
 /* ---- Headline shimmer ---- */
 .hero h1 em {
-  background: linear-gradient(100deg, var(--blue-700), #2dd4ee 40%, var(--blue-500) 60%, var(--blue-700));
+  background: linear-gradient(100deg, var(--blue-700), oklch(0.801 calc(0.1314 * var(--ck)) var(--hue)) 40%, var(--blue-500) 60%, var(--blue-700));
   background-size: 220% 100%;
   -webkit-background-clip: text;
   background-clip: text;
@@ -246,7 +246,7 @@
   z-index: 0;
   inset: 0;
   border-radius: inherit;
-  background: radial-gradient(360px circle at var(--px, 50%) var(--py, 50%), rgba(92, 192, 240, 0.2), transparent 55%);
+  background: radial-gradient(360px circle at var(--px, 50%) var(--py, 50%), oklch(0.767 calc(0.1157 * var(--ck)) var(--hue) / 0.2), transparent 55%);
   opacity: 0;
   pointer-events: none;
   transition: opacity 0.35s ease;

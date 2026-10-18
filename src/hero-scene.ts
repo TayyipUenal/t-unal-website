@@ -46,10 +46,45 @@ export type HeroScene = { stop: () => void; setTheme: (dark: boolean) => void };
 
 type Options = { still: boolean; dark: boolean; small: boolean };
 
-const NAVY = "#0a2738";
-const BLUE = "#0784b8";
 const GREEN = "#17a673";
-const ORANGE = "#ff5b22";
+
+/** Resolves a CSS colour token (for example "--blue-600") to a hex number via the browser. */
+function token(name: string, fallback: number) {
+  try {
+    const probe = document.createElement("i");
+    probe.style.color = `var(${name})`;
+    probe.style.display = "none";
+    document.body.append(probe);
+    const resolved = getComputedStyle(probe).color;
+    probe.remove();
+    const canvas = document.createElement("canvas");
+    canvas.width = canvas.height = 1;
+    const g = canvas.getContext("2d", { willReadFrequently: true })!;
+    g.clearRect(0, 0, 1, 1);
+    g.fillStyle = resolved;
+    g.fillRect(0, 0, 1, 1);
+    const [r, gg, b] = g.getImageData(0, 0, 1, 1).data;
+    return (r << 16) | (gg << 8) | b;
+  } catch {
+    return fallback;
+  }
+}
+const css = (value: number) => "#" + value.toString(16).padStart(6, "0");
+
+type Tones = { navy: string; blue: string; accent: string; light: number; deep: number; mid: number; road: number; dust: number; glass: number };
+function tones(): Tones {
+  return {
+    navy: css(token("--navy-900", 0x0a2738)),
+    blue: css(token("--blue-500", 0x0784b8)),
+    accent: css(token("--accent", 0xff5b22)),
+    light: token("--blue-300", 0x6cc0e5),
+    deep: token("--navy-800", 0x0e3450),
+    mid: token("--navy-700", 0x144766),
+    road: token("--navy-700", 0x2a4658),
+    dust: token("--blue-600", 0x0a6fa6),
+    glass: token("--blue-300", 0x9fd0ea),
+  };
+}
 const CYCLE = 8; // seconds per certification wave
 const REACH = 5.2; // wave radius at the end of its run
 
@@ -114,7 +149,7 @@ function glowTexture() {
   return texture;
 }
 
-function badge(label: string, accent: string) {
+function badge(label: string, accent: string, navy: string) {
   const texture = drawTexture(512, 176, (g) => {
     g.shadowColor = "rgba(7,29,43,0.35)";
     g.shadowBlur = 28;
@@ -136,7 +171,7 @@ function badge(label: string, accent: string) {
     g.lineTo(85, 93);
     g.lineTo(104, 69);
     g.stroke();
-    g.fillStyle = NAVY;
+    g.fillStyle = navy;
     g.font = '800 52px "Bricolage Grotesque", "Figtree", sans-serif';
     g.textAlign = "left";
     g.textBaseline = "middle";
@@ -148,12 +183,12 @@ function badge(label: string, accent: string) {
   return sprite;
 }
 
-function pinLabel() {
+function pinLabel(accent: string) {
   const texture = drawTexture(384, 128, (g) => {
     g.shadowColor = "rgba(7,29,43,0.45)";
     g.shadowBlur = 22;
     g.shadowOffsetY = 8;
-    g.fillStyle = ORANGE;
+    g.fillStyle = accent;
     roundRect(g, 20, 14, 344, 84, 42);
     g.fill();
     g.shadowColor = "transparent";
@@ -179,6 +214,7 @@ type Building = {
 };
 
 export function startHeroScene(canvas: HTMLCanvasElement, options: Options): HeroScene {
+  const tone = tones();
   const renderer = new WebGLRenderer({ canvas, antialias: true, alpha: true, powerPreference: "high-performance" });
   renderer.setPixelRatio(Math.min(window.devicePixelRatio, options.small ? 1.25 : 1.75));
   const scene = new Scene();
@@ -190,7 +226,7 @@ export function startHeroScene(canvas: HTMLCanvasElement, options: Options): Her
   const ambient = new AmbientLight(0xffffff, 0.5);
   const sun = new DirectionalLight(0xfff1dc, 2.2);
   sun.position.set(-4, 7, 5);
-  const moon = new PointLight(0x6cc0e5, 60, 30);
+  const moon = new PointLight(tone.light, 60, 30);
   moon.position.set(4, 5, 6);
   scene.add(ambient, sun, moon);
 
@@ -229,7 +265,7 @@ export function startHeroScene(canvas: HTMLCanvasElement, options: Options): Her
   const roofMaterial = (color: number) => new MeshStandardMaterial({ color, roughness: 0.7, metalness: 0.1 });
 
   // Platform
-  const baseMaterial = new MeshStandardMaterial({ color: 0x0f3a55, roughness: 0.6, metalness: 0.3 });
+  const baseMaterial = new MeshStandardMaterial({ color: tone.deep, roughness: 0.6, metalness: 0.3 });
   const base = new Mesh(new BoxGeometry(7.4, 0.36, 7.4), baseMaterial);
   base.position.y = -0.2;
   spinner.add(base);
@@ -237,7 +273,7 @@ export function startHeroScene(canvas: HTMLCanvasElement, options: Options): Her
   const lawn = new Mesh(new BoxGeometry(7.2, 0.06, 7.2), lawnMaterial);
   lawn.position.y = 0.01;
   spinner.add(lawn);
-  const roadMaterial = new MeshStandardMaterial({ color: 0x2a4658, roughness: 0.8 });
+  const roadMaterial = new MeshStandardMaterial({ color: tone.road, roughness: 0.8 });
   const roadA = new Mesh(new BoxGeometry(7.2, 0.02, 0.32), roadMaterial);
   roadA.position.set(0, 0.05, 0.9);
   const roadB = new Mesh(new BoxGeometry(0.32, 0.02, 7.2), roadMaterial);
@@ -263,7 +299,7 @@ export function startHeroScene(canvas: HTMLCanvasElement, options: Options): Her
     spinner.add(group);
     const entry: Building = { group, materials: [material], dist: Math.hypot(x, z), at: -1, top: h + 0.04 };
     if (key) {
-      const sprite = badge(key.label, key.accent);
+      const sprite = badge(key.label, key.accent, tone.navy);
       sprite.position.set(0, h + 0.95, 0);
       sprite.scale.setScalar(0.001);
       group.add(sprite);
@@ -298,11 +334,11 @@ export function startHeroScene(canvas: HTMLCanvasElement, options: Options): Her
   }
 
   // Office tower (glass)
-  add(1.5, -1.5, 0.9, 0.9, 2.5, wall(0x9fd0ea, 2, 6, true), 0x6cc0e5, { label: "ISO 9001", accent: BLUE });
+  add(1.5, -1.5, 0.9, 0.9, 2.5, wall(tone.glass, 2, 6, true), tone.light, { label: "ISO 9001", accent: tone.blue });
   // Mid office
   add(1.95, 0.2, 0.8, 0.8, 1.3, wall(0xdfeaf1, 2, 3), 0x9fb8c7);
   // Warehouse
-  const warehouse = add(-1.7, 1.55, 2.0, 1.0, 0.7, wall(0xcfe0ea, 4, 1), 0x7e99ab, { label: "ISO 45001", accent: ORANGE });
+  const warehouse = add(-1.7, 1.55, 2.0, 1.0, 0.7, wall(0xcfe0ea, 4, 1), 0x7e99ab, { label: "ISO 45001", accent: tone.accent });
   const door = new Mesh(new BoxGeometry(0.7, 0.4, 0.04), new MeshStandardMaterial({ color: 0xff8a4c, roughness: 0.5 }));
   door.position.set(0.3, 0.26, 0.52);
   warehouse.group.add(door);
@@ -314,7 +350,7 @@ export function startHeroScene(canvas: HTMLCanvasElement, options: Options): Her
   const pinHead = new Mesh(new SphereGeometry(0.2, 20, 20), pin.material);
   pinHead.position.set(0, 2.05, 0);
   home.group.add(pin, pinHead);
-  const label = pinLabel();
+  const label = pinLabel(tone.accent);
   label.position.set(0, 2.65, 0);
   home.group.add(label);
   // Homes
@@ -376,14 +412,14 @@ export function startHeroScene(canvas: HTMLCanvasElement, options: Options): Her
   }
 
   // Certification wave
-  const waveMaterial = new MeshBasicMaterial({ color: 0x6cc0e5, transparent: true, opacity: 0, depthWrite: false });
+  const waveMaterial = new MeshBasicMaterial({ color: tone.light, transparent: true, opacity: 0, depthWrite: false });
   const wave = new Mesh(new TorusGeometry(1, 0.025, 8, 120), waveMaterial);
   wave.rotation.x = Math.PI / 2;
   wave.position.y = 0.12;
   spinner.add(wave);
   const waveFill = new Mesh(
     new PlaneGeometry(2, 2),
-    new MeshBasicMaterial({ color: 0x6cc0e5, transparent: true, opacity: 0, depthWrite: false }),
+    new MeshBasicMaterial({ color: tone.light, transparent: true, opacity: 0, depthWrite: false }),
   );
   waveFill.rotation.x = -Math.PI / 2;
   waveFill.position.y = 0.1;
@@ -399,7 +435,7 @@ export function startHeroScene(canvas: HTMLCanvasElement, options: Options): Her
   }
   const dustGeometry = new BufferGeometry();
   dustGeometry.setAttribute("position", new BufferAttribute(positions, 3));
-  const dustMaterial = new PointsMaterial({ color: 0x0a6fa6, size: 0.05, transparent: true, opacity: 0.5, depthWrite: false });
+  const dustMaterial = new PointsMaterial({ color: tone.dust, size: 0.05, transparent: true, opacity: 0.5, depthWrite: false });
   const dust = new Points(dustGeometry, dustMaterial);
   scene.add(dust);
 
@@ -411,10 +447,10 @@ export function startHeroScene(canvas: HTMLCanvasElement, options: Options): Her
     sun.intensity = dark ? 0.35 : 2.3;
     sun.color.set(dark ? 0x8fb4ff : 0xfff1dc);
     moon.intensity = dark ? 90 : 25;
-    baseMaterial.color.set(dark ? 0x0a2a3f : 0x0f3a55);
+    baseMaterial.color.set(dark ? token("--navy-900", 0x0a2a3f) : tone.deep);
     lawnMaterial.color.set(dark ? 0x0f5846 : 0x1d9a73);
-    roadMaterial.color.set(dark ? 0x16303f : 0x2a4658);
-    dustMaterial.color = new Color(dark ? 0x8fd3f5 : 0x0a6fa6);
+    roadMaterial.color.set(dark ? token("--navy-800", 0x16303f) : tone.road);
+    dustMaterial.color = new Color(dark ? tone.light : tone.dust);
     dustMaterial.opacity = dark ? 0.9 : 0.5;
     dustMaterial.blending = dark ? AdditiveBlending : NormalBlending;
     dustMaterial.needsUpdate = true;
@@ -501,7 +537,7 @@ export function startHeroScene(canvas: HTMLCanvasElement, options: Options): Her
       else if (b.at < 0 && radius >= b.dist && phase < 0.45) b.at = time;
       const age = b.at < 0 ? -1 : time - b.at;
       const lit = age >= 0 ? Math.max(0, 1 - age / 1.2) : 0;
-      b.materials.forEach((m) => m.emissive.set(lit > 0 ? 0x6cc0e5 : 0xffd9a0));
+      b.materials.forEach((m) => m.emissive.set(lit > 0 ? tone.light : 0xffd9a0));
       b.group.position.y = lit * 0.12;
       if (b.badge) {
         const grow = age < 0 ? 0 : Math.min(1, age / 0.7);

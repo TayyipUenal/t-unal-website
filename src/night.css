@@ -4,10 +4,10 @@
   isolation: isolate;
   overflow: hidden;
   padding: clamp(48px, 5vw, 76px) var(--gutter);
-  color: #eaf3f9;
+  color: oklch(0.959 calc(0.0125 * var(--ck)) var(--hue));
   background:
-    radial-gradient(90% 80% at 76% 46%, #0e3450 0%, rgba(14, 52, 80, 0) 62%),
-    linear-gradient(180deg, #061724 0%, var(--navy-950) 45%, #05131e 100%);
+    radial-gradient(90% 80% at 76% 46%, oklch(0.314 calc(0.0655 * var(--ck)) var(--hue)) 0%, oklch(0.314 calc(0.0655 * var(--ck)) var(--hue) / 0) 62%),
+    linear-gradient(180deg, oklch(0.197 calc(0.0351 * var(--ck)) var(--hue)) 0%, var(--navy-950) 45%, oklch(0.18 calc(0.0307 * var(--ck)) var(--hue)) 100%);
 }
 
 /* A handful of fixed stars; the globe carries the motion. */
@@ -18,18 +18,18 @@
   z-index: -1;
   opacity: 0.7;
   background:
-    radial-gradient(1.2px 1.2px at 6% 18%, #cfe6f5 50%, transparent 51%),
-    radial-gradient(1px 1px at 14% 72%, #9cc4de 50%, transparent 51%),
+    radial-gradient(1.2px 1.2px at 6% 18%, oklch(0.913 calc(0.0319 * var(--ck)) var(--hue)) 50%, transparent 51%),
+    radial-gradient(1px 1px at 14% 72%, oklch(0.8 calc(0.0564 * var(--ck)) var(--hue)) 50%, transparent 51%),
     radial-gradient(1.4px 1.4px at 23% 34%, #ffffff 50%, transparent 51%),
-    radial-gradient(1px 1px at 31% 88%, #9cc4de 50%, transparent 51%),
-    radial-gradient(1px 1px at 38% 12%, #cfe6f5 50%, transparent 51%),
-    radial-gradient(1.2px 1.2px at 44% 58%, #9cc4de 50%, transparent 51%),
+    radial-gradient(1px 1px at 31% 88%, oklch(0.8 calc(0.0564 * var(--ck)) var(--hue)) 50%, transparent 51%),
+    radial-gradient(1px 1px at 38% 12%, oklch(0.913 calc(0.0319 * var(--ck)) var(--hue)) 50%, transparent 51%),
+    radial-gradient(1.2px 1.2px at 44% 58%, oklch(0.8 calc(0.0564 * var(--ck)) var(--hue)) 50%, transparent 51%),
     radial-gradient(1px 1px at 52% 6%, #ffffff 50%, transparent 51%),
-    radial-gradient(1px 1px at 58% 93%, #cfe6f5 50%, transparent 51%),
+    radial-gradient(1px 1px at 58% 93%, oklch(0.913 calc(0.0319 * var(--ck)) var(--hue)) 50%, transparent 51%),
     radial-gradient(1.3px 1.3px at 93% 9%, #ffffff 50%, transparent 51%),
-    radial-gradient(1px 1px at 97% 62%, #9cc4de 50%, transparent 51%),
-    radial-gradient(1px 1px at 88% 95%, #cfe6f5 50%, transparent 51%),
-    radial-gradient(1px 1px at 3% 48%, #cfe6f5 50%, transparent 51%);
+    radial-gradient(1px 1px at 97% 62%, oklch(0.8 calc(0.0564 * var(--ck)) var(--hue)) 50%, transparent 51%),
+    radial-gradient(1px 1px at 88% 95%, oklch(0.913 calc(0.0319 * var(--ck)) var(--hue)) 50%, transparent 51%),
+    radial-gradient(1px 1px at 3% 48%, oklch(0.913 calc(0.0319 * var(--ck)) var(--hue)) 50%, transparent 51%);
 }
 
 .night-inner {
@@ -55,7 +55,7 @@
   max-width: 34rem;
   font-size: clamp(1.02rem, 1.25vw, 1.16rem);
   line-height: 1.7;
-  color: #b7cfdd;
+  color: oklch(0.841 calc(0.0325 * var(--ck)) var(--hue));
 }
 
 .night-home {
@@ -66,13 +66,13 @@
   margin: clamp(24px, 2.6vw, 36px) 0 0;
   padding-top: clamp(20px, 2.2vw, 28px);
   max-width: 34rem;
-  border-top: 1px solid rgba(183, 207, 221, 0.22);
+  border-top: 1px solid oklch(0.841 calc(0.0325 * var(--ck)) var(--hue) / 0.22);
 }
 
 .night-home p {
   margin: 0;
   font-weight: 600;
-  color: #eaf3f9;
+  color: oklch(0.959 calc(0.0125 * var(--ck)) var(--hue));
 }
 
 .night-fly {
@@ -80,23 +80,23 @@
   align-items: center;
   gap: 9px;
   padding: 11px 18px;
-  border: 1px solid rgba(140, 214, 255, 0.55);
+  border: 1px solid oklch(0.842 calc(0.0933 * var(--ck)) var(--hue) / 0.55);
   border-radius: 999px;
   font: inherit;
   font-weight: 600;
   color: #ffffff;
-  background: rgba(140, 214, 255, 0.1);
+  background: oklch(0.842 calc(0.0933 * var(--ck)) var(--hue) / 0.1);
   cursor: pointer;
   transition: background 0.2s ease, border-color 0.2s ease;
 }
 
 .night-fly:hover {
   border-color: var(--line);
-  background: rgba(140, 214, 255, 0.2);
+  background: oklch(0.842 calc(0.0933 * var(--ck)) var(--hue) / 0.2);
 }
 
 .night-fly:focus-visible {
-  outline: 2px solid #8cd6ff;
+  outline: 2px solid oklch(0.842 calc(0.0933 * var(--ck)) var(--hue));
   outline-offset: 3px;
 }
 
@@ -133,13 +133,13 @@
   width: max-content;
   max-width: 78%;
   padding: 14px 18px 13px;
-  border: 1px solid rgba(140, 214, 255, 0.45);
+  border: 1px solid oklch(0.842 calc(0.0933 * var(--ck)) var(--hue) / 0.45);
   border-radius: 16px;
   font-style: normal;
   font-size: 0.92rem;
   line-height: 1.45;
-  color: #d5e6f1;
-  background: rgba(5, 16, 26, 0.9);
+  color: oklch(0.916 calc(0.0236 * var(--ck)) var(--hue));
+  background: oklch(0.168 calc(0.0273 * var(--ck)) var(--hue) / 0.9);
   box-shadow: 0 18px 40px -18px rgba(0, 0, 0, 0.8);
   opacity: 0;
   visibility: hidden;
@@ -165,7 +165,7 @@
   gap: 5px;
   margin-top: 7px;
   font-weight: 600;
-  color: #8cd6ff;
+  color: oklch(0.842 calc(0.0933 * var(--ck)) var(--hue));
 }
 
 .night-card a:hover {

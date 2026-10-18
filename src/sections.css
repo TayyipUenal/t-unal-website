@@ -67,7 +67,7 @@
 .ev-orbit {
   position: absolute;
   inset: -6%;
-  border: 1px solid rgba(16, 50, 74, 0.14);
+  border: 1px solid oklch(0.305 calc(0.0584 * var(--ck)) var(--hue) / 0.14);
   border-radius: 50%;
 }
 
@@ -80,7 +80,7 @@
   content: "";
   border-radius: 50%;
   background: var(--blue-500);
-  box-shadow: 0 0 0 5px rgba(7, 132, 184, 0.14);
+  box-shadow: 0 0 0 5px oklch(0.58 calc(0.1223 * var(--ck)) var(--hue) / 0.14);
 }
 
 .ev-disc {
@@ -89,7 +89,7 @@
   overflow: hidden;
   border-radius: 50%;
   background:
-    radial-gradient(circle at 30% 26%, rgba(40, 118, 164, 0.75), transparent 58%),
+    radial-gradient(circle at 30% 26%, oklch(0.54 calc(0.1033 * var(--ck)) var(--hue) / 0.75), transparent 58%),
     linear-gradient(150deg, var(--navy-800), var(--navy-950));
   box-shadow: var(--shadow-lift);
 }
@@ -98,7 +98,7 @@
   position: absolute;
   top: 9%;
   left: 18%;
-  color: rgba(108, 192, 229, 0.5);
+  color: oklch(0.769 calc(0.0973 * var(--ck)) var(--hue) / 0.5);
   font-family: var(--font-display);
   font-size: 40cqw;
   line-height: 1;
@@ -307,9 +307,9 @@
   overflow: hidden;
   padding: clamp(40px, 6vw, 88px);
   border-radius: 28px;
-  color: #e7f2f8;
+  color: oklch(0.955 calc(0.0142 * var(--ck)) var(--hue));
   background:
-    radial-gradient(80% 120% at 88% 0%, rgba(26, 96, 138, 0.65), transparent 60%),
+    radial-gradient(80% 120% at 88% 0%, oklch(0.468 calc(0.0954 * var(--ck)) var(--hue) / 0.65), transparent 60%),
     linear-gradient(150deg, var(--navy-800), var(--navy-950));
   box-shadow: var(--shadow-lift);
 }
@@ -333,7 +333,7 @@
 .contact-intro {
   max-width: 520px;
   margin: 22px 0 0;
-  color: #b9cfdc;
+  color: oklch(0.842 calc(0.0299 * var(--ck)) var(--hue));
   font-size: 1.02rem;
   line-height: 1.7;
 }
@@ -351,8 +351,8 @@
   align-items: center;
   gap: 9px;
   padding: 6px 0;
-  border-bottom: 1px solid rgba(231, 242, 248, 0.4);
-  color: #e7f2f8;
+  border-bottom: 1px solid oklch(0.955 calc(0.0142 * var(--ck)) var(--hue) / 0.4);
+  color: oklch(0.955 calc(0.0142 * var(--ck)) var(--hue));
   font-size: 0.88rem;
   font-weight: 700;
   transition: border-color 0.2s ease;

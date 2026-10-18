@@ -135,7 +135,7 @@
 }
 
 .scc-stage.is-current .scc-marker {
-  box-shadow: 0 0 0 7px rgba(10, 39, 56, 0.08);
+  box-shadow: 0 0 0 7px oklch(0.26 calc(0.0467 * var(--ck)) var(--hue) / 0.08);
 }
 
 /* ---------- Stage card: white sheet over an offset paper sheet ---------- */
@@ -190,7 +190,7 @@
   border-radius: 18px;
   background: var(--navy-900);
   color: #fff;
-  box-shadow: 0 16px 30px -16px rgba(10, 39, 56, 0.75);
+  box-shadow: 0 16px 30px -16px oklch(0.26 calc(0.0467 * var(--ck)) var(--hue) / 0.75);
   transition:
     transform 0.55s cubic-bezier(0.22, 1, 0.36, 1),
     background 0.55s ease;
@@ -503,9 +503,9 @@
   overflow: hidden;
   padding: clamp(28px, 4vw, 44px);
   border-radius: 24px;
-  color: #e7f2f8;
+  color: oklch(0.955 calc(0.0142 * var(--ck)) var(--hue));
   background:
-    radial-gradient(90% 120% at 90% 0%, rgba(26, 96, 138, 0.6), transparent 60%),
+    radial-gradient(90% 120% at 90% 0%, oklch(0.468 calc(0.0954 * var(--ck)) var(--hue) / 0.6), transparent 60%),
     linear-gradient(150deg, var(--navy-800), var(--navy-950));
   box-shadow: var(--shadow-lift);
 }
@@ -532,7 +532,7 @@
 .scc-cta-text {
   max-width: 520px;
   margin: 12px 0 0;
-  color: #b9cfdc;
+  color: oklch(0.842 calc(0.0299 * var(--ck)) var(--hue));
   font-size: 0.98rem;
   line-height: 1.7;
 }
@@ -560,7 +560,7 @@
   align-items: center;
   gap: 8px;
   margin-top: 18px;
-  color: #cfe1ea;
+  color: oklch(0.899 calc(0.0229 * var(--ck)) var(--hue));
   font-size: 0.84rem;
   font-weight: 700;
   transition: color 0.2s ease;

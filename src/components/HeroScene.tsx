@@ -15,6 +15,13 @@ export function HeroScene() {
     let cancelled = false;
     let scene: Scene | null = null;
     const onTheme = (event: Event) => scene?.setTheme((event as CustomEvent<string>).detail === "dark");
+    // A new palette changes every colour of the scene, so it is rebuilt.
+    const onPalette = () => {
+      scene?.stop();
+      scene = null;
+      canvas.current?.classList.remove("is-live");
+      start();
+    };
     const start = () => {
       // The scene paints text into textures, so the web fonts must be ready.
       const fonts = Promise.all([
@@ -41,9 +48,11 @@ export function HeroScene() {
     const idle = window.requestIdleCallback ?? ((cb: () => void) => window.setTimeout(cb, 400));
     const handle = idle(start);
     window.addEventListener("themechange", onTheme);
+    window.addEventListener("palettechange", onPalette);
     return () => {
       cancelled = true;
       window.removeEventListener("themechange", onTheme);
+      window.removeEventListener("palettechange", onPalette);
       if (window.cancelIdleCallback) window.cancelIdleCallback(handle);
       scene?.stop();
     };

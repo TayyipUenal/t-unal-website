@@ -150,7 +150,7 @@ export function startHeroScene(canvas: HTMLCanvasElement, options: Options): Her
   const apply = (dark: boolean) => {
     edgeMaterial.opacity = dark ? 0.9 : 0.7;
     ringLineMaterial.opacity = dark ? 0.6 : 0.4;
-    plinthMaterial.color = new Color(dark ? 0x1d1d1d : 0x2a2a2a);
+    plinthMaterial.color = new Color(dark ? 0x1d1d1d : 0xd8d2c5);
     ambient.intensity = dark ? 0.25 : 0.4;
     key.intensity = dark ? 2.0 : 2.6;
   };
@@ -159,13 +159,12 @@ export function startHeroScene(canvas: HTMLCanvasElement, options: Options): Her
   let width = 1;
   const place = () => {
     const halfH = Math.tan(MathUtils.degToRad(camera.fov / 2)) * camera.position.z;
-    const halfW = halfH * camera.aspect;
-    if (options.small || width < 781) {
-      rig.position.set(0, -halfH * 0.42, 0);
-      rig.scale.setScalar(0.55);
+        if (options.small || width < 781) {
+      rig.position.set(0, 0.1, 0);
+      rig.scale.setScalar(Math.min(0.8, halfH / 5.2));
     } else {
-      rig.position.set(halfW * 0.6, 0.9, 0);
-      rig.scale.setScalar(Math.min(0.9, halfH / 5.2));
+      rig.position.set(0, 0.15, 0);
+      rig.scale.setScalar(Math.min(1.1, halfH / 3.9));
     }
   };
   const resize = () => {

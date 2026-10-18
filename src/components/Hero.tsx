@@ -7,7 +7,7 @@ import { WhatsAppIcon } from "./WhatsAppIcon";
 
 /**
  * Opening: a large statement on the left, the 3D monoliths on the right
- * (drawn by HeroScene behind the text), the main action, social links and the
+ * (drawn by HeroScene on its own stage), the main action, social links and the
  * qualifications. Below, a photo band shows /photos/hero.jpg once that file
  * exists; until then a quiet index of the three standards takes its place.
  */
@@ -21,9 +21,6 @@ export function Hero({ onConsultation }: { onConsultation: () => void }) {
 
   return (
     <section id="top" className="hero" aria-labelledby="hero-title">
-      <HeroScene />
-      <div className="hero-glow" aria-hidden="true" />
-
       <div className="hero-top">
         <p className="hero-kicker">
           <span aria-hidden="true" />
@@ -60,6 +57,9 @@ export function Hero({ onConsultation }: { onConsultation: () => void }) {
           </div>
         </div>
 
+        <div className="hero-stage" aria-hidden="true">
+          <HeroScene />
+        </div>
       </div>
 
       <div className="hero-meta">

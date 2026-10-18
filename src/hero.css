@@ -1,6 +1,7 @@
 /* ---------- Hero: statement on the left, 3D on the right ---------- */
 .hero {
   position: relative;
+  z-index: 0;
   display: flex;
   min-height: min(100svh, 980px);
   flex-direction: column;
@@ -9,22 +10,6 @@
   background: var(--white);
 }
 
-.hero > :not(.hero-scene):not(.hero-glow) {
-  position: relative;
-  z-index: 2;
-}
-
-.hero-glow {
-  position: absolute;
-  z-index: 0;
-  top: 4%;
-  right: -4%;
-  display: block !important;
-  width: 62%;
-  height: 74%;
-  pointer-events: none;
-  background: radial-gradient(closest-side, color-mix(in srgb, var(--gold) 20%, transparent), transparent 72%);
-}
 
 .hero-top,
 .hero-foot {
@@ -70,11 +55,30 @@
 }
 
 .hero-foot {
-  display: flex;
+  display: grid;
   margin-top: clamp(28px, 5vh, 56px);
-  align-items: flex-end;
-  justify-content: space-between;
-  gap: 32px;
+  grid-template-columns: minmax(0, 1fr) minmax(0, 1fr);
+  align-items: center;
+  gap: clamp(24px, 4vw, 64px);
+}
+
+/* The 3D object has its own stage, so it never sits behind text */
+.hero-stage {
+  position: relative;
+  height: clamp(320px, 31vw, 460px);
+}
+
+.hero-stage::before {
+  content: "";
+  position: absolute;
+  inset: -8% -6%;
+  pointer-events: none;
+  background: radial-gradient(closest-side, color-mix(in srgb, var(--gold) 20%, transparent), transparent 74%);
+}
+
+.hero-stage .hero-scene {
+  position: absolute;
+  inset: 0;
 }
 
 .hero-foot-copy {
@@ -241,15 +245,10 @@
   }
 
   .hero-foot {
-    flex-direction: column;
-    align-items: flex-start;
+    grid-template-columns: 1fr;
   }
 
-  /* On narrow screens the 3D object sits behind the lower part of the hero */
-  .hero-glow {
-    top: auto;
-    bottom: 0;
-    width: 100%;
-    height: 40%;
+  .hero-stage {
+    height: 340px;
   }
 }

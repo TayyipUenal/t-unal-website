@@ -65,7 +65,7 @@
 .quote-card {
   position: relative;
   padding: clamp(22px, 3vw, 34px) clamp(20px, 4vw, 44px) clamp(18px, 2.6vw, 26px);
-  border: 1px solid #d4e9f2;
+  border: 1px solid var(--line);
   border-radius: 26px;
   background: var(--surface);
   box-shadow:
@@ -86,7 +86,7 @@
   height: 5px;
   overflow: hidden;
   border-radius: 999px;
-  background: #e3eef4;
+  background: var(--mist);
 }
 .quote-segment i {
   display: block;
@@ -155,7 +155,7 @@
   overflow: hidden;
   flex-direction: column;
   padding: 0;
-  border: 1.5px solid #d6e6ee;
+  border: 1.5px solid var(--line);
   border-radius: 18px;
   background: var(--surface);
   color: var(--ink);
@@ -167,7 +167,7 @@
     box-shadow 220ms ease;
 }
 .quote-option:hover {
-  border-color: #8cc4de;
+  border-color: var(--line);
   box-shadow: 0 18px 36px -20px rgba(7, 132, 184, 0.5);
 }
 .quote-option.is-selected {
@@ -186,7 +186,7 @@
   height: 60px;
   place-items: center;
   border-radius: 17px;
-  background: #eef7fb;
+  background: var(--mist);
   color: var(--blue-600);
 }
 .quote-option-icon svg {
@@ -227,8 +227,8 @@
   flex: 1;
   gap: 3px;
   padding: 14px 14px 16px;
-  border-top: 1px solid #e6eef2;
-  background: #f5f8fa;
+  border-top: 1px solid var(--line);
+  background: var(--mist);
   transition:
     background 220ms ease,
     color 220ms ease,
@@ -283,9 +283,9 @@
   align-items: center;
   gap: 8px;
   padding: 8px 12px;
-  border: 1px solid #cfe2ed;
+  border: 1px solid var(--line);
   border-radius: 999px;
-  background: #f2f9fc;
+  background: var(--mist);
   color: var(--ink);
   font-size: 0.74rem;
   cursor: pointer;
@@ -294,8 +294,8 @@
     border-color 180ms ease;
 }
 .quote-recap button:hover {
-  border-color: #8cc4de;
-  background: #e6f3fa;
+  border-color: var(--line);
+  background: var(--mist);
 }
 .quote-recap button span {
   color: var(--ink-soft);
@@ -316,7 +316,7 @@
   gap: 16px;
   margin-top: clamp(22px, 3vw, 30px);
   padding-top: 18px;
-  border-top: 1px solid #e3eef4;
+  border-top: 1px solid var(--line);
 }
 .quote-back {
   display: inline-flex;
@@ -335,7 +335,7 @@
     background 180ms ease;
 }
 .quote-back:hover {
-  background: #f0f7fb;
+  background: var(--mist);
   color: var(--blue-700);
 }
 .quote-footer-hint {
@@ -404,9 +404,9 @@
   align-items: center;
   gap: 8px;
   padding: 9px 13px;
-  border: 1px solid #d6e6ee;
+  border: 1px solid var(--line);
   border-radius: 999px;
-  background: #f5f9fb;
+  background: var(--mist);
   font-size: 0.76rem;
 }
 .quote-summary li span {
@@ -432,7 +432,7 @@
 }
 .quote-ghost {
   padding: 10px 16px;
-  border: 1px solid #cfe2ed;
+  border: 1px solid var(--line);
   border-radius: 999px;
   background: var(--surface);
   color: var(--ink-soft);
@@ -441,7 +441,7 @@
   cursor: pointer;
 }
 .quote-ghost:hover {
-  border-color: #8cc4de;
+  border-color: var(--line);
   color: var(--blue-700);
 }
 
@@ -468,7 +468,7 @@
   align-items: center;
   gap: 6px;
   padding: 9px 14px;
-  border: 1px solid #d4e9f2;
+  border: 1px solid var(--line);
   border-radius: 999px;
   background: color-mix(in srgb, var(--surface) 70%, transparent);
   color: var(--ink);
@@ -481,7 +481,7 @@
 }
 .quote-links a:hover {
   transform: translateY(-1px);
-  border-color: #8cc4de;
+  border-color: var(--line);
   background: var(--surface);
 }
 .quote-links a svg {
@@ -554,7 +554,7 @@
     justify-content: center;
     padding: 13px 14px;
     border-top: 0;
-    border-left: 1px solid #e6eef2;
+    border-left: 1px solid var(--line);
   }
   .quote-links > span {
     width: 100%;

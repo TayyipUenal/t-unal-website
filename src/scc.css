@@ -419,7 +419,7 @@
 
 .scc-cert-back {
   rotate: 7deg;
-  background: #f4f7f9;
+  background: var(--mist);
 }
 
 .scc-cert-front {

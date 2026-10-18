@@ -157,7 +157,7 @@
 .ev-card {
   margin: 0;
   padding: clamp(18px, 6cqw, 32px);
-  border: 1px solid #e3ebf0;
+  border: 1px solid var(--line);
   border-radius: 16px;
   background: var(--surface);
   box-shadow: var(--shadow-lift);
@@ -359,7 +359,7 @@
 }
 
 .contact-mail:hover {
-  border-color: #fff;
+  border-color: var(--line);
 }
 
 .contact-tiles {

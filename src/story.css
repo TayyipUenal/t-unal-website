@@ -230,7 +230,7 @@
   display: block;
   height: calc(var(--card-w) * 0.05);
   border-radius: 3px;
-  background: #dfe8ee;
+  background: var(--mist);
 }
 
 .story-paper i:nth-child(2) {

@@ -330,9 +330,9 @@
   min-width: 0;
   margin: 0;
   overflow: hidden;
-  border: 1px solid #d5e5ee;
+  border: 1px solid var(--line);
   border-radius: 18px;
-  background: #f5fbfe;
+  background: var(--mist);
   box-shadow: var(--shadow-lift);
 }
 
@@ -341,7 +341,7 @@
   display: block;
   width: 100%;
   aspect-ratio: 16 / 9;
-  background: #f5fbfe;
+  background: var(--mist);
   object-fit: contain;
 }
 
@@ -354,7 +354,7 @@
   height: 34px;
   place-items: center;
   padding: 0;
-  border: 1px solid #bcdfee;
+  border: 1px solid var(--line);
   border-radius: 50%;
   background: #ffffffed;
   color: var(--blue-500);
@@ -362,7 +362,7 @@
 }
 
 .film-replay:hover {
-  background: #e5f5fc;
+  background: var(--mist);
 }
 
 /* ---------- Responsive ---------- */

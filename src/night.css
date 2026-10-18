@@ -91,7 +91,7 @@
 }
 
 .night-fly:hover {
-  border-color: #8cd6ff;
+  border-color: var(--line);
   background: rgba(140, 214, 255, 0.2);
 }
 

@@ -227,7 +227,7 @@ img {
 /* Shared look of every decorative paper sheet on the page. */
 .sheet {
   position: relative;
-  border: 1px solid #e3ebf0;
+  border: 1px solid var(--line);
   border-radius: 10px;
   background: var(--surface);
   box-shadow: var(--shadow-sheet);
@@ -242,7 +242,7 @@ img {
   display: block;
   height: 5px;
   border-radius: 3px;
-  background: #e2ebf1;
+  background: var(--mist);
 }
 
 .sheet-lines i:nth-child(3n + 2) {

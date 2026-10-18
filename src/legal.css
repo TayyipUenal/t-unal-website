@@ -192,7 +192,7 @@
 .legal-question {
   padding: 28px;
   border-radius: 16px;
-  background: #eaf0ef;
+  background: var(--mist);
 }
 .legal-question h2 {
   margin-top: 0;

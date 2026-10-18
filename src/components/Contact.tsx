@@ -3,6 +3,7 @@ import { ArrowUpRight, Clock3, Mail, MapPin, Phone } from "lucide-react";
 import { contact } from "../content";
 import { staggerItem } from "../motion-tokens";
 import { Depth, Kicker, Rise, Stagger, Wipe } from "./motion";
+import { WhatsAppIcon } from "./WhatsAppIcon";
 
 export function Contact({ onConsultation }: { onConsultation: () => void }) {
   return (
@@ -42,6 +43,9 @@ export function Contact({ onConsultation }: { onConsultation: () => void }) {
               <a className="contact-mail" href={`mailto:${contact.email}`}>
                 <Mail size={16} aria-hidden="true" /> {contact.email}
               </a>
+              <a className="contact-mail" href={contact.whatsappHref} target="_blank" rel="noreferrer">
+                <WhatsAppIcon size={16} /> WhatsApp
+              </a>
             </div>
           </div>
         </div>
@@ -61,6 +65,19 @@ export function Contact({ onConsultation }: { onConsultation: () => void }) {
           </span>
           <small>Telefon</small>
           <strong>{contact.phoneLabel}</strong>
+        </motion.a>
+        <motion.a
+          className="contact-tile"
+          href={contact.whatsappHref}
+          target="_blank"
+          rel="noreferrer"
+          variants={staggerItem}
+        >
+          <span className="contact-tile-icon">
+            <WhatsAppIcon size={18} />
+          </span>
+          <small>WhatsApp</small>
+          <strong>Direkt schreiben</strong>
         </motion.a>
         <motion.a
           className="contact-tile"

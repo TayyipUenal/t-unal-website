@@ -14,6 +14,7 @@ import { SccJourney } from "./components/SccJourney";
 import { LegalPage } from "./components/LegalPage";
 import { useEffect, useState } from "react";
 import { initFx } from "./fx";
+import { WhatsAppButton } from "./components/WhatsAppButton";
 import { audits } from "./audits";
 import { AuditPage } from "./components/AuditPage";
 import { ConsultationModal } from "./components/ConsultationModal";
@@ -64,6 +65,7 @@ function App({ path = "/" }: { path?: string }) {
         )}
       </main>
       <Footer />
+      <WhatsAppButton />
       {consultation && (
         <ConsultationModal preset={consultation} onClose={() => setConsultation(null)} />
       )}

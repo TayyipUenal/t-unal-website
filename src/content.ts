@@ -37,6 +37,8 @@ export const contact = {
   phoneLabel: '0155 63084795',
   phoneHref: 'tel:+4915563084795',
   email: 'info@tayyipuenal.de',
+  whatsappHref:
+    'https://wa.me/4915563084795?text=Guten%20Tag%20Herr%20%C3%9Cnal%2C%20ich%20interessiere%20mich%20f%C3%BCr%20ein%20Erstgespr%C3%A4ch.',
   address: 'Antonio-Segni-Str. 4, 44263 Dortmund',
   mapsHref:
     'https://maps.google.com/?q=Antonio-Segni-Str.+4,+44263+Dortmund',

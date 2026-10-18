@@ -26,6 +26,7 @@ import "./fx.css";
 import "./fx-sections.css";
 import "./norm-check.css";
 import "./brand.css";
+import "./whatsapp.css";
 
 const root = document.getElementById("root")!;
 const app = (

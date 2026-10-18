@@ -60,7 +60,7 @@ function faceTexture(number: string, name: string) {
   canvas.width = 512;
   canvas.height = 1024;
   const g = canvas.getContext("2d")!;
-  g.fillStyle = "#1c2128";
+  g.fillStyle = "#2b2f36";
   g.fillRect(0, 0, 512, 1024);
   // very fine vertical lines, like brushed metal
   for (let x = 0; x < 512; x += 8) {
@@ -89,7 +89,7 @@ const TOWERS = [
 ];
 
 export function startHeroScene(canvas: HTMLCanvasElement, options: Options): HeroScene {
-  const edge = token("--blue-300", 0x8fb3cc);
+  const edge = token("--blue-300", 0xe6d3a8);
   const renderer = new WebGLRenderer({ canvas, antialias: true, alpha: true, powerPreference: "high-performance" });
   renderer.setPixelRatio(Math.min(window.devicePixelRatio, options.small ? 1.25 : 1.75));
   const scene = new Scene();
@@ -101,7 +101,7 @@ export function startHeroScene(canvas: HTMLCanvasElement, options: Options): Her
   const ambient = new AmbientLight(0xffffff, 0.35);
   const key = new DirectionalLight(0xffffff, 2.4);
   key.position.set(-5, 8, 7);
-  const rim = new PointLight(edge, 60, 40);
+  const rim = new PointLight(edge, 140, 40);
   rim.position.set(6, 3, -4);
   scene.add(ambient, key, rim);
 
@@ -128,7 +128,7 @@ export function startHeroScene(canvas: HTMLCanvasElement, options: Options): Her
 
   // Monoliths
   const edgeMaterial = new LineBasicMaterial({ color: edge, transparent: true, opacity: 0.6 });
-  const bodyMaterial = new MeshStandardMaterial({ color: 0x1c2128, metalness: 0.9, roughness: 0.28 });
+  const bodyMaterial = new MeshStandardMaterial({ color: 0x2b2f36, metalness: 0.9, roughness: 0.3 });
   const towers: Group[] = [];
   for (const spec of TOWERS) {
     const group = new Group();
@@ -148,9 +148,9 @@ export function startHeroScene(canvas: HTMLCanvasElement, options: Options): Her
   }
 
   const apply = (dark: boolean) => {
-    edgeMaterial.opacity = dark ? 0.75 : 0.5;
+    edgeMaterial.opacity = dark ? 0.9 : 0.7;
     ringLineMaterial.opacity = dark ? 0.6 : 0.4;
-    plinthMaterial.color = new Color(dark ? 0x232a33 : 0x2a313b);
+    plinthMaterial.color = new Color(dark ? 0x1d1d1d : 0x2a2a2a);
     ambient.intensity = dark ? 0.25 : 0.4;
     key.intensity = dark ? 2.0 : 2.6;
   };
@@ -159,12 +159,13 @@ export function startHeroScene(canvas: HTMLCanvasElement, options: Options): Her
   let width = 1;
   const place = () => {
     const halfH = Math.tan(MathUtils.degToRad(camera.fov / 2)) * camera.position.z;
+    const halfW = halfH * camera.aspect;
     if (options.small || width < 781) {
-      rig.position.set(0, 0.1, 0);
-      rig.scale.setScalar(0.6);
+      rig.position.set(0, -halfH * 0.42, 0);
+      rig.scale.setScalar(0.55);
     } else {
-      rig.position.set(0, 0.35, 0);
-      rig.scale.setScalar(Math.min(0.95, halfH / 4.9));
+      rig.position.set(halfW * 0.6, 0.9, 0);
+      rig.scale.setScalar(Math.min(0.9, halfH / 5.2));
     }
   };
   const resize = () => {

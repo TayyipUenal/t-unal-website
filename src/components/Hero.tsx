@@ -1,13 +1,15 @@
-import { ArrowDown, ArrowUpRight } from "lucide-react";
+import { ArrowDown, ArrowUpRight, Award, GraduationCap, HardHat, Star } from "lucide-react";
 import { useEffect, useState } from "react";
 import { contact } from "../content";
 import { HeroScene } from "./HeroScene";
+import { LinkedInIcon } from "./LinkedInIcon";
 import { WhatsAppIcon } from "./WhatsAppIcon";
 
 /**
- * Opening: a very large statement, a short promise, the main action, and a
- * full-width band below. The band shows /photos/hero.jpg when that file exists;
- * until then it carries the 3D monoliths, one per standard.
+ * Opening: a large statement on the left, the 3D monoliths on the right
+ * (drawn by HeroScene behind the text), the main action, social links and the
+ * qualifications. Below, a photo band shows /photos/hero.jpg once that file
+ * exists; until then a quiet index of the three standards takes its place.
  */
 export function Hero({ onConsultation }: { onConsultation: () => void }) {
   const [photo, setPhoto] = useState(false);
@@ -19,10 +21,20 @@ export function Hero({ onConsultation }: { onConsultation: () => void }) {
 
   return (
     <section id="top" className="hero" aria-labelledby="hero-title">
+      <HeroScene />
+      <div className="hero-glow" aria-hidden="true" />
+
       <div className="hero-top">
+        <p className="hero-kicker">
+          <span aria-hidden="true" />
+          Audit · Zertifizierung · Schulung
+        </p>
         <h1 id="hero-title">
           <span className="hero-line">
-            <span className="hero-line-inner">Wer sauber arbeitet,</span>
+            <span className="hero-line-inner">Wer sauber</span>
+          </span>
+          <span className="hero-line">
+            <span className="hero-line-inner">arbeitet,</span>
           </span>
           <span className="hero-line">
             <span className="hero-line-inner">
@@ -47,47 +59,66 @@ export function Hero({ onConsultation }: { onConsultation: () => void }) {
             </a>
           </div>
         </div>
+
+      </div>
+
+      <div className="hero-meta">
+      <ul className="hero-quals" aria-label="Qualifikationen">
+        <li>
+          <Award size={20} strokeWidth={1.6} aria-hidden="true" />
+          Zertifizierter Auditor
+        </li>
+        <li>
+          <HardHat size={20} strokeWidth={1.6} aria-hidden="true" />
+          Fachkraft für Arbeitssicherheit
+        </li>
+        <li>
+          <GraduationCap size={20} strokeWidth={1.6} aria-hidden="true" />
+          Zertifizierter Ausbilder
+        </li>
+      </ul>
         <ul className="hero-social" aria-label="Weitere Kanäle">
           <li>
-            <a href={contact.linkedIn} target="_blank" rel="noreferrer">
-              LinkedIn
+            <a href={contact.linkedIn} target="_blank" rel="noreferrer" aria-label="LinkedIn" title="LinkedIn">
+              <LinkedInIcon size={20} />
             </a>
           </li>
           <li>
-            <a href={contact.provenExpert} target="_blank" rel="noreferrer">
-              ProvenExpert
+            <a href={contact.provenExpert} target="_blank" rel="noreferrer" aria-label="ProvenExpert" title="ProvenExpert">
+              <Star size={20} strokeWidth={1.8} aria-hidden="true" />
             </a>
           </li>
           <li>
-            <a href={contact.whatsappHref} target="_blank" rel="noreferrer">
-              <WhatsAppIcon size={15} /> WhatsApp
+            <a href={contact.whatsappHref} target="_blank" rel="noreferrer" aria-label="WhatsApp" title="WhatsApp">
+              <WhatsAppIcon size={20} />
             </a>
           </li>
         </ul>
       </div>
 
-      <div className={photo ? "hero-band has-photo" : "hero-band"} aria-hidden={photo ? undefined : "true"}>
-        {photo ? <img src="/photos/hero.jpg" alt="Tayyip Ünal" /> : <HeroScene />}
-        {!photo && (
-          <ul className="hv-index">
-            <li>
-              <span>01</span>
-              ISO 9001
-              <small>Qualitätsmanagement</small>
-            </li>
-            <li>
-              <span>02</span>
-              ISO 14001
-              <small>Umweltmanagement</small>
-            </li>
-            <li>
-              <span>03</span>
-              ISO 45001
-              <small>Arbeitsschutzmanagement</small>
-            </li>
-          </ul>
-        )}
-      </div>
+      {photo ? (
+        <div className="hero-band has-photo">
+          <img src="/photos/hero.jpg" alt="Tayyip Ünal" />
+        </div>
+      ) : (
+        <ul className="hv-index" aria-hidden="true">
+          <li>
+            <span>01</span>
+            ISO 9001
+            <small>Qualitätsmanagement</small>
+          </li>
+          <li>
+            <span>02</span>
+            ISO 14001
+            <small>Umweltmanagement</small>
+          </li>
+          <li>
+            <span>03</span>
+            ISO 45001
+            <small>Arbeitsschutzmanagement</small>
+          </li>
+        </ul>
+      )}
     </section>
   );
 }

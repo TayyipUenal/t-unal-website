@@ -70,6 +70,38 @@ function glowSprite() {
   return sprite;
 }
 
+/** Places the connection lines fly to, as longitude and latitude. */
+const REACH = [
+  { lon: -74, lat: 40.7 },
+  { lon: -46.6, lat: -23.5 },
+  { lon: 29, lat: 41 },
+  { lon: 55.3, lat: 25.2 },
+  { lon: 72.9, lat: 19.1 },
+  { lon: 103.8, lat: 1.35 },
+  { lon: 139.7, lat: 35.7 },
+  { lon: 151.2, lat: -33.9 },
+  { lon: 28, lat: -26.2 },
+];
+const ARC_STEPS = 56;
+
+/** Great-circle arc from the home point to a place, lifted above the surface in the middle. */
+function arc(to: { lon: number; lat: number }, from: Float32Array) {
+  const end = new Float32Array(3);
+  unit(to.lon * 100, to.lat * 100, end, 0);
+  const dot = Math.min(1, Math.max(-1, from[0] * end[0] + from[1] * end[1] + from[2] * end[2]));
+  const omega = Math.acos(dot);
+  const sinO = Math.sin(omega) || 1;
+  const out = new Float32Array((ARC_STEPS + 1) * 3);
+  for (let i = 0; i <= ARC_STEPS; i += 1) {
+    const t = i / ARC_STEPS;
+    const a = Math.sin((1 - t) * omega) / sinO;
+    const b = Math.sin(t * omega) / sinO;
+    const lift = 1 + Math.sin(Math.PI * t) * (0.1 + omega * 0.09);
+    for (let k = 0; k < 3; k += 1) out[i * 3 + k] = (from[k] * a + end[k] * b) * lift;
+  }
+  return out;
+}
+
 export type Globe = { stop: () => void; focus: (on: boolean) => void };
 
 export function startGlobe(canvas: HTMLCanvasElement, options: { still?: boolean } = {}): Globe {
@@ -87,6 +119,7 @@ export function startGlobe(canvas: HTMLCanvasElement, options: { still?: boolean
   const home = new Float32Array(3);
   unit(HOME.lon * 100, HOME.lat * 100, home, 0);
   const sprite = glowSprite();
+  const arcs = REACH.map((place) => arc(place, home));
 
   let width = 0;
   let height = 0;
@@ -239,6 +272,60 @@ export function startGlobe(canvas: HTMLCanvasElement, options: { still?: boolean
     g.fill();
     g.strokeStyle = "rgba(150, 208, 245, 0.32)";
     g.stroke();
+
+    // Connection lines from Dortmund: a bright head runs out, a trail follows, the end point pulses
+    if (detail < 0.6) {
+      const fadeAll = 1 - detail / 0.6;
+      g.lineCap = "round";
+      arcs.forEach((line, index) => {
+        const cycle = 5200;
+        const local = options.still ? 0.7 : ((time + index * 640) % cycle) / cycle;
+        const head = Math.min(1, local / 0.55);
+        const tail = Math.max(0, (local - 0.45) / 0.55);
+        const first = Math.floor(tail * ARC_STEPS);
+        const last = Math.floor(head * ARC_STEPS);
+        if (last <= first) return;
+        g.beginPath();
+        let pen = false;
+        for (let i = first; i <= last; i += 1) {
+          project(line, i * 3);
+          if (p[2] <= 0.02) {
+            pen = false;
+          } else if (pen) {
+            g.lineTo(p[0], p[1]);
+          } else {
+            g.moveTo(p[0], p[1]);
+            pen = true;
+          }
+        }
+        g.strokeStyle = `rgba(150, 214, 255, ${0.55 * fadeAll * (1 - tail)})`;
+        g.lineWidth = 1.6;
+        g.stroke();
+        project(line, last * 3);
+        if (p[2] > 0.02) {
+          g.fillStyle = `rgba(255, 255, 255, ${fadeAll * (1 - tail)})`;
+          g.beginPath();
+          g.arc(p[0], p[1], 2.4, 0, Math.PI * 2);
+          g.fill();
+        }
+        if (head >= 1) {
+          project(line, ARC_STEPS * 3);
+          if (p[2] > 0.05) {
+            const ping = Math.min(1, (local - 0.55) / 0.35);
+            g.strokeStyle = `rgba(140, 214, 255, ${(1 - ping) * 0.8 * fadeAll})`;
+            g.lineWidth = 1.4;
+            g.beginPath();
+            g.arc(p[0], p[1], 3 + ping * 14, 0, Math.PI * 2);
+            g.stroke();
+            g.fillStyle = `rgba(255, 138, 76, ${0.95 * fadeAll * (1 - tail)})`;
+            g.beginPath();
+            g.arc(p[0], p[1], 3.2, 0, Math.PI * 2);
+            g.fill();
+          }
+        }
+      });
+      g.lineCap = "butt";
+    }
 
     // Home marker
     project(home, 0);

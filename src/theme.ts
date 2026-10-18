@@ -10,7 +10,7 @@ export function preferredTheme(): Theme {
   } catch {
     /* storage can be blocked */
   }
-  return window.matchMedia("(prefers-color-scheme: dark)").matches ? "dark" : "light";
+  return "dark";
 }
 
 export function currentTheme(): Theme {
@@ -23,7 +23,7 @@ export function toggleTheme(origin?: { x: number; y: number }) {
   const apply = () => {
     document.documentElement.dataset.theme = next;
     const meta = document.querySelector('meta[name="theme-color"]');
-    meta?.setAttribute("content", next === "dark" ? "#06151f" : "#ffffff");
+    meta?.setAttribute("content", next === "dark" ? "#0e0e0e" : "#faf8f4");
     window.dispatchEvent(new CustomEvent("themechange", { detail: next }));
   };
   try {

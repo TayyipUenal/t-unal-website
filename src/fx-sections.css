@@ -28,67 +28,6 @@
   background: var(--blue-300);
 }
 
-/* ---- Hero right column: a quiet index next to the 3D object ---- */
-.hero-visual {
-  min-height: clamp(420px, 44vw, 600px);
-  padding: 0;
-}
-
-.hv-index {
-  position: absolute;
-  right: 0;
-  bottom: 0;
-  left: 0;
-  display: grid;
-  grid-template-columns: repeat(3, minmax(0, 1fr));
-  margin: 0;
-  padding: 0;
-  list-style: none;
-  border-top: 1px solid var(--line-strong);
-  animation: fade-up 1.2s 0.8s cubic-bezier(0.22, 1, 0.36, 1) both;
-}
-
-.hv-index li {
-  display: grid;
-  gap: 4px;
-  padding: 16px 12px 0 0;
-  color: var(--ink);
-  font-size: 0.92rem;
-  font-weight: 500;
-}
-
-.hv-index li span {
-  color: var(--muted);
-  font-size: 0.7rem;
-  font-weight: 500;
-  letter-spacing: 0.12em;
-}
-
-.hv-index small {
-  display: block;
-  color: var(--ink-soft);
-  font-size: 0.76rem;
-  font-weight: 400;
-}
-
-@keyframes fade-up {
-  from {
-    opacity: 0;
-    transform: translateY(14px);
-  }
-}
-
-@media (max-width: 780px) {
-  .hero-visual {
-    min-height: 320px;
-  }
-
-  .hv-index {
-    position: relative;
-    margin-top: 16px;
-  }
-}
-
 /* ---- Marquee: plain running line ---- */
 .marquee {
   display: grid;
@@ -179,7 +118,7 @@
   color: #fff;
   font-family: var(--font-display);
   font-size: clamp(34px, 4.6vw, 60px);
-  font-weight: 500;
+  font-weight: 700;
   letter-spacing: -0.035em;
   line-height: 1.04;
 }
@@ -243,7 +182,7 @@
   color: #fff;
   font-family: var(--font-display);
   font-size: 1.4rem;
-  font-weight: 500;
+  font-weight: 700;
   letter-spacing: -0.015em;
   line-height: 1.15;
 }
@@ -520,8 +459,7 @@
 @media (prefers-reduced-motion: reduce) {
   .mq-track,
   .bx-pulse,
-  .bx-cycle circle.spin,
-  .hv-index {
+  .bx-cycle circle.spin {
     animation: none;
   }
 }

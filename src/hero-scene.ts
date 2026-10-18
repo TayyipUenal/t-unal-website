@@ -71,10 +71,10 @@ function faceTexture(number: string, name: string) {
   g.fillRect(48, 896, 56, 2);
   g.fillStyle = "rgba(255,255,255,0.88)";
   g.textBaseline = "alphabetic";
-  g.font = '500 66px "Inter Tight", "Inter", sans-serif';
+  g.font = '500 66px "Plus Jakarta Sans", "DM Sans", sans-serif';
   g.fillText(number, 48, 960);
   g.fillStyle = "rgba(255,255,255,0.5)";
-  g.font = '400 30px "Inter", sans-serif';
+  g.font = '400 30px "DM Sans", sans-serif';
   g.fillText(name, 48, 1000);
   const texture = new CanvasTexture(canvas);
   texture.colorSpace = SRGBColorSpace;
@@ -159,13 +159,12 @@ export function startHeroScene(canvas: HTMLCanvasElement, options: Options): Her
   let width = 1;
   const place = () => {
     const halfH = Math.tan(MathUtils.degToRad(camera.fov / 2)) * camera.position.z;
-    const halfW = halfH * camera.aspect;
     if (options.small || width < 781) {
-      rig.position.set(0, -halfH * 0.05, 0);
-      rig.scale.setScalar(0.62);
+      rig.position.set(0, 0.1, 0);
+      rig.scale.setScalar(0.6);
     } else {
-      rig.position.set(halfW * 0.48, 0.55, 0);
-      rig.scale.setScalar(Math.min(0.86, halfH / 6.0));
+      rig.position.set(0, 0.35, 0);
+      rig.scale.setScalar(Math.min(0.95, halfH / 4.9));
     }
   };
   const resize = () => {

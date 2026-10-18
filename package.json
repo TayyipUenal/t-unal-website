@@ -13,9 +13,9 @@
     "preview": "vite preview"
   },
   "dependencies": {
-    "@fontsource/inter": "^5.3.0",
-    "@fontsource/inter-tight": "^5.3.0",
+    "@fontsource/dm-sans": "^5.3.0",
     "@fontsource/jetbrains-mono": "^5.3.0",
+    "@fontsource/plus-jakarta-sans": "^5.3.0",
     "@vitejs/plugin-react": "latest",
     "claude": "^0.1.1",
     "framer-motion": "latest",

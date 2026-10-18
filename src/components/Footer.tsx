@@ -6,7 +6,7 @@ export function Footer() {
       <a className="footer-logo" href="/" aria-label="Tayyip Ünal Startseite">
         <BrandLogo />
       </a>
-      <p>Digitale Lösungen. Echte Ergebnisse.</p>
+      <p>Audit · Zertifizierung · Schulung</p>
       <div>
         <a href="/impressum/">Impressum</a>
         <a href="/datenschutz/">Datenschutz</a>

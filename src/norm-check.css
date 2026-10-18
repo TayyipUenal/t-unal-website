@@ -56,7 +56,7 @@
   color: var(--ink);
   font-family: var(--font-display);
   font-size: clamp(32px, 4.4vw, 58px);
-  font-weight: 500;
+  font-weight: 700;
   letter-spacing: -0.035em;
   line-height: 1;
 }
@@ -146,7 +146,7 @@
   color: var(--ink);
   font-family: var(--font-display);
   font-size: clamp(24px, 2.6vw, 32px);
-  font-weight: 500;
+  font-weight: 700;
   line-height: 1.1;
 }
 
@@ -254,7 +254,7 @@
 .nc-cert strong {
   font-family: var(--font-display);
   font-size: 1.9rem;
-  font-weight: 600;
+  font-weight: 700;
   letter-spacing: -0.03em;
   line-height: 1;
 }
@@ -392,7 +392,7 @@
   color: var(--ink);
   font-family: var(--font-display);
   font-size: 1.7rem;
-  font-weight: 600;
+  font-weight: 700;
 }
 
 .nc-next {

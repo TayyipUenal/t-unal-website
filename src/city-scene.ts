@@ -140,7 +140,7 @@ function badge(label: string, accent: string, navy: string) {
     g.arc(86, 80, 11, 0, Math.PI * 2);
     g.fill();
     g.fillStyle = navy;
-    g.font = '500 52px "Inter Tight", "Inter", sans-serif';
+    g.font = '500 52px "Plus Jakarta Sans", "DM Sans", sans-serif';
     g.textAlign = "left";
     g.textBaseline = "middle";
     g.fillText(label, 118, 84);

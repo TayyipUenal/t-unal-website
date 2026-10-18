@@ -1,15 +1,16 @@
 type BrandLogoProps = { className?: string };
 
-/** Frames the supplied artwork without altering the original file. */
+/** Wordmark with a gold monogram, set in the page's own type. */
 export function BrandLogo({ className = "" }: BrandLogoProps) {
   return (
-    <span className={`brand-artwork ${className}`}>
-      <img
-        src="/brand-logo.png"
-        alt="Tayyip Ünal — Digitale Lösungen. Echte Ergebnisse."
-        width={1254}
-        height={1254}
-      />
+    <span className={`brand-mark ${className}`} role="img" aria-label="Tayyip Ünal – Audit, Zertifizierung, Schulung">
+      <span className="brand-monogram" aria-hidden="true">
+        TÜ
+      </span>
+      <span className="brand-word" aria-hidden="true">
+        <b>TAYYİP ÜNAL</b>
+        <i>Audit · Zertifizierung · Schulung</i>
+      </span>
     </span>
   );
 }

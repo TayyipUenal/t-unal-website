@@ -1,63 +1,92 @@
-import { motion, useReducedMotion, useScroll, useTransform } from "framer-motion";
-import { ArrowDown, ArrowUpRight, Award, BadgeCheck, ShieldCheck } from "lucide-react";
-import { useMediaQuery } from "../hooks";
+import { ArrowDown, ArrowUpRight } from "lucide-react";
+import { useEffect, useState } from "react";
+import { contact } from "../content";
 import { HeroScene } from "./HeroScene";
-import { HeroVisual } from "./HeroVisual";
+import { WhatsAppIcon } from "./WhatsAppIcon";
 
+/**
+ * Opening: a very large statement, a short promise, the main action, and a
+ * full-width band below. The band shows /photos/hero.jpg when that file exists;
+ * until then it carries the 3D monoliths, one per standard.
+ */
 export function Hero({ onConsultation }: { onConsultation: () => void }) {
-  const reduced = useReducedMotion();
-  const wide = useMediaQuery("(min-width: 781px)");
-  const depth = wide && !reduced;
-  const { scrollY } = useScroll();
-  const copyY = useTransform(scrollY, [0, 700], [0, -30]);
+  const [photo, setPhoto] = useState(false);
+  useEffect(() => {
+    const image = new Image();
+    image.onload = () => setPhoto(true);
+    image.src = "/photos/hero.jpg";
+  }, []);
+
   return (
     <section id="top" className="hero" aria-labelledby="hero-title">
-      <div className="hero-glow" aria-hidden="true" />
-      <div className="hero-grid" aria-hidden="true" />
-      <HeroScene />
-      <div className="hero-inner">
-        <motion.div className="hero-copy" style={depth ? { y: copyY } : undefined}>
-          <p className="hero-eyebrow">
-            <span className="hero-eyebrow-dot" aria-hidden="true" />
-            ISO 9001 · ISO 14001 · ISO 45001
-          </p>
-          <h1 id="hero-title">
-            <span className="hero-line">
-              <span className="hero-line-inner">Ein klarer Weg.</span>
+      <div className="hero-top">
+        <h1 id="hero-title">
+          <span className="hero-line">
+            <span className="hero-line-inner">Wer sauber arbeitet,</span>
+          </span>
+          <span className="hero-line">
+            <span className="hero-line-inner">
+              <em>besteht jedes Audit.</em>
             </span>
-            <span className="hero-line">
-              <span className="hero-line-inner">
-                <em>
-                  Bis zum Abschluss.
-                </em>
-              </span>
-            </span>
-          </h1>
+          </span>
+        </h1>
+      </div>
+
+      <div className="hero-foot">
+        <div className="hero-foot-copy">
           <p className="hero-lead">
-            Zertifizierung, Audit oder Beratung: Wir begleiten Sie von der
-            Paketauswahl bis zum dokumentierten Ergebnis.
+            Wir auditieren, zertifizieren und schulen Betriebe nach ISO 9001, 14001, 45001 und SCC.
+            Persönlich, klar und mit Verantwortung bis zum dokumentierten Ergebnis.
           </p>
           <div className="hero-actions">
             <button type="button" className="button button-primary" onClick={onConsultation}>
               Erstgespräch vereinbaren <ArrowUpRight size={17} aria-hidden="true" />
             </button>
-            <a className="text-link hero-secondary" href="#angebot">
+            <a className="text-link hero-secondary" href="#audits">
               Angebot konfigurieren <ArrowDown size={16} aria-hidden="true" />
             </a>
           </div>
-          <ul className="hero-trust" aria-label="Auf einen Blick">
+        </div>
+        <ul className="hero-social" aria-label="Weitere Kanäle">
+          <li>
+            <a href={contact.linkedIn} target="_blank" rel="noreferrer">
+              LinkedIn
+            </a>
+          </li>
+          <li>
+            <a href={contact.provenExpert} target="_blank" rel="noreferrer">
+              ProvenExpert
+            </a>
+          </li>
+          <li>
+            <a href={contact.whatsappHref} target="_blank" rel="noreferrer">
+              <WhatsAppIcon size={15} /> WhatsApp
+            </a>
+          </li>
+        </ul>
+      </div>
+
+      <div className={photo ? "hero-band has-photo" : "hero-band"} aria-hidden={photo ? undefined : "true"}>
+        {photo ? <img src="/photos/hero.jpg" alt="Tayyip Ünal" /> : <HeroScene />}
+        {!photo && (
+          <ul className="hv-index">
             <li>
-              <Award size={16} aria-hidden="true" /> 5+ Jahre Erfahrung
+              <span>01</span>
+              ISO 9001
+              <small>Qualitätsmanagement</small>
             </li>
             <li>
-              <BadgeCheck size={16} aria-hidden="true" /> Zertifizierter Auditor
+              <span>02</span>
+              ISO 14001
+              <small>Umweltmanagement</small>
             </li>
             <li>
-              <ShieldCheck size={16} aria-hidden="true" /> Erstgespräch kostenfrei
+              <span>03</span>
+              ISO 45001
+              <small>Arbeitsschutzmanagement</small>
             </li>
           </ul>
-        </motion.div>
-        <HeroVisual scrollY={scrollY} depth={depth} />
+        )}
       </div>
     </section>
   );

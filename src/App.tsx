@@ -7,7 +7,7 @@ import { Header } from "./components/Header";
 import { Hero } from "./components/Hero";
 import { AuditCity } from "./components/AuditCity";
 import { Bento } from "./components/Bento";
-import { Marquee } from "./components/Marquee";
+import { Services, Specialty, Statement } from "./components/Studio";
 import { NormCheck } from "./components/NormCheck";
 import { NightGlobe } from "./components/NightGlobe";
 import { Story } from "./components/Story";
@@ -51,7 +51,9 @@ function App({ path = "/" }: { path?: string }) {
         ) : (
           <>
             <Hero onConsultation={() => openConsultation()} />
-            <Marquee />
+            <Services />
+            <Statement />
+            <Specialty />
             <AuditCity onConsultation={() => openConsultation()} />
             <NightGlobe />
             <QuoteConfigurator onConsultation={() => openConsultation()} />

@@ -347,7 +347,7 @@ export function startGlobe(canvas: HTMLCanvasElement, options: { still?: boolean
       g.stroke();
       if (tag > 0.01) {
         // Label on a dark plate, set off from the lights around it
-        g.font = '600 13px "Inter", sans-serif';
+        g.font = '600 13px "DM Sans", sans-serif';
         g.textBaseline = "middle";
         const labelWidth = g.measureText(HOME.label).width + 22;
         const lx = p[0] - 34 - labelWidth;

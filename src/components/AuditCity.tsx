@@ -112,8 +112,8 @@ export function AuditCity({ onConsultation }: { onConsultation: () => void }) {
     };
 
     const fonts = Promise.all([
-      document.fonts.load('500 52px "Inter Tight"'),
-      document.fonts.load('400 34px "Inter"'),
+      document.fonts.load('500 52px "Plus Jakarta Sans"'),
+      document.fonts.load('400 34px "DM Sans"'),
     ]).catch(() => {});
     Promise.all([import("../city-scene"), fonts])
       .then(([{ startCityScene }]) => {

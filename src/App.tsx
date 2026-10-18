@@ -5,6 +5,7 @@ import { Expertise } from "./components/Expertise";
 import { Footer } from "./components/Footer";
 import { Header } from "./components/Header";
 import { Hero } from "./components/Hero";
+import { AuditCity } from "./components/AuditCity";
 import { Bento } from "./components/Bento";
 import { Marquee } from "./components/Marquee";
 import { NormCheck } from "./components/NormCheck";
@@ -53,6 +54,7 @@ function App({ path = "/" }: { path?: string }) {
           <>
             <Hero onConsultation={() => openConsultation()} />
             <Marquee />
+            <AuditCity onConsultation={() => openConsultation()} />
             <NightGlobe />
             <QuoteConfigurator onConsultation={() => openConsultation()} />
             <SccJourney onRequest={openConsultation} />

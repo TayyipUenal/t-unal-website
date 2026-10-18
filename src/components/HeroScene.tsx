@@ -18,8 +18,8 @@ export function HeroScene() {
     const start = () => {
       // The scene paints text into textures, so the web fonts must be ready.
       const fonts = Promise.all([
-        document.fonts.load('800 64px "Bricolage Grotesque"'),
-        document.fonts.load('600 34px "Figtree"'),
+        document.fonts.load('500 64px "Inter Tight"'),
+        document.fonts.load('400 34px "Inter"'),
         document.fonts.load('700 30px "JetBrains Mono"'),
       ]).catch(() => {});
       Promise.all([import("../hero-scene"), fonts])

@@ -1,6 +1,70 @@
-/* Brand colour: every blue in the stylesheets is an oklch() value that keeps its
-   lightness and takes hue and chroma from these two numbers. */
+/* ---------- Brand: Swiss executive ----------
+   White, anthracite and one deep blue. Neutral greys carry the page; the blue
+   marks what matters. Loaded after the other stylesheets so these tokens win.
+   --hue and --ck still drive the oklch() blues used in the stylesheets. */
 :root {
   --hue: 240;
-  --ck: 1;
+  --ck: 0.55;
+
+  --ink: #12161c;
+  --ink-soft: #4a5260;
+  --muted: #6b7280;
+
+  --navy-950: #0b0e12;
+  --navy-900: #10141a;
+  --navy-800: #171c23;
+  --navy-700: #212730;
+
+  --blue-700: oklch(0.358 0.066 240);
+  --blue-600: oklch(0.43 0.07 240);
+  --blue-500: oklch(0.5 0.075 240);
+  --blue-300: oklch(0.76 0.055 240);
+  --blue-100: oklch(0.94 0.012 240);
+
+  --white: #ffffff;
+  --surface: #ffffff;
+  --mist: #f4f5f7;
+  --paper: #f4f5f7;
+  --paper-deep: #e6e8ec;
+  --paper-light: #fafafb;
+  --line: #e3e6ea;
+  --line-strong: #cfd4db;
+
+  --accent: oklch(0.56 0.085 240);
+  --accent-2: oklch(0.66 0.07 240);
+
+  --shadow-sheet: 0 1px 2px rgba(10, 14, 20, 0.05), 0 12px 28px -18px rgba(10, 14, 20, 0.25);
+  --shadow-lift: 0 30px 60px -36px rgba(10, 14, 20, 0.4), 0 1px 3px rgba(10, 14, 20, 0.06);
+}
+
+:root[data-theme="dark"] {
+  --ink: #eceff3;
+  --ink-soft: #a3abb7;
+  --muted: #7a828e;
+
+  --blue-700: oklch(0.74 0.06 240);
+  --blue-600: oklch(0.7 0.065 240);
+  --blue-500: oklch(0.64 0.07 240);
+  --blue-300: oklch(0.8 0.05 240);
+  --blue-100: oklch(0.26 0.03 240);
+
+  --white: #0b0e12;
+  --surface: #12161b;
+  --mist: #0e1217;
+  --paper: #0f1318;
+  --paper-deep: #161b21;
+  --paper-light: #0f1318;
+  --line: #222830;
+  --line-strong: #303842;
+
+  --accent: oklch(0.72 0.07 240);
+  --accent-2: oklch(0.8 0.05 240);
+
+  --shadow-sheet: 0 1px 2px rgba(0, 0, 0, 0.4), 0 14px 34px -16px rgba(0, 0, 0, 0.7);
+  --shadow-lift: 0 36px 80px -36px rgba(0, 0, 0, 0.85), 0 2px 8px rgba(0, 0, 0, 0.3);
+}
+
+::selection {
+  background: var(--blue-700);
+  color: #fff;
 }

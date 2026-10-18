@@ -1,97 +1,77 @@
-/* ---------- Effects layer: buttons, backdrops, glow ----------
-   Loaded last so it refines the base rules without touching them. */
+/* ---------- Refinements: buttons, links, hero backdrop ----------
+   Quiet by design: flat surfaces, hairlines, short transitions. */
 
 /* ---- Buttons ---- */
 .button,
 .header-contact,
 .quote-ghost {
   position: relative;
-  isolation: isolate;
-  overflow: hidden;
   transition:
-    transform 0.35s cubic-bezier(0.22, 1, 0.36, 1),
-    box-shadow 0.35s ease,
-    background-position 0.6s ease,
-    color 0.25s ease;
-  translate: var(--mx, 0px) var(--my, 0px);
+    background-color 0.25s ease,
+    color 0.25s ease,
+    box-shadow 0.25s ease,
+    transform 0.25s ease;
+}
+
+.button {
+  border-radius: 4px;
+  letter-spacing: 0.01em;
 }
 
 .button-primary {
-  background: linear-gradient(115deg, var(--blue-600), var(--blue-500) 45%, oklch(0.801 calc(0.1314 * var(--ck)) var(--hue)) 70%, var(--blue-600));
-  background-size: 220% 100%;
-  box-shadow:
-    0 14px 30px -14px oklch(0.58 calc(0.1223 * var(--ck)) var(--hue) / 0.85),
-    inset 0 1px 0 rgba(255, 255, 255, 0.35);
+  background: var(--blue-700);
+  box-shadow: none;
   color: #fff;
 }
 
+.button-primary:hover {
+  background: var(--blue-600);
+  box-shadow: 0 14px 28px -18px rgba(10, 14, 20, 0.6);
+}
+
+:root[data-theme="dark"] .button-primary {
+  background: var(--blue-500);
+}
+
+:root[data-theme="dark"] .button-primary:hover {
+  background: var(--blue-600);
+}
+
 .header-contact {
-  background-image: linear-gradient(115deg, var(--navy-800), var(--blue-700) 50%, var(--navy-800));
-  background-size: 220% 100%;
+  border-radius: 4px;
+  background: var(--ink);
+  color: var(--white);
 }
 
-.button-primary:hover,
 .header-contact:hover {
-  background-position: 100% 0;
-  box-shadow:
-    0 20px 44px -14px oklch(0.666 calc(0.1392 * var(--ck)) var(--hue) / 0.9),
-    0 0 0 4px oklch(0.767 calc(0.1157 * var(--ck)) var(--hue) / 0.18),
-    inset 0 1px 0 rgba(255, 255, 255, 0.45);
+  background: var(--blue-700);
+  color: #fff;
+  transform: none;
 }
 
-/* Light sweep across the button on hover */
-.button::after,
-.header-contact::after {
-  content: "";
-  position: absolute;
-  z-index: -1;
-  inset: 0;
-  background: linear-gradient(105deg, transparent 35%, rgba(255, 255, 255, 0.55) 50%, transparent 65%);
-  transform: translateX(-130%);
-  transition: transform 0.9s cubic-bezier(0.22, 1, 0.36, 1);
-}
-
-.button:hover::after,
-.header-contact:hover::after {
-  transform: translateX(130%);
+.button-light {
+  border-radius: 4px;
 }
 
 .button:active,
 .header-contact:active {
-  transform: translateY(0) scale(0.97);
-  transition-duration: 0.12s;
-}
-
-/* Click ripple (created by src/fx.ts) */
-.fx-ripple {
-  position: absolute;
-  z-index: -1;
-  width: 12px;
-  height: 12px;
-  margin: -6px 0 0 -6px;
-  border-radius: 50%;
-  background: rgba(255, 255, 255, 0.55);
-  pointer-events: none;
-  animation: fx-ripple 0.7s ease-out forwards;
-}
-
-@keyframes fx-ripple {
-  to {
-    opacity: 0;
-    transform: scale(26);
-  }
+  transform: translateY(1px);
 }
 
 .text-link {
-  background: linear-gradient(currentColor, currentColor) 0 100% / 0 1.5px no-repeat;
-  transition: background-size 0.4s cubic-bezier(0.22, 1, 0.36, 1);
+  background: linear-gradient(currentColor, currentColor) 0 100% / 0 1px no-repeat;
+  transition: background-size 0.4s ease;
 }
 
 .text-link:hover {
-  background-size: 100% 1.5px;
+  background-size: 100% 1px;
 }
 
-/* ---- Hero backdrop ---- */
+/* ---- Hero backdrop: fine grid, no colour wash ---- */
+.hero-glow {
+  display: none;
+}
+
 .hero-scene {
   position: absolute;
   z-index: 0;
@@ -100,181 +80,45 @@
   height: 100%;
   pointer-events: none;
   opacity: 0;
-  transition: opacity 1.4s ease 0.2s;
+  transition: opacity 1.6s ease 0.2s;
 }
 
 .hero-scene.is-live {
   opacity: 1;
 }
 
-.hero-aurora {
+.hero-grid {
   position: absolute;
   z-index: 0;
   inset: 0;
-  overflow: hidden;
   pointer-events: none;
+  background-image: linear-gradient(to right, color-mix(in srgb, var(--ink) 6%, transparent) 1px, transparent 1px);
+  background-size: calc((100% - var(--gutter) * 2) / 12) 100%;
+  background-position: var(--gutter) 0;
+  mask-image: linear-gradient(180deg, #000 0%, #000 55%, transparent 100%);
+  -webkit-mask-image: linear-gradient(180deg, #000 0%, #000 55%, transparent 100%);
 }
 
-.hero-aurora i {
-  position: absolute;
-  width: 46vw;
-  height: 46vw;
-  border-radius: 50%;
-  filter: blur(80px);
-  opacity: 0.5;
-  animation: aurora 22s ease-in-out infinite alternate;
-}
-
-.hero-aurora i:nth-child(1) {
-  top: -18%;
-  right: -8%;
-  background: radial-gradient(circle, oklch(0.769 calc(0.0973 * var(--ck)) var(--hue) / 0.7), transparent 65%);
-}
-
-.hero-aurora i:nth-child(2) {
-  bottom: -30%;
-  left: -12%;
-  background: radial-gradient(circle, oklch(0.801 calc(0.1314 * var(--ck)) var(--hue) / 0.4), transparent 65%);
-  animation-delay: -7s;
-}
-
-.hero-aurora i:nth-child(3) {
-  top: 20%;
-  left: 30%;
-  width: 30vw;
-  height: 30vw;
-  background: radial-gradient(circle, oklch(0.518 calc(0.1188 * var(--ck)) var(--hue) / 0.35), transparent 65%);
-  animation-delay: -13s;
-}
-
-@keyframes aurora {
-  from {
-    transform: translate3d(0, 0, 0) scale(1);
-  }
-
-  to {
-    transform: translate3d(6vw, 4vw, 0) scale(1.18);
-  }
-}
-
-/* A tilted floor grid receding into the distance */
-.hero-floor {
-  position: absolute;
-  z-index: 0;
-  right: 0;
-  bottom: 0;
-  left: 0;
-  height: 46%;
-  overflow: hidden;
-  pointer-events: none;
-  mask-image: linear-gradient(to top, #000 10%, transparent 92%);
-  -webkit-mask-image: linear-gradient(to top, #000 10%, transparent 92%);
-}
-
-.hero-floor::before {
-  content: "";
-  position: absolute;
-  inset: -40% -30% 0;
-  background-image:
-    linear-gradient(var(--line-strong) 1px, transparent 1px),
-    linear-gradient(90deg, var(--line-strong) 1px, transparent 1px);
-  background-size: 64px 64px;
-  opacity: 0.55;
-  transform: perspective(520px) rotateX(62deg);
-  transform-origin: 50% 100%;
-  animation: floor-flow 5s linear infinite;
-}
-
-@keyframes floor-flow {
-  to {
-    background-position:
-      0 64px,
-      64px 0;
-  }
-}
-
-:root[data-theme="dark"] .hero-aurora i {
-  opacity: 0.55;
-  mix-blend-mode: screen;
-}
-
-:root[data-theme="dark"] .hero-glow {
-  background: radial-gradient(closest-side, oklch(0.671 calc(0.1322 * var(--ck)) var(--hue) / 0.28), transparent 72%);
-}
-
-:root[data-theme="dark"] .hero-floor::before {
-  opacity: 0.4;
-}
-
-/* ---- Headline shimmer ---- */
 .hero h1 em {
-  background: linear-gradient(100deg, var(--blue-700), oklch(0.801 calc(0.1314 * var(--ck)) var(--hue)) 40%, var(--blue-500) 60%, var(--blue-700));
-  background-size: 220% 100%;
-  -webkit-background-clip: text;
-  background-clip: text;
-  -webkit-text-fill-color: transparent;
-  animation: shimmer 6s ease-in-out infinite;
+  color: var(--blue-700);
+  font-style: normal;
 }
 
-@keyframes shimmer {
-  0%,
-  100% {
-    background-position: 0 0;
-  }
-
-  50% {
-    background-position: 100% 0;
-  }
+:root[data-theme="dark"] .hero h1 em {
+  color: var(--blue-300);
 }
 
-/* ---- Cards: lift and cursor spotlight (set by src/fx.ts) ---- */
+/* ---- Cards: hairline, no motion tricks ---- */
 .quote-card,
 .scc-card,
 .qualification {
-  position: relative;
   transition:
-    transform 0.45s cubic-bezier(0.22, 1, 0.36, 1),
-    box-shadow 0.45s ease,
-    border-color 0.3s ease;
-}
-
-.quote-card::before,
-.scc-card::before,
-.qualification::before {
-  content: "";
-  position: absolute;
-  z-index: 0;
-  inset: 0;
-  border-radius: inherit;
-  background: radial-gradient(360px circle at var(--px, 50%) var(--py, 50%), oklch(0.767 calc(0.1157 * var(--ck)) var(--hue) / 0.2), transparent 55%);
-  opacity: 0;
-  pointer-events: none;
-  transition: opacity 0.35s ease;
-}
-
-.quote-card:hover::before,
-.scc-card:hover::before,
-.qualification:hover::before {
-  opacity: 1;
+    border-color 0.3s ease,
+    box-shadow 0.3s ease;
 }
 
 .scc-card:hover,
 .qualification:hover {
-  border-color: var(--blue-300);
-  box-shadow: var(--shadow-lift);
-  transform: translateY(-6px);
-}
-
-@media (prefers-reduced-motion: reduce) {
-  .hero-aurora i,
-  .hero-floor::before,
-  .hero h1 em {
-    animation: none;
-  }
-}
-
-@media (max-width: 780px) {
-  .hero-floor {
-    display: none;
-  }
+  border-color: var(--line-strong);
+  box-shadow: var(--shadow-sheet);
 }

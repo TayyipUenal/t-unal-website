@@ -1,6 +1,5 @@
 import { Check, ShieldCheck } from "lucide-react";
 import { Kicker, Rise, Stagger, StaggerItem, Wipe } from "./motion";
-import { Tilt } from "./Tilt";
 
 /**
  * Dark bento grid: six reasons to work together, each with a small looping
@@ -28,7 +27,7 @@ export function Bento() {
 
         <Stagger className="bento-grid">
           <StaggerItem className="bx-slot bx-3">
-            <Tilt className="bx" max={7}>
+            <div className="bx">
             <h3>Auditreife in Zahlen.</h3>
             <p>Sie sehen jederzeit, wo Sie stehen: Prozesse, Nachweise und offene Punkte.</p>
             <div className="bx-vis bx-ready" aria-hidden="true">
@@ -53,11 +52,11 @@ export function Bento() {
                 <b>35%</b>
               </div>
             </div>
-          </Tilt>
+          </div>
           </StaggerItem>
 
           <StaggerItem className="bx-slot bx-3">
-            <Tilt className="bx" max={7}>
+            <div className="bx">
             <h3>Dokumente, die tragen.</h3>
             <p>Klare Struktur statt Ordnerchaos. Alles ist auffindbar und auditfest.</p>
             <div className="bx-vis bx-docs" aria-hidden="true">
@@ -80,11 +79,11 @@ export function Bento() {
                 </span>
               </div>
             </div>
-          </Tilt>
+          </div>
           </StaggerItem>
 
           <StaggerItem className="bx-slot bx-2">
-            <Tilt className="bx" max={7}>
+            <div className="bx">
             <h3>Rechtssicher.</h3>
             <p>Normen und Vorgaben im Blick, bevor es der Auditor ist.</p>
             <div className="bx-vis bx-shield" aria-hidden="true">
@@ -92,11 +91,11 @@ export function Bento() {
               <span className="bx-pulse delay" />
               <ShieldCheck size={54} strokeWidth={1.6} />
             </div>
-          </Tilt>
+          </div>
           </StaggerItem>
 
           <StaggerItem className="bx-slot bx-2">
-            <Tilt className="bx" max={7}>
+            <div className="bx">
             <h3>Im Kreis zur Besserung.</h3>
             <p>Planen, Umsetzen, Prüfen, Verbessern: Ihr System lernt weiter.</p>
             <div className="bx-vis bx-cycle" aria-hidden="true">
@@ -106,11 +105,11 @@ export function Bento() {
               </svg>
               <b>PDCA</b>
             </div>
-          </Tilt>
+          </div>
           </StaggerItem>
 
           <StaggerItem className="bx-slot bx-2">
-            <Tilt className="bx" max={7}>
+            <div className="bx">
             <h3>Persönlich erreichbar.</h3>
             <p>Kurze Wege: Anruf, Rückmeldung, nächster Schritt.</p>
             <div className="bx-vis bx-inbox" aria-hidden="true">
@@ -127,7 +126,7 @@ export function Bento() {
                 Auditplan steht<em>gestern</em>
               </div>
             </div>
-          </Tilt>
+          </div>
           </StaggerItem>
         </Stagger>
       </div>

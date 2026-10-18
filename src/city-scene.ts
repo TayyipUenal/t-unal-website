@@ -131,24 +131,19 @@ function badge(label: string, accent: string, navy: string) {
     roundRect(g, 24, 16, 464, 128, 64);
     g.fill();
     g.shadowColor = "transparent";
+    g.strokeStyle = "rgba(10,14,20,0.14)";
+    g.lineWidth = 2;
+    roundRect(g, 24, 16, 464, 128, 64);
+    g.stroke();
     g.fillStyle = accent;
     g.beginPath();
-    g.arc(88, 80, 30, 0, Math.PI * 2);
+    g.arc(86, 80, 11, 0, Math.PI * 2);
     g.fill();
-    g.strokeStyle = "#ffffff";
-    g.lineWidth = 9;
-    g.lineCap = "round";
-    g.lineJoin = "round";
-    g.beginPath();
-    g.moveTo(74, 82);
-    g.lineTo(85, 93);
-    g.lineTo(104, 69);
-    g.stroke();
     g.fillStyle = navy;
-    g.font = '800 52px "Bricolage Grotesque", "Figtree", sans-serif';
+    g.font = '500 52px "Inter Tight", "Inter", sans-serif';
     g.textAlign = "left";
     g.textBaseline = "middle";
-    g.fillText(label, 138, 84);
+    g.fillText(label, 118, 84);
   });
   const sprite = new Sprite(new SpriteMaterial({ map: texture, transparent: true, depthWrite: false, depthTest: false }));
   sprite.scale.set(0.001, 0.001, 1);
@@ -163,15 +158,14 @@ export function startCityScene(canvas: HTMLCanvasElement, options: Options): Cit
   const colour = {
     navy: css(token("--navy-900", 0x0a2738)),
     blue: css(token("--blue-500", 0x0784b8)),
-    accent: css(token("--accent", 0xff5b22)),
+    accent: css(token("--accent", 0x3d4a5a)),
     light: token("--blue-300", 0x6cc0e5),
     deep: token("--navy-800", 0x0e3450),
     road: token("--navy-700", 0x2a4658),
     dust: token("--blue-600", 0x0a6fa6),
     glass: token("--blue-300", 0x9fd0ea),
   };
-  const GREEN = "#17a673";
-
+  
   const renderer = new WebGLRenderer({ canvas, antialias: true, alpha: true, powerPreference: "high-performance" });
   renderer.setPixelRatio(Math.min(window.devicePixelRatio, options.small ? 1.25 : 1.75));
   const scene = new Scene();
@@ -204,7 +198,7 @@ export function startCityScene(canvas: HTMLCanvasElement, options: Options): Cit
     const material = new MeshStandardMaterial({
       color,
       map,
-      emissive: new Color(0xffd9a0),
+      emissive: new Color(0xdfe9f5),
       emissiveMap,
       emissiveIntensity: 0.05,
       metalness: glass ? 0.7 : 0.1,
@@ -219,7 +213,7 @@ export function startCityScene(canvas: HTMLCanvasElement, options: Options): Cit
   const baseMaterial = new MeshStandardMaterial({ color: colour.deep, roughness: 0.6, metalness: 0.3 });
   const base = new Mesh(new BoxGeometry(14, 0.4, 14), baseMaterial);
   base.position.y = -0.22;
-  const lawnMaterial = new MeshStandardMaterial({ color: 0x1d7a63, roughness: 0.9 });
+  const lawnMaterial = new MeshStandardMaterial({ color: 0xdde2e8, roughness: 0.9 });
   const lawn = new Mesh(new BoxGeometry(13.7, 0.06, 13.7), lawnMaterial);
   lawn.position.y = 0.01;
   world.add(base, lawn);
@@ -244,8 +238,8 @@ export function startCityScene(canvas: HTMLCanvasElement, options: Options): Cit
   };
 
   // Office Dortmund (centre)
-  const office = add(0, 0, 1.2, 1.2, 1.7, wall(0xf4f8fb, 3, 4), 0xff5b22);
-  const pin = new Mesh(new ConeGeometry(0.2, 0.55, 20), new MeshStandardMaterial({ color: 0xff5b22, roughness: 0.35, metalness: 0.4 }));
+  const office = add(0, 0, 1.2, 1.2, 1.7, wall(0xf4f8fb, 3, 4), 0x3d4a5a);
+  const pin = new Mesh(new ConeGeometry(0.2, 0.55, 20), new MeshStandardMaterial({ color: 0x3d4a5a, roughness: 0.35, metalness: 0.4 }));
   pin.rotation.x = Math.PI;
   pin.position.set(0, 2.3, 0);
   const pinHead = new Mesh(new SphereGeometry(0.23, 20, 20), pin.material);
@@ -302,21 +296,21 @@ export function startCityScene(canvas: HTMLCanvasElement, options: Options): Cit
     panel.rotation.x = -0.45;
     world.add(panel);
   }
-  add(5.4, -4.4, 0.9, 0.9, 0.55, wall(0xf2ede4, 1, 1), 0x2f9e6e);
+  add(5.4, -4.4, 0.9, 0.9, 0.55, wall(0xf2f4f6, 1, 1), 0x6b7686);
 
   // Station C: Arbeitsschutz (warehouse, crates, forklift)
   const warehouse = add(-4.3, 3.2, 2.8, 1.5, 0.9, wall(0xcfe0ea, 5, 1), 0x7e99ab);
-  const door = new Mesh(new BoxGeometry(0.9, 0.5, 0.04), plain(0xff8a4c, 0.5));
+  const door = new Mesh(new BoxGeometry(0.9, 0.5, 0.04), plain(0x58667a, 0.5));
   door.position.set(0.5, 0.3, 0.77);
   warehouse.group.add(door);
   for (let i = 0; i < 5; i += 1) {
-    const crate = new Mesh(new BoxGeometry(0.34, 0.34, 0.34), plain(i % 2 ? 0xd9a15c : 0xc98d45));
+    const crate = new Mesh(new BoxGeometry(0.34, 0.34, 0.34), plain(i % 2 ? 0x9aa4b0 : 0x838e9b));
     crate.position.set(-3.2 + (i % 3) * 0.4, 0.2 + Math.floor(i / 3) * 0.36, 4.3 + (i % 2) * 0.1);
     world.add(crate);
   }
   const forklift = new Group();
   forklift.position.set(-2.6, 0, 4.4);
-  const fbody = new Mesh(new BoxGeometry(0.5, 0.26, 0.34), plain(0xffb020, 0.5));
+  const fbody = new Mesh(new BoxGeometry(0.5, 0.26, 0.34), plain(0x66717e, 0.5));
   fbody.position.y = 0.2;
   const mast = new Mesh(new BoxGeometry(0.06, 0.6, 0.3), plain(0x444c52));
   mast.position.set(0.3, 0.35, 0);
@@ -334,19 +328,19 @@ export function startCityScene(canvas: HTMLCanvasElement, options: Options): Cit
 
   // Homes
   for (const [x, z, h] of [[0.5, 3.5, 0.5], [1.4, 4.4, 0.6], [-0.9, 5.2, 0.45], [0.4, -3.3, 0.55], [-1.0, -4.8, 0.5], [2.6, 0.9, 0.5], [-5.6, 0.4, 0.55], [5.8, 0.6, 0.5]] as const) {
-    add(x, z, 0.66, 0.66, h, wall(0xf2ede4, 1, 1), 0xd9674a);
+    add(x, z, 0.66, 0.66, h, wall(0xf2f4f6, 1, 1), 0x8b95a1);
   }
 
   // Trees
-  const treeMaterial = new MeshStandardMaterial({ color: 0x159a6a, roughness: 0.8 });
-  const trunkMaterial = new MeshStandardMaterial({ color: 0x6b4a2f, roughness: 0.9 });
+  const treeMaterial = new MeshStandardMaterial({ color: 0xb7c0ca, roughness: 0.8 });
+  const trunkMaterial = new MeshStandardMaterial({ color: 0x8a929c, roughness: 0.9 });
   const taken = buildings.map((b) => ({ x: b.x, z: b.z }));
   let seed = 11;
   const rand = () => {
     seed = (seed * 16807) % 2147483647;
     return seed / 2147483647;
   };
-  const treeCount = options.small ? 18 : 40;
+  const treeCount = options.small ? 6 : 12;
   let placed = 0;
   for (let tries = 0; tries < 400 && placed < treeCount; tries += 1) {
     const x = (rand() - 0.5) * 13;
@@ -370,7 +364,7 @@ export function startCityScene(canvas: HTMLCanvasElement, options: Options): Cit
   const stations: Station[] = [
     { anchor: new Vector3(0, 0, 0), label: "Dortmund", accent: colour.accent },
     { anchor: new Vector3(-4.2, 0, -2.8), label: "ISO 9001", accent: colour.blue },
-    { anchor: new Vector3(4.2, 0, -3.4), label: "ISO 14001", accent: GREEN },
+    { anchor: new Vector3(4.2, 0, -3.4), label: "ISO 14001", accent: colour.blue },
     { anchor: new Vector3(-4.3, 0, 3.2), label: "ISO 45001", accent: colour.accent },
     { anchor: new Vector3(4.6, 0, 3.6), label: "SCC", accent: colour.blue },
     { anchor: new Vector3(0, 0, 0), label: "Dortmund", accent: colour.accent },
@@ -414,7 +408,7 @@ export function startCityScene(canvas: HTMLCanvasElement, options: Options): Cit
   world.add(waveFill);
 
   // Particles
-  const count = options.small ? 220 : 620;
+  const count = options.small ? 70 : 160;
   const positions = new Float32Array(count * 3);
   for (let i = 0; i < count; i += 1) {
     positions[i * 3] = MathUtils.randFloatSpread(40);
@@ -423,7 +417,7 @@ export function startCityScene(canvas: HTMLCanvasElement, options: Options): Cit
   }
   const dustGeometry = new BufferGeometry();
   dustGeometry.setAttribute("position", new BufferAttribute(positions, 3));
-  const dustMaterial = new PointsMaterial({ color: colour.dust, size: 0.06, transparent: true, opacity: 0.5, depthWrite: false });
+  const dustMaterial = new PointsMaterial({ color: colour.dust, size: 0.04, transparent: true, opacity: 0.35, depthWrite: false });
   const dust = new Points(dustGeometry, dustMaterial);
   scene.add(dust);
 
@@ -436,10 +430,10 @@ export function startCityScene(canvas: HTMLCanvasElement, options: Options): Cit
     sun.color.set(dark ? 0x8fb4ff : 0xfff1dc);
     moon.intensity = dark ? 90 : 25;
     baseMaterial.color.set(dark ? token("--navy-900", 0x0a2a3f) : colour.deep);
-    lawnMaterial.color.set(dark ? 0x0f5846 : 0x1d9a73);
+    lawnMaterial.color.set(dark ? 0x1a2027 : 0xdde2e8);
     roadMaterial.color.set(dark ? token("--navy-800", 0x16303f) : colour.road);
     dustMaterial.color = new Color(dark ? colour.light : colour.dust);
-    dustMaterial.opacity = dark ? 0.9 : 0.5;
+    dustMaterial.opacity = dark ? 0.5 : 0.35;
     dustMaterial.blending = dark ? AdditiveBlending : NormalBlending;
     dustMaterial.needsUpdate = true;
   };
@@ -535,7 +529,7 @@ export function startCityScene(canvas: HTMLCanvasElement, options: Options): Cit
       if (b.at < 0 && age >= 0 && radius >= dist && age < 2.4) b.at = time;
       const bAge = b.at < 0 ? -1 : time - b.at;
       const lit = bAge >= 0 ? Math.max(0, 1 - bAge / 1.3) : 0;
-      b.materials.forEach((m) => m.emissive.set(lit > 0 ? colour.light : 0xffd9a0));
+      b.materials.forEach((m) => m.emissive.set(lit > 0 ? colour.light : 0xdfe9f5));
       b.group.position.y = lit * 0.12;
     }
 

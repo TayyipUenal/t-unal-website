@@ -1,90 +1,67 @@
-/* ---------- Floating WhatsApp button ---------- */
+/* ---------- WhatsApp: a discreet shortcut, no brand colour block ---------- */
 .wa-float {
   position: fixed;
   z-index: 80;
   right: 20px;
   bottom: 20px;
   display: flex;
-  height: 58px;
-  min-width: 58px;
+  height: 44px;
+  min-width: 44px;
   align-items: center;
   justify-content: center;
   gap: 0;
-  padding: 0 15px;
+  padding: 0 13px;
   border-radius: 999px;
-  background: #25d366;
+  background: color-mix(in srgb, var(--surface) 92%, transparent);
   box-shadow:
-    0 16px 34px -12px rgba(18, 140, 70, 0.8),
-    inset 0 1px 0 rgba(255, 255, 255, 0.35);
-  color: #fff;
+    0 0 0 1px var(--line-strong),
+    0 10px 24px -14px rgba(10, 14, 20, 0.5);
+  color: var(--ink);
+  -webkit-backdrop-filter: blur(10px);
+  backdrop-filter: blur(10px);
   transition:
-    transform 0.4s cubic-bezier(0.22, 1, 0.36, 1),
-    box-shadow 0.4s ease,
-    gap 0.4s ease,
-    padding 0.4s ease;
+    gap 0.35s ease,
+    padding 0.35s ease,
+    box-shadow 0.3s ease;
 }
 
 .wa-float:hover,
 .wa-float:focus-visible {
   gap: 10px;
-  padding: 0 20px 0 16px;
+  padding: 0 18px 0 14px;
   box-shadow:
-    0 20px 44px -12px rgba(18, 140, 70, 0.95),
-    0 0 0 4px rgba(37, 211, 102, 0.25);
-  transform: translateY(-3px);
+    0 0 0 1px var(--ink),
+    0 14px 30px -14px rgba(10, 14, 20, 0.6);
 }
 
 .wa-label {
   max-width: 0;
   overflow: hidden;
-  font-size: 0.9rem;
-  font-weight: 700;
+  font-size: 0.82rem;
+  font-weight: 500;
   white-space: nowrap;
-  transition: max-width 0.5s cubic-bezier(0.22, 1, 0.36, 1);
+  transition: max-width 0.45s ease;
 }
 
 .wa-float:hover .wa-label,
 .wa-float:focus-visible .wa-label {
-  max-width: 220px;
+  max-width: 200px;
 }
 
 .wa-pulse {
-  position: absolute;
-  inset: 0;
-  border-radius: inherit;
-  background: #25d366;
-  opacity: 0;
-  pointer-events: none;
-  animation: wa-pulse 3.2s ease-out infinite;
-}
-
-@keyframes wa-pulse {
-  0% {
-    opacity: 0.55;
-    transform: scale(1);
-  }
-
-  70%,
-  100% {
-    opacity: 0;
-    transform: scale(1.5);
-  }
+  display: none;
 }
 
 .wa-float svg {
   position: relative;
   flex: none;
+  width: 20px;
+  height: 20px;
 }
 
 @media (max-width: 560px) {
   .wa-float {
     right: 14px;
     bottom: 14px;
-  }
-}
-
-@media (prefers-reduced-motion: reduce) {
-  .wa-pulse {
-    animation: none;
   }
 }

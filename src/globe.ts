@@ -317,7 +317,7 @@ export function startGlobe(canvas: HTMLCanvasElement, options: { still?: boolean
             g.beginPath();
             g.arc(p[0], p[1], 3 + ping * 14, 0, Math.PI * 2);
             g.stroke();
-            g.fillStyle = `rgba(255, 138, 76, ${0.95 * fadeAll * (1 - tail)})`;
+            g.fillStyle = `rgba(230, 240, 250, ${0.95 * fadeAll * (1 - tail)})`;
             g.beginPath();
             g.arc(p[0], p[1], 3.2, 0, Math.PI * 2);
             g.fill();
@@ -347,7 +347,7 @@ export function startGlobe(canvas: HTMLCanvasElement, options: { still?: boolean
       g.stroke();
       if (tag > 0.01) {
         // Label on a dark plate, set off from the lights around it
-        g.font = '600 13px "Figtree", sans-serif';
+        g.font = '600 13px "Inter", sans-serif';
         g.textBaseline = "middle";
         const labelWidth = g.measureText(HOME.label).width + 22;
         const lx = p[0] - 34 - labelWidth;

@@ -13,12 +13,7 @@ export function Hero({ onConsultation }: { onConsultation: () => void }) {
   return (
     <section id="top" className="hero" aria-labelledby="hero-title">
       <div className="hero-glow" aria-hidden="true" />
-      <div className="hero-aurora" aria-hidden="true">
-        <i />
-        <i />
-        <i />
-      </div>
-      <div className="hero-floor" aria-hidden="true" />
+      <div className="hero-grid" aria-hidden="true" />
       <HeroScene />
       <div className="hero-inner">
         <motion.div className="hero-copy" style={depth ? { y: copyY } : undefined}>
@@ -34,9 +29,6 @@ export function Hero({ onConsultation }: { onConsultation: () => void }) {
               <span className="hero-line-inner">
                 <em>
                   Bis zum Abschluss.
-                  <svg className="hero-underline" viewBox="0 0 300 14" preserveAspectRatio="none" aria-hidden="true">
-                    <path d="M3 10 C 70 3, 150 13, 297 4" />
-                  </svg>
                 </em>
               </span>
             </span>

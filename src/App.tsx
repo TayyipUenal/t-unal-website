@@ -6,8 +6,6 @@ import { Footer } from "./components/Footer";
 import { Header } from "./components/Header";
 import { Hero } from "./components/Hero";
 import { AuditCity } from "./components/AuditCity";
-import { CursorAura } from "./components/CursorAura";
-import { KineticBand } from "./components/KineticBand";
 import { Bento } from "./components/Bento";
 import { Marquee } from "./components/Marquee";
 import { NormCheck } from "./components/NormCheck";
@@ -15,8 +13,7 @@ import { NightGlobe } from "./components/NightGlobe";
 import { Story } from "./components/Story";
 import { SccJourney } from "./components/SccJourney";
 import { LegalPage } from "./components/LegalPage";
-import { useEffect, useState } from "react";
-import { initFx } from "./fx";
+import { useState } from "react";
 import { WhatsAppButton } from "./components/WhatsAppButton";
 import { audits } from "./audits";
 import { AuditPage } from "./components/AuditPage";
@@ -35,7 +32,6 @@ function App({ path = "/" }: { path?: string }) {
         ? "imprint"
         : null;
   const home = !legalPage && !audit;
-  useEffect(() => initFx(), []);
   const { scrollYProgress } = useScroll();
   const scaleX = useSpring(scrollYProgress, {
     stiffness: 120,
@@ -57,7 +53,6 @@ function App({ path = "/" }: { path?: string }) {
             <Hero onConsultation={() => openConsultation()} />
             <Marquee />
             <AuditCity onConsultation={() => openConsultation()} />
-            <KineticBand top={["Audit", "Zertifikat", "Sicherheit"]} bottom={["Qualität", "Umwelt", "Arbeitsschutz"]} />
             <NightGlobe />
             <QuoteConfigurator onConsultation={() => openConsultation()} />
             <SccJourney onRequest={openConsultation} />
@@ -65,14 +60,12 @@ function App({ path = "/" }: { path?: string }) {
             <Bento />
             <NormCheck onRequest={() => openConsultation()} />
             <Expertise />
-            <KineticBand top={["Erstgespräch", "kostenfrei", "persönlich"]} bottom={["Dortmund", "direkt", "ehrlich"]} />
             <Contact onConsultation={() => openConsultation()} />
           </>
         )}
       </main>
       <Footer />
       <WhatsAppButton />
-      <CursorAura />
       {consultation && (
         <ConsultationModal preset={consultation} onClose={() => setConsultation(null)} />
       )}

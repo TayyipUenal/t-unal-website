@@ -1,7 +1,6 @@
 import { ArrowLeft, ArrowUpRight, Award, RotateCcw } from "lucide-react";
 import { useMemo, useState } from "react";
 import { Kicker, Rise, Wipe } from "./motion";
-import { Tilt } from "./Tilt";
 
 type Norm = "ISO 9001" | "ISO 14001" | "ISO 45001";
 
@@ -46,15 +45,6 @@ const advice: Record<Norm, { title: string; next: string }> = {
     next: "Gefährdungen erfassen, Schutzmaßnahmen festlegen und Unterweisungen planen.",
   },
 };
-
-/** Confetti pieces with fixed trajectories, so server and browser render the same markup. */
-const confetti = Array.from({ length: 22 }, (_, index) => ({
-  dx: Math.round(Math.cos(index * 2.4) * (90 + (index % 5) * 34)),
-  dy: Math.round(-60 - ((index * 37) % 150)),
-  rot: (index * 83) % 360,
-  hue: index % 3,
-  delay: (index % 7) * 0.03,
-}));
 
 /**
  * Three-question check that recommends a standard and shows a readiness
@@ -136,7 +126,7 @@ export function NormCheck({ onRequest }: { onRequest: () => void }) {
           {done && result && (
             <div className="nc-result" key="result">
               <div className="nc-stage">
-                <Tilt className="nc-tilt" max={14}>
+                <div className="nc-tilt">
                   <div className="nc-cert" aria-hidden="true">
                     <span className="nc-cert-seal">
                       <Award size={26} />
@@ -148,20 +138,6 @@ export function NormCheck({ onRequest }: { onRequest: () => void }) {
                     <i />
                     <i className="short" />
                   </div>
-                </Tilt>
-                <div className="nc-confetti" aria-hidden="true">
-                  {confetti.map((piece, index) => (
-                    <b
-                      key={index}
-                      className={`c${piece.hue}`}
-                      style={{
-                        ["--dx" as string]: `${piece.dx}px`,
-                        ["--dy" as string]: `${piece.dy}px`,
-                        ["--rot" as string]: `${piece.rot}deg`,
-                        animationDelay: `${piece.delay}s`,
-                      }}
-                    />
-                  ))}
                 </div>
               </div>
 

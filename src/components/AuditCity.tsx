@@ -23,9 +23,9 @@ type Stop = {
 
 const stops: Stop[] = [
   {
-    tag: "Der Audit-Flug",
-    title: "Fliegen Sie durch Ihren Betrieb, bevor es der Auditor tut.",
-    text: "Scrollen Sie. Wir zeigen, wo in Betrieben typische Abweichungen entstehen und wie sie sich lösen lassen.",
+    tag: "Audit-Panorama",
+    title: "Ihr Betrieb. Geprüft, bevor es der Auditor tut.",
+    text: "Scrollen Sie durch die vier Bereiche eines Managementsystems. Wir zeigen, wo typische Abweichungen entstehen und wie sie sich lösen lassen.",
     points: [],
   },
   {
@@ -112,8 +112,8 @@ export function AuditCity({ onConsultation }: { onConsultation: () => void }) {
     };
 
     const fonts = Promise.all([
-      document.fonts.load('800 52px "Bricolage Grotesque"'),
-      document.fonts.load('600 34px "Figtree"'),
+      document.fonts.load('500 52px "Inter Tight"'),
+      document.fonts.load('400 34px "Inter"'),
     ]).catch(() => {});
     Promise.all([import("../city-scene"), fonts])
       .then(([{ startCityScene }]) => {
@@ -168,7 +168,7 @@ export function AuditCity({ onConsultation }: { onConsultation: () => void }) {
     return (
       <section id="audit-flug" className="ac-static" aria-labelledby="ac-title">
         <div className="ac-static-inner">
-          <p className="section-kicker">Der Audit-Flug</p>
+          <p className="section-kicker">Audit-Panorama</p>
           <h2 id="ac-title">{stops[0].title}</h2>
           <div className="ac-static-grid">
             {stops.slice(1, 5).map((stop) => (
@@ -215,7 +215,7 @@ export function AuditCity({ onConsultation }: { onConsultation: () => void }) {
           )}
           {active > 0 && !last && (
             <p className="ac-hint">
-              <ScanSearch size={15} aria-hidden="true" /> Tippen Sie auf die pulsierenden Befunde in der Stadt.
+              <ScanSearch size={15} aria-hidden="true" /> Befunde antippen: Abweichung und Lösung.
             </p>
           )}
           {last && (
@@ -262,7 +262,7 @@ export function AuditCity({ onConsultation }: { onConsultation: () => void }) {
               aria-label={`Befund: ${spot.finding}`}
               onClick={() => setOpen(open === spot.id ? null : spot.id)}
             >
-              <span aria-hidden="true" />
+              <span aria-hidden="true">{hotspots.filter((h) => h.station === spot.station).indexOf(spot) + 1}</span>
             </button>
             <div className="ac-card" role="note">
               <small>Befund</small>

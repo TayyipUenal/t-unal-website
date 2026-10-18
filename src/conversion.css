@@ -104,7 +104,7 @@
 }
 .inquiry-success h3 {
   font-family: var(--font-display);
-  font-weight: 700;
+  font-weight: 600;
   font-size: 1.8rem;
   margin: 20px 0 15px;
 }
@@ -165,7 +165,7 @@
 .consultation-dialog > h2 {
   font-family: var(--font-display);
   font-size: 2.5rem;
-  font-weight: 700;
+  font-weight: 500;
   margin: 0 0 24px;
   line-height: 1.1;
 }
@@ -194,7 +194,7 @@
 }
 .audit-detail-hero h1 {
   font-family: var(--font-display);
-  font-weight: 700;
+  font-weight: 500;
   font-size: clamp(2.7rem, 5.5vw, 5.3rem);
   line-height: 1.05;
   letter-spacing: -0.035em;
@@ -251,7 +251,7 @@
 .related-audits h2 {
   font-family: var(--font-display);
   font-size: clamp(1.8rem, 2.9vw, 2.8rem);
-  font-weight: 700;
+  font-weight: 500;
   line-height: 1.15;
   letter-spacing: -0.02em;
   margin: 18px 0;

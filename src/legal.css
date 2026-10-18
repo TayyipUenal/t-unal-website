@@ -29,7 +29,7 @@
 .legal-heading h1 {
   font-family: var(--font-display);
   font-size: clamp(2.35rem, 5.7vw, 5.5rem);
-  font-weight: 700;
+  font-weight: 500;
   letter-spacing: -0.035em;
   line-height: 1.14;
   margin: 18px 0;
@@ -120,7 +120,7 @@
 .legal-section h2,
 .legal-question h2 {
   font-family: var(--font-display);
-  font-weight: 700;
+  font-weight: 500;
   line-height: 1.2;
   font-size: clamp(1.65rem, 2.7vw, 2.5rem);
   letter-spacing: -0.02em;

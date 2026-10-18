@@ -1,0 +1,6 @@
+/* Brand colour: every blue in the stylesheets is an oklch() value that keeps its
+   lightness and takes hue and chroma from these two numbers. */
+:root {
+  --hue: 240;
+  --ck: 1;
+}

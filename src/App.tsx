@@ -14,7 +14,6 @@ import { SccJourney } from "./components/SccJourney";
 import { LegalPage } from "./components/LegalPage";
 import { useEffect, useState } from "react";
 import { initFx } from "./fx";
-import { PalettePicker } from "./components/PalettePicker";
 import { audits } from "./audits";
 import { AuditPage } from "./components/AuditPage";
 import { ConsultationModal } from "./components/ConsultationModal";
@@ -65,7 +64,6 @@ function App({ path = "/" }: { path?: string }) {
         )}
       </main>
       <Footer />
-      <PalettePicker />
       {consultation && (
         <ConsultationModal preset={consultation} onClose={() => setConsultation(null)} />
       )}

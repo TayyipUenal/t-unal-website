@@ -1,24 +1,21 @@
 import {
   AmbientLight,
-  BoxGeometry,
   CanvasTexture,
   CircleGeometry,
   Color,
   DirectionalLight,
-  EdgesGeometry,
+  ExtrudeGeometry,
   Group,
-  LineBasicMaterial,
-  LineSegments,
   MathUtils,
   Mesh,
-  MeshBasicMaterial,
   MeshStandardMaterial,
   Object3D,
   PerspectiveCamera,
+  PlaneGeometry,
   PMREMGenerator,
   PointLight,
-  RingGeometry,
   Scene,
+  Shape,
   SRGBColorSpace,
   TorusGeometry,
   WebGLRenderer,
@@ -26,146 +23,203 @@ import {
 import { RoomEnvironment } from "three/examples/jsm/environments/RoomEnvironment.js";
 
 /**
- * Hero centrepiece: three graphite monoliths, one per standard, on a fine
- * plinth with a single thin ring. No decoration: polished material, hairline
- * edges, slow movement that follows the pointer a little. Loaded on demand
+ * Hero centrepiece: a polished gold certification seal. A scalloped rosette
+ * with an embossed ring of text and the TÜ monogram, two ribbon tails below,
+ * turning slowly and catching the light as the pointer moves. Loaded on demand
  * (see HeroScene); rendering pauses off screen or when the tab is hidden.
  */
 export type HeroScene = { stop: () => void; setTheme: (dark: boolean) => void };
 
 type Options = { still: boolean; dark: boolean; small: boolean };
 
-function token(name: string, fallback: number) {
-  try {
-    const probe = document.createElement("i");
-    probe.style.color = `var(${name})`;
-    probe.style.display = "none";
-    document.body.append(probe);
-    const resolved = getComputedStyle(probe).color;
-    probe.remove();
+const R = 2.05; // seal radius in world units
+const DEPTH = 0.22;
+
+/** Seal face as colour map and matching bump map (white = raised). */
+function faceTextures() {
+  const size = 1024;
+  const paint = (emboss: boolean) => {
     const canvas = document.createElement("canvas");
-    canvas.width = canvas.height = 1;
-    const g = canvas.getContext("2d", { willReadFrequently: true })!;
-    g.fillStyle = resolved;
-    g.fillRect(0, 0, 1, 1);
-    const [r, gg, b] = g.getImageData(0, 0, 1, 1).data;
-    return (r << 16) | (gg << 8) | b;
-  } catch {
-    return fallback;
-  }
+    canvas.width = canvas.height = size;
+    const g = canvas.getContext("2d")!;
+    const c = size / 2;
+    if (emboss) {
+      g.fillStyle = "#000";
+      g.fillRect(0, 0, size, size);
+    } else {
+      const base = g.createRadialGradient(c * 0.8, c * 0.7, 40, c, c, c);
+      base.addColorStop(0, "#e3c987");
+      base.addColorStop(0.6, "#c4a05a");
+      base.addColorStop(1, "#a78443");
+      g.fillStyle = base;
+      g.fillRect(0, 0, size, size);
+    }
+    const ink = emboss ? "#fff" : "#6e5321";
+    g.strokeStyle = ink;
+    g.fillStyle = ink;
+    g.lineWidth = 6;
+    g.beginPath();
+    g.arc(c, c, c * 0.93, 0, Math.PI * 2);
+    g.stroke();
+    g.lineWidth = 3;
+    g.beginPath();
+    g.arc(c, c, c * 0.63, 0, Math.PI * 2);
+    g.stroke();
+    g.beginPath();
+    g.arc(c, c, c * 0.88, 0, Math.PI * 2);
+    g.stroke();
+
+    // Text on the ring
+    const text = "AUDIT  ·  ZERTIFIZIERUNG  ·  SCHULUNG  ·  ";
+    const repeated = text + text;
+    g.font = '700 54px "Plus Jakarta Sans", "DM Sans", sans-serif';
+    g.textAlign = "center";
+    g.textBaseline = "middle";
+    const radius = c * 0.755;
+    const step = (Math.PI * 2) / repeated.length;
+    for (let i = 0; i < repeated.length; i += 1) {
+      const angle = -Math.PI / 2 + i * step;
+      g.save();
+      g.translate(c + Math.cos(angle) * radius, c + Math.sin(angle) * radius);
+      g.rotate(angle + Math.PI / 2);
+      g.fillText(repeated[i], 0, 0);
+      g.restore();
+    }
+
+    // Monogram
+    g.font = '800 270px "Plus Jakarta Sans", "DM Sans", sans-serif';
+    g.fillText("TÜ", c, c + 6);
+    g.lineWidth = 4;
+    g.beginPath();
+    g.moveTo(c - 150, c + 150);
+    g.lineTo(c + 150, c + 150);
+    g.stroke();
+    g.font = '600 40px "DM Sans", sans-serif';
+    g.fillText("GEPRÜFT · ZERTIFIZIERT", c, c + 196);
+    const texture = new CanvasTexture(canvas);
+    texture.anisotropy = 8;
+    if (!emboss) texture.colorSpace = SRGBColorSpace;
+    return texture;
+  };
+  return { map: paint(false), bump: paint(true) };
 }
 
-function faceTexture(number: string, name: string) {
-  const canvas = document.createElement("canvas");
-  canvas.width = 512;
-  canvas.height = 1024;
-  const g = canvas.getContext("2d")!;
-  g.fillStyle = "#2b2f36";
-  g.fillRect(0, 0, 512, 1024);
-  // very fine vertical lines, like brushed metal
-  for (let x = 0; x < 512; x += 8) {
-    g.fillStyle = x % 16 === 0 ? "rgba(255,255,255,0.025)" : "rgba(0,0,0,0.05)";
-    g.fillRect(x, 0, 2, 1024);
+function rosetteGeometry() {
+  const shape = new Shape();
+  const lobes = 30;
+  const steps = 360;
+  for (let i = 0; i <= steps; i += 1) {
+    const a = (i / steps) * Math.PI * 2;
+    const r = R * (1 + 0.035 * Math.cos(lobes * a));
+    const x = Math.cos(a) * r;
+    const y = Math.sin(a) * r;
+    if (i === 0) shape.moveTo(x, y);
+    else shape.lineTo(x, y);
   }
-  g.fillStyle = "rgba(255,255,255,0.14)";
-  g.fillRect(48, 896, 56, 2);
-  g.fillStyle = "rgba(255,255,255,0.88)";
-  g.textBaseline = "alphabetic";
-  g.font = '500 66px "Plus Jakarta Sans", "DM Sans", sans-serif';
-  g.fillText(number, 48, 960);
-  g.fillStyle = "rgba(255,255,255,0.5)";
-  g.font = '400 30px "DM Sans", sans-serif';
-  g.fillText(name, 48, 1000);
-  const texture = new CanvasTexture(canvas);
-  texture.colorSpace = SRGBColorSpace;
-  texture.anisotropy = 8;
-  return texture;
+  const geometry = new ExtrudeGeometry(shape, {
+    depth: DEPTH,
+    bevelEnabled: true,
+    bevelThickness: 0.05,
+    bevelSize: 0.05,
+    bevelSegments: 3,
+    curveSegments: 4,
+  });
+  geometry.translate(0, 0, -DEPTH / 2);
+  return geometry;
 }
 
-const TOWERS = [
-  { x: -1.55, z: 0.35, h: 3.3, number: "9001", name: "Qualität" },
-  { x: 0, z: -0.25, h: 4.7, number: "14001", name: "Umwelt" },
-  { x: 1.55, z: 0.35, h: 2.6, number: "45001", name: "Arbeitsschutz" },
-];
+function ribbonGeometry(width: number, length: number) {
+  const shape = new Shape();
+  shape.moveTo(-width / 2, 0);
+  shape.lineTo(width / 2, 0);
+  shape.lineTo(width / 2, -length);
+  shape.lineTo(0, -length + width * 0.55);
+  shape.lineTo(-width / 2, -length);
+  shape.closePath();
+  const geometry = new ExtrudeGeometry(shape, { depth: 0.04, bevelEnabled: false });
+  geometry.translate(0, 0, -0.02);
+  return geometry;
+}
 
 export function startHeroScene(canvas: HTMLCanvasElement, options: Options): HeroScene {
-  const edge = token("--blue-300", 0xe6d3a8);
   const renderer = new WebGLRenderer({ canvas, antialias: true, alpha: true, powerPreference: "high-performance" });
   renderer.setPixelRatio(Math.min(window.devicePixelRatio, options.small ? 1.25 : 1.75));
   const scene = new Scene();
   const pmrem = new PMREMGenerator(renderer);
   scene.environment = pmrem.fromScene(new RoomEnvironment(), 0.04).texture;
-  const camera = new PerspectiveCamera(32, 1, 0.1, 100);
-  camera.position.set(0, 0.6, 15);
+  const camera = new PerspectiveCamera(30, 1, 0.1, 100);
+  camera.position.set(0, 0, 15);
 
-  const ambient = new AmbientLight(0xffffff, 0.35);
-  const key = new DirectionalLight(0xffffff, 2.4);
-  key.position.set(-5, 8, 7);
-  const rim = new PointLight(edge, 140, 40);
-  rim.position.set(6, 3, -4);
-  scene.add(ambient, key, rim);
+  const ambient = new AmbientLight(0xffffff, 0.3);
+  const key = new DirectionalLight(0xfff0d0, 2.2);
+  key.position.set(-4, 6, 8);
+  const glint = new PointLight(0xffe2a8, 60, 30);
+  glint.position.set(3, 2, 6);
+  scene.add(ambient, key, glint);
 
   const rig = new Group();
   scene.add(rig);
-  const stage = new Group();
-  rig.add(stage);
+  const seal = new Group();
+  rig.add(seal);
 
-  // Plinth and ring
-  const plinthMaterial = new MeshStandardMaterial({ color: 0x20262e, metalness: 0.7, roughness: 0.35 });
-  const plinth = new Mesh(new CircleGeometry(3.7, 96), plinthMaterial);
-  plinth.rotation.x = -Math.PI / 2;
-  plinth.position.y = -2.4;
-  stage.add(plinth);
-  const ringLineMaterial = new MeshBasicMaterial({ color: edge, transparent: true, opacity: 0.55 });
-  const plinthRing = new Mesh(new RingGeometry(3.68, 3.7, 128), ringLineMaterial);
-  plinthRing.rotation.x = -Math.PI / 2;
-  plinthRing.position.y = -2.39;
-  stage.add(plinthRing);
-  const halo = new Mesh(new TorusGeometry(4.6, 0.006, 6, 220), ringLineMaterial);
-  halo.rotation.x = Math.PI / 2.35;
-  halo.position.y = -0.4;
-  stage.add(halo);
+  const goldMaterial = new MeshStandardMaterial({ color: 0xc9a45e, metalness: 1, roughness: 0.27, envMapIntensity: 1.5 });
+  const rosette = new Mesh(rosetteGeometry(), goldMaterial);
+  seal.add(rosette);
 
-  // Monoliths
-  const edgeMaterial = new LineBasicMaterial({ color: edge, transparent: true, opacity: 0.6 });
-  const bodyMaterial = new MeshStandardMaterial({ color: 0x2b2f36, metalness: 0.9, roughness: 0.3 });
-  const towers: Group[] = [];
-  for (const spec of TOWERS) {
-    const group = new Group();
-    const geometry = new BoxGeometry(1.15, spec.h, 1.15);
-    const front = new MeshStandardMaterial({
-      map: faceTexture(spec.number, spec.name),
-      metalness: 0.7,
-      roughness: 0.35,
-    });
-    // +x, -x, +y, -y, +z (front), -z
-    const body = new Mesh(geometry, [bodyMaterial, bodyMaterial, bodyMaterial, bodyMaterial, front, bodyMaterial]);
-    const lines = new LineSegments(new EdgesGeometry(geometry), edgeMaterial);
-    group.add(body, lines);
-    group.position.set(spec.x, -2.4 + spec.h / 2, spec.z);
-    stage.add(group);
-    towers.push(group);
+  const ring = new Mesh(new TorusGeometry(R * 0.93, 0.045, 16, 140), goldMaterial);
+  ring.position.z = DEPTH / 2 + 0.05;
+  seal.add(ring);
+
+  const textures = faceTextures();
+  const faceMaterial = new MeshStandardMaterial({
+    map: textures.map,
+    bumpMap: textures.bump,
+    bumpScale: 2.2,
+    color: 0xffffff,
+    metalness: 0.95,
+    roughness: 0.3,
+    envMapIntensity: 1.4,
+  });
+  const face = new Mesh(new CircleGeometry(R * 0.93, 96), faceMaterial);
+  face.position.z = DEPTH / 2 + 0.052;
+  seal.add(face);
+
+  // Back: plain polished disc so the turn never shows a hole
+  const back = new Mesh(new CircleGeometry(R * 0.93, 96), goldMaterial);
+  back.rotation.y = Math.PI;
+  back.position.z = -(DEPTH / 2 + 0.052);
+  seal.add(back);
+
+  // Ribbon tails
+  const ribbonMaterial = new MeshStandardMaterial({ color: 0x4a3e2a, metalness: 0.35, roughness: 0.5 });
+  const tails: Mesh[] = [];
+  for (const side of [-1, 1]) {
+    const tail = new Mesh(ribbonGeometry(0.85, 2.7), ribbonMaterial);
+    tail.position.set(side * 0.55, -R * 0.78, -0.12);
+    tail.rotation.z = side * 0.16;
+    seal.add(tail);
+    tails.push(tail);
+  }
+  const edgeMaterial = new MeshStandardMaterial({ color: 0xc9a45e, metalness: 1, roughness: 0.3 });
+  for (const tail of tails) {
+    const edge = new Mesh(new PlaneGeometry(0.85, 0.05), edgeMaterial);
+    edge.position.set(0, -0.001, 0.025);
+    tail.add(edge);
   }
 
   const apply = (dark: boolean) => {
-    edgeMaterial.opacity = dark ? 0.9 : 0.7;
-    ringLineMaterial.opacity = dark ? 0.6 : 0.4;
-    plinthMaterial.color = new Color(dark ? 0x1d1d1d : 0xd8d2c5);
     ambient.intensity = dark ? 0.25 : 0.4;
     key.intensity = dark ? 2.0 : 2.6;
+    goldMaterial.color = new Color(dark ? 0xc9a45e : 0xb8924d);
+    ribbonMaterial.color = new Color(dark ? 0x4a3e2a : 0x3a2f1e);
   };
   apply(options.dark);
 
   let width = 1;
   const place = () => {
     const halfH = Math.tan(MathUtils.degToRad(camera.fov / 2)) * camera.position.z;
-        if (options.small || width < 781) {
-      rig.position.set(0, 0.1, 0);
-      rig.scale.setScalar(Math.min(0.8, halfH / 5.2));
-    } else {
-      rig.position.set(0, 0.15, 0);
-      rig.scale.setScalar(Math.min(1.1, halfH / 3.9));
-    }
+    rig.position.set(0, 0.55, 0);
+    rig.scale.setScalar(Math.min(options.small || width < 781 ? 0.8 : 1.12, halfH / 4.3));
   };
   const resize = () => {
     const box = canvas.getBoundingClientRect();
@@ -206,19 +260,17 @@ export function startHeroScene(canvas: HTMLCanvasElement, options: Options): Her
     last = now;
     time += options.still ? 0 : dt;
 
-    pointer.sx += (pointer.x - pointer.sx) * Math.min(1, dt * 2.2);
-    pointer.sy += (pointer.y - pointer.sy) * Math.min(1, dt * 2.2);
+    pointer.sx += (pointer.x - pointer.sx) * Math.min(1, dt * 2.5);
+    pointer.sy += (pointer.y - pointer.sy) * Math.min(1, dt * 2.5);
     const scroll = Math.min(1, window.scrollY / 900);
 
-    stage.rotation.y = -0.5 + Math.sin(time * 0.18) * 0.22 + pointer.sx * 0.18 + scroll * 0.4;
-    stage.rotation.x = -pointer.sy * 0.04;
-    halo.rotation.z = time * 0.03;
-    towers.forEach((tower, i) => {
-      tower.position.y = -2.4 + TOWERS[i].h / 2 + Math.sin(time * 0.5 + i * 1.7) * 0.025;
+    seal.rotation.y = Math.sin(time * 0.4) * 0.55 + pointer.sx * 0.35 + scroll * 0.5;
+    seal.rotation.x = -pointer.sy * 0.18 + Math.sin(time * 0.3) * 0.04;
+    seal.position.y = Math.sin(time * 0.8) * 0.08;
+    tails.forEach((tail, i) => {
+      tail.rotation.z = (i === 0 ? -1 : 1) * (0.16 + Math.sin(time * 1.1 + i) * 0.035);
     });
-    camera.position.x = pointer.sx * 0.25;
-    camera.position.y = 0.6 - pointer.sy * 0.15;
-    camera.lookAt(0, -0.2, 0);
+    glint.position.set(Math.sin(time * 0.6) * 4.5, 2 + Math.cos(time * 0.5), 6);
 
     renderer.render(scene, camera);
   };
@@ -237,7 +289,9 @@ export function startHeroScene(canvas: HTMLCanvasElement, options: Options): Her
         const material = mesh.material;
         const list = Array.isArray(material) ? material : material ? [material] : [];
         list.forEach((m) => {
-          (m as MeshStandardMaterial).map?.dispose?.();
+          const standard = m as MeshStandardMaterial;
+          standard.map?.dispose?.();
+          standard.bumpMap?.dispose?.();
           m.dispose();
         });
       });

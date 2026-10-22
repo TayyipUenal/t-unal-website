@@ -1,4 +1,4 @@
-import { ArrowDown, ArrowUpRight, Award, GraduationCap, HardHat, Star } from "lucide-react";
+import { ArrowDown, ArrowUpRight, Award, BadgeCheck, GraduationCap, HardHat } from "lucide-react";
 import { useEffect, useState } from "react";
 import { contact } from "../content";
 import { HeroScene } from "./HeroScene";
@@ -85,7 +85,7 @@ export function Hero({ onConsultation }: { onConsultation: () => void }) {
           </li>
           <li>
             <a href={contact.provenExpert} target="_blank" rel="noreferrer" aria-label="ProvenExpert" title="ProvenExpert">
-              <Star size={20} strokeWidth={1.8} aria-hidden="true" />
+              <BadgeCheck size={21} strokeWidth={1.7} aria-hidden="true" />
             </a>
           </li>
           <li>

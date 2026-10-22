@@ -507,3 +507,44 @@
 .quote-option.is-selected .quote-option-text small {
   color: var(--ink-soft) !important;
 }
+
+/* ---- Gold headline: a small light sweeps across from left to right ---- */
+.hero h1 em,
+.pa-hero h1 em,
+.pl-hero h1 em {
+  --sweep: #fff1cf;
+  background: linear-gradient(105deg, var(--gold) 0%, var(--gold) 43%, var(--sweep) 50%, var(--gold) 57%, var(--gold) 100%);
+  background-size: 260% 100%;
+  background-position: 100% 0;
+  -webkit-background-clip: text;
+  background-clip: text;
+  color: transparent;
+  -webkit-text-fill-color: transparent;
+  animation: gold-sweep 7s ease-in-out 1.6s infinite;
+}
+
+:root:not([data-theme="dark"]) .hero h1 em,
+:root:not([data-theme="dark"]) .pa-hero h1 em,
+:root:not([data-theme="dark"]) .pl-hero h1 em {
+  --sweep: #6b4f1d;
+}
+
+@keyframes gold-sweep {
+  0% {
+    background-position: 100% 0;
+  }
+
+  32%,
+  100% {
+    background-position: 0% 0;
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .hero h1 em,
+  .pa-hero h1 em,
+  .pl-hero h1 em {
+    background-position: 0% 0;
+    animation: none;
+  }
+}

@@ -276,6 +276,65 @@ async function syncCommission(env: Env, leadId: number) {
   }
 }
 
+/* ---------- what a partner sees (also used for the admin's "view as partner") ---------- */
+
+async function partnerSummary(env: Env, p: Partner) {
+  const leads = await env.DB.prepare("SELECT status, COUNT(*) AS n FROM leads WHERE partner_id = ? GROUP BY status")
+    .bind(p.id)
+    .all<{ status: string; n: number }>();
+  const money = await env.DB.prepare(
+    `SELECT COALESCE(SUM(CASE WHEN status = 'open' THEN amount_cents END), 0) AS open_cents,
+            COALESCE(SUM(CASE WHEN status = 'paid' THEN amount_cents END), 0) AS paid_cents
+     FROM commissions WHERE partner_id = ?`,
+  )
+    .bind(p.id)
+    .first<{ open_cents: number; paid_cents: number }>();
+  const can = permsOf(p);
+  return {
+    ratePercent: can.seeRate ? p.rate_percent : null,
+    slug: can.pageActive ? p.slug : null,
+    total: leads.results.reduce((sum, r) => sum + r.n, 0),
+    won: leads.results.find((r) => r.status === "won")?.n ?? 0,
+    leadsByStatus: can.seeStatus ? Object.fromEntries(leads.results.map((r) => [r.status, r.n])) : {},
+    openCents: can.seeAmounts ? (money?.open_cents ?? 0) : null,
+    paidCents: can.seeAmounts ? (money?.paid_cents ?? 0) : null,
+  };
+}
+
+async function partnerLeads(env: Env, p: Partner) {
+  const rows = await env.DB.prepare(
+    `SELECT l.id, l.contact_name, l.company, l.email, l.phone, l.topic, l.message, l.status, l.deal_cents, l.source,
+            l.created_at, l.updated_at, c.amount_cents AS commission_cents, c.rate_percent AS commission_rate, c.status AS commission_status
+     FROM leads l LEFT JOIN commissions c ON c.lead_id = l.id
+     WHERE l.partner_id = ? ORDER BY l.created_at DESC LIMIT 500`,
+  )
+    .bind(p.id)
+    .all<Record<string, unknown>>();
+  const can = permsOf(p);
+  return rows.results.map((row) => ({
+    ...row,
+    status: can.seeStatus ? row.status : null,
+    email: can.seeContact ? row.email : "",
+    phone: can.seeContact ? row.phone : "",
+    deal_cents: can.seeAmounts ? row.deal_cents : null,
+    commission_cents: can.seeAmounts ? row.commission_cents : null,
+    commission_rate: can.seeRate ? row.commission_rate : null,
+    commission_status: can.seeAmounts ? row.commission_status : null,
+  }));
+}
+
+/** History of one of the partner's leads: status changes (if allowed) and notes marked visible. Null if the lead is not theirs. */
+async function partnerLeadEvents(env: Env, p: Partner, leadId: number) {
+  if (!(await env.DB.prepare("SELECT id FROM leads WHERE id = ? AND partner_id = ?").bind(leadId, p.id).first())) return null;
+  const can = permsOf(p);
+  const rows = await env.DB.prepare(
+    "SELECT kind, status, note, created_at FROM lead_events WHERE lead_id = ? AND visible = 1 ORDER BY created_at, id",
+  )
+    .bind(leadId)
+    .all<{ kind: string }>();
+  return rows.results.filter((e) => e.kind !== "status" || can.seeStatus);
+}
+
 /* ---------- routes ---------- */
 
 async function handle(request: Request, env: Env): Promise<Response> {
@@ -506,64 +565,17 @@ async function handle(request: Request, env: Env): Promise<Response> {
 
   /* --- partner --- */
   if (path === "/api/partner/summary" && method === "GET" && user.role === "partner") {
-    const leads = await env.DB.prepare("SELECT status, COUNT(*) AS n FROM leads WHERE partner_id = ? GROUP BY status")
-      .bind(user.id)
-      .all<{ status: string; n: number }>();
-    const money = await env.DB.prepare(
-      `SELECT COALESCE(SUM(CASE WHEN status = 'open' THEN amount_cents END), 0) AS open_cents,
-              COALESCE(SUM(CASE WHEN status = 'paid' THEN amount_cents END), 0) AS paid_cents
-       FROM commissions WHERE partner_id = ?`,
-    )
-      .bind(user.id)
-      .first<{ open_cents: number; paid_cents: number }>();
-    const can = permsOf(user);
-    return json({
-      ok: true,
-      ratePercent: can.seeRate ? user.rate_percent : null,
-      slug: can.pageActive ? user.slug : null,
-      total: leads.results.reduce((sum, r) => sum + r.n, 0),
-      won: leads.results.find((r) => r.status === "won")?.n ?? 0,
-      leadsByStatus: can.seeStatus ? Object.fromEntries(leads.results.map((r) => [r.status, r.n])) : {},
-      openCents: can.seeAmounts ? (money?.open_cents ?? 0) : null,
-      paidCents: can.seeAmounts ? (money?.paid_cents ?? 0) : null,
-    });
+    return json({ ok: true, ...(await partnerSummary(env, user)) });
   }
 
   if (path === "/api/partner/leads" && method === "GET" && user.role === "partner") {
-    const rows = await env.DB.prepare(
-      `SELECT l.id, l.contact_name, l.company, l.email, l.phone, l.topic, l.message, l.status, l.deal_cents, l.source,
-              l.created_at, l.updated_at, c.amount_cents AS commission_cents, c.rate_percent AS commission_rate, c.status AS commission_status
-       FROM leads l LEFT JOIN commissions c ON c.lead_id = l.id
-       WHERE l.partner_id = ? ORDER BY l.created_at DESC LIMIT 500`,
-    )
-      .bind(user.id)
-      .all<Record<string, unknown>>();
-    const can = permsOf(user);
-    const leads = rows.results.map((row) => ({
-      ...row,
-      status: can.seeStatus ? row.status : null,
-      email: can.seeContact ? row.email : "",
-      phone: can.seeContact ? row.phone : "",
-      deal_cents: can.seeAmounts ? row.deal_cents : null,
-      commission_cents: can.seeAmounts ? row.commission_cents : null,
-      commission_rate: can.seeRate ? row.commission_rate : null,
-      commission_status: can.seeAmounts ? row.commission_status : null,
-    }));
-    return json({ ok: true, leads });
+    return json({ ok: true, leads: await partnerLeads(env, user) });
   }
 
-  /** What the partner may see of a lead's history: status changes (if allowed) and notes marked visible. */
   const myLeadEvents = path.match(/^\/api\/partner\/leads\/(\d+)\/events$/);
   if (myLeadEvents && method === "GET" && user.role === "partner") {
-    const id = Number(myLeadEvents[1]);
-    if (!(await env.DB.prepare("SELECT id FROM leads WHERE id = ? AND partner_id = ?").bind(id, user.id).first())) return fail("Nicht gefunden.", 404);
-    const can = permsOf(user);
-    const rows = await env.DB.prepare(
-      "SELECT kind, status, note, created_at FROM lead_events WHERE lead_id = ? AND visible = 1 ORDER BY created_at, id",
-    )
-      .bind(id)
-      .all<{ kind: string }>();
-    return json({ ok: true, events: rows.results.filter((e) => e.kind !== "status" || can.seeStatus) });
+    const events = await partnerLeadEvents(env, user, Number(myLeadEvents[1]));
+    return events ? json({ ok: true, events }) : fail("Nicht gefunden.", 404);
   }
 
   if (path === "/api/partner/leads" && method === "POST" && user.role === "partner") {
@@ -708,6 +720,18 @@ async function handle(request: Request, env: Env): Promise<Response> {
       .run();
     const link = `${url.origin}/portal/aktivieren?token=${token}`;
     return json({ ok: true, inviteUrl: link, mailed: await inviteMail(env, email, name, link, "Partnerportal"), slug, pageUrl: `${url.origin}/partner/${slug}` });
+  }
+
+  /** Read-only copy of exactly what this partner sees in their portal. */
+  const preview = path.match(/^\/api\/admin\/partners\/(\d+)\/preview$/);
+  if (preview && method === "GET") {
+    if (!can.managePartners) return denied();
+    const target = await env.DB.prepare("SELECT * FROM partners WHERE id = ? AND role = 'partner'").bind(Number(preview[1])).first<Partner>();
+    if (!target) return fail("Partner nicht gefunden.", 404);
+    const leads = await partnerLeads(env, target);
+    const events: Record<number, unknown> = {};
+    for (const lead of leads) events[lead.id as number] = (await partnerLeadEvents(env, target, lead.id as number)) ?? [];
+    return json({ ok: true, user: publicPartner(target), summary: await partnerSummary(env, target), leads, events });
   }
 
   const partnerAction = path.match(/^\/api\/admin\/partners\/(\d+)\/(approve|invite|block|rate|profile)$/);

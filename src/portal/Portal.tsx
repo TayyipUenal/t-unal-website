@@ -162,9 +162,11 @@ function QrCode({ value }: { value: string }) {
 
 /* ---------- partner dashboard ---------- */
 
-function PartnerDashboard({ user }: { user: User }) {
-  const [summary, setSummary] = useState<Summary | null>(null);
-  const [leads, setLeads] = useState<PartnerLead[] | null>(null);
+type PartnerPreview = { summary: Summary; leads: PartnerLead[]; events: Record<number, LeadEvent[]> };
+
+function PartnerDashboard({ user, preview, onExit }: { user: User; preview?: PartnerPreview; onExit?: () => void }) {
+  const [summary, setSummary] = useState<Summary | null>(preview?.summary ?? null);
+  const [leads, setLeads] = useState<PartnerLead[] | null>(preview?.leads ?? null);
   const [form, setForm] = useState(false);
   const [error, setError] = useState("");
   const [bio, setBio] = useState(user.bio);
@@ -175,19 +177,24 @@ function PartnerDashboard({ user }: { user: User }) {
   const [leadEvents, setLeadEvents] = useState<Record<number, LeadEvent[]>>({});
   const toggleLead = (id: number) => {
     setOpenLead((current) => (current === id ? null : id));
+    if (preview) {
+      setLeadEvents((all) => ({ ...all, [id]: preview.events[id] ?? [] }));
+      return;
+    }
     api<{ events: LeadEvent[] }>(`/api/partner/leads/${id}/events`)
       .then((result) => setLeadEvents((all) => ({ ...all, [id]: result.events })))
       .catch(() => setLeadEvents((all) => ({ ...all, [id]: [] })));
   };
 
   const load = useCallback(() => {
+    if (preview) return;
     Promise.all([api<Summary>("/api/partner/summary"), api<{ leads: PartnerLead[] }>("/api/partner/leads")])
       .then(([s, l]) => {
         setSummary(s);
         setLeads(l.leads);
       })
       .catch(() => setError("Die Daten konnten nicht geladen werden."));
-  }, []);
+  }, [preview]);
   useEffect(() => {
     load();
   }, [load]);
@@ -222,6 +229,16 @@ function PartnerDashboard({ user }: { user: User }) {
 
   return (
     <>
+      {preview && (
+        <div className="pt-card pt-preview" role="status">
+          <p>
+            <b>Vorschau:</b> So sieht {user.name} sein Portal. Nur Ansicht, hier lässt sich nichts ändern.
+          </p>
+          <button type="button" className="button button-light pt-small" onClick={onExit}>
+            Zurück zur Verwaltung
+          </button>
+        </div>
+      )}
       <div className="pt-top">
         <div>
           <p className="pt-eyebrow">Partnerportal</p>
@@ -319,7 +336,7 @@ function PartnerDashboard({ user }: { user: User }) {
         <div className="pt-table-head">
           <h2>{can.seeStatus ? "Ihre Kunden und ihr Stand" : "Ihre Kunden"}</h2>
           {can.submitLeads && (
-            <button type="button" className="button button-primary" onClick={() => setForm((open) => !open)}>
+            <button type="button" className="button button-primary" disabled={!!preview} onClick={() => setForm((open) => !open)}>
               <Plus size={16} aria-hidden="true" /> Kontakt melden
             </button>
           )}
@@ -438,8 +455,8 @@ function PartnerDashboard({ user }: { user: User }) {
       <section className="pt-card">
         <h2>Text auf Ihrer Partnerseite</h2>
         <p className="pt-hint">Dieser Text erscheint auf Ihrer Seite, zum Beispiel wer Sie sind und warum Sie Tayyip Ünal empfehlen.</p>
-        <textarea className="pt-bio" rows={4} maxLength={1200} value={bio} onChange={(event) => setBio(event.target.value)} />
-        <button type="button" className="button button-light" onClick={saveBio}>
+        <textarea className="pt-bio" rows={4} maxLength={1200} value={bio} readOnly={!!preview} onChange={(event) => setBio(event.target.value)} />
+        <button type="button" className="button button-light" disabled={!!preview} onClick={saveBio}>
           {bioSaved ? "Gespeichert" : "Speichern"}
         </button>
       </section>
@@ -459,6 +476,7 @@ function AdminDashboard({ user }: { user: User }) {
   const tabs: [Tab, string][] = [];
   const [tab, setTab] = useState<Tab>(mine.managePartners ? "bewerbungen" : mine.manageLeads ? "leads" : mine.managePayouts ? "provisionen" : "rechte");
   const [error, setError] = useState("");
+  const [viewAs, setViewAs] = useState<({ user: User } & PartnerPreview) | null>(null);
   const [invite, setInvite] = useState<{ url: string; email: string; name: string; mailed?: boolean } | null>(null);
   const { copied, copy } = useCopy();
 
@@ -498,6 +516,8 @@ function AdminDashboard({ user }: { user: User }) {
       setInvite({ url: result.inviteUrl, email: partner.email, name: partner.name, mailed: result.mailed });
     });
   }
+
+  if (viewAs) return <PartnerDashboard user={viewAs.user} preview={viewAs} onExit={() => setViewAs(null)} />;
 
   return (
     <>
@@ -616,6 +636,7 @@ function AdminDashboard({ user }: { user: User }) {
                     onRate={(rate) => run(() => api(`/api/admin/partners/${partner.id}/rate`, { ratePercent: rate }))}
                     onBlock={() => run(() => api(`/api/admin/partners/${partner.id}/block`, {}))}
                     onInvite={() => approve(partner, partner.rate_percent)}
+                    onPreview={() => run(async () => setViewAs(await api<{ user: User } & PartnerPreview>(`/api/admin/partners/${partner.id}/preview`)))}
                   />
                 ))}
               </tbody>
@@ -954,11 +975,13 @@ function PartnerRow({
   onRate,
   onBlock,
   onInvite,
+  onPreview,
 }: {
   partner: AdminPartner;
   onRate: (rate: number) => void;
   onBlock: () => void;
   onInvite: () => void;
+  onPreview: () => void;
 }) {
   const [rate, setRate] = useState(String(partner.rate_percent));
   const label = { approved: "eingeladen", active: "aktiv", blocked: "gesperrt", pending: "offen" }[partner.status];
@@ -993,6 +1016,9 @@ function PartnerRow({
       <td>{euro(partner.open_cents)}</td>
       <td>{euro(partner.paid_cents)}</td>
       <td className="pt-actions">
+        <button className="text-link" onClick={onPreview}>
+          Als Partner ansehen
+        </button>
         {partner.status !== "blocked" && (
           <button className="text-link" onClick={onInvite}>
             Neuer Link

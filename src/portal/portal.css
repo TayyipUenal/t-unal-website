@@ -1339,3 +1339,16 @@ button.text-link {
   width: 100%;
   height: auto;
 }
+
+.pt-preview {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.75rem 1.5rem;
+  align-items: center;
+  justify-content: space-between;
+  border-color: rgba(201, 164, 94, 0.55);
+  margin-bottom: 2rem;
+}
+.pt-preview p {
+  margin: 0;
+}

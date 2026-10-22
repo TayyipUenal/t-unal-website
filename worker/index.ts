@@ -476,7 +476,28 @@ async function handle(request: Request, env: Env): Promise<Response> {
     return json({ ok: true, partners: partners.results, leads: leads.results });
   }
 
-  const partnerAction = path.match(/^\/api\/admin\/partners\/(\d+)\/(approve|invite|block|rate)$/);
+  /** Admin creates a partner directly, including the text of the partner page. */
+  if (path === "/api/admin/partners/create" && method === "POST") {
+    const data = await body();
+    const name = clean(data.name, 120);
+    const email = clean(data.email, 200).toLowerCase();
+    if (!name || !validEmail(email)) return fail("Bitte Namen und eine gültige E-Mail-Adresse angeben.");
+    const rate = Number(data.ratePercent ?? 10);
+    if (!Number.isFinite(rate) || rate < 0 || rate > 50) return fail("Der Prozentsatz muss zwischen 0 und 50 liegen.");
+    const exists = await env.DB.prepare("SELECT id FROM partners WHERE email = ?").bind(email).first();
+    if (exists) return fail("Zu dieser E-Mail-Adresse gibt es schon einen Partner.", 409);
+    const token = randomToken(24);
+    const slug = slugify(name);
+    await env.DB.prepare(
+      `INSERT INTO partners (status, email, name, company, phone, bio, slug, rate_percent, invite_hash, invite_expires, created_at, updated_at)
+       VALUES ('approved', ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)`,
+    )
+      .bind(email, name, clean(data.company, 160), clean(data.phone, 60), clean(data.bio, 1200), slug, rate, await sha256(token), new Date(Date.now() + 7 * 86400000).toISOString(), now(), now())
+      .run();
+    return json({ ok: true, inviteUrl: `${url.origin}/portal/aktivieren?token=${token}`, slug, pageUrl: `${url.origin}/partner/${slug}` });
+  }
+
+  const partnerAction = path.match(/^\/api\/admin\/partners\/(\d+)\/(approve|invite|block|rate|profile)$/);
   if (partnerAction && method === "POST") {
     const id = Number(partnerAction[1]);
     const action = partnerAction[2];
@@ -497,6 +518,18 @@ async function handle(request: Request, env: Env): Promise<Response> {
     if (action === "block") {
       await env.DB.prepare("UPDATE partners SET status = 'blocked', updated_at = ? WHERE id = ?").bind(now(), id).run();
       await env.DB.prepare("DELETE FROM sessions WHERE partner_id = ?").bind(id).run();
+      return json({ ok: true });
+    }
+    if (action === "profile") {
+      await env.DB.prepare("UPDATE partners SET bio = ?, company = ?, phone = ?, updated_at = ? WHERE id = ?")
+        .bind(clean(data.bio, 1200), clean(data.company, 160), clean(data.phone, 60), now(), id)
+        .run();
+      return json({ ok: true });
+    }
+    if (action === "profile") {
+      await env.DB.prepare("UPDATE partners SET bio = ?, company = ?, phone = ?, updated_at = ? WHERE id = ?")
+        .bind(clean(data.bio, 1200), clean(data.company, 160), clean(data.phone, 60), now(), id)
+        .run();
       return json({ ok: true });
     }
     if (action === "rate") {

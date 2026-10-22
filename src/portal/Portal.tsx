@@ -463,6 +463,12 @@ function AdminDashboard() {
 
       {tab === "partner" && (
         <section className="pt-card pt-table-card">
+          <CreatePartner
+            onCreated={(result, name, email) => {
+              setInvite({ url: result.inviteUrl, email, name });
+              load();
+            }}
+          />
           <div className="pt-scroll">
             <table className="pt-table">
               <thead>
@@ -561,6 +567,60 @@ function AdminDashboard() {
   );
 }
 
+function CreatePartner({ onCreated }: { onCreated: (result: { inviteUrl: string; pageUrl: string }, name: string, email: string) => void }) {
+  const [open, setOpen] = useState(false);
+  const [error, setError] = useState("");
+  async function submit(event: FormEvent<HTMLFormElement>) {
+    event.preventDefault();
+    const formEl = event.currentTarget;
+    const data = Object.fromEntries(new FormData(formEl).entries());
+    setError("");
+    try {
+      const result = await api<{ inviteUrl: string; pageUrl: string }>("/api/admin/partners/create", { ...data, ratePercent: Number(data.ratePercent) });
+      onCreated(result, String(data.name), String(data.email));
+      formEl.reset();
+      setOpen(false);
+    } catch (cause) {
+      setError(cause instanceof Error ? cause.message : "Anlegen nicht möglich.");
+    }
+  }
+  return (
+    <div className="pt-create">
+      <button type="button" className="button button-primary" onClick={() => setOpen((value) => !value)}>
+        <Plus size={16} aria-hidden="true" /> Partner anlegen
+      </button>
+      {open && (
+        <form className="pt-form" onSubmit={submit}>
+          <Field label="Name *">
+            <input name="name" required maxLength={120} />
+          </Field>
+          <Field label="Firma">
+            <input name="company" maxLength={160} />
+          </Field>
+          <Field label="E-Mail *">
+            <input name="email" type="email" required maxLength={200} />
+          </Field>
+          <Field label="Telefon">
+            <input name="phone" type="tel" maxLength={60} />
+          </Field>
+          <Field label="Anteil in %">
+            <input name="ratePercent" type="number" min={0} max={50} step={0.5} defaultValue={10} />
+          </Field>
+          <Field label="Text auf der Partnerseite">
+            <input name="bio" maxLength={1200} placeholder="Wer ist der Partner, warum empfiehlt er Tayyip Ünal?" />
+          </Field>
+          {error && (
+            <p className="pa-error" role="alert">
+              {error}
+            </p>
+          )}
+          <button className="button button-primary">Anlegen und Einladung erzeugen</button>
+        </form>
+      )}
+    </div>
+  );
+}
+
 function ApplicationRow({
   partner,
   onApprove,
@@ -615,6 +675,13 @@ function PartnerRow({
       <td>
         <b>{partner.name}</b>
         <small>{partner.company || partner.email}</small>
+        {partner.slug && partner.status !== "blocked" && (
+          <small>
+            <a href={`/partner/${partner.slug}`} target="_blank" rel="noreferrer">
+              /partner/{partner.slug}
+            </a>
+          </small>
+        )}
       </td>
       <td>{label}</td>
       <td>

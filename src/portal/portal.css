@@ -1239,3 +1239,16 @@ button.text-link {
   font: inherit;
   font-weight: 600;
 }
+
+.pt-create {
+  padding: 20px clamp(20px, 2.4vw, 32px) 4px;
+}
+
+.pt-create .pt-form {
+  padding: 20px 0 8px;
+}
+
+.pt-table td small a {
+  color: var(--gold);
+  text-decoration: underline;
+}

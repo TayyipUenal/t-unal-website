@@ -366,7 +366,7 @@ function AdminDashboard({ user }: { user: User }) {
   const tabs: [Tab, string][] = [];
   const [tab, setTab] = useState<Tab>(mine.managePartners ? "bewerbungen" : mine.manageLeads ? "leads" : mine.managePayouts ? "provisionen" : "rechte");
   const [error, setError] = useState("");
-  const [invite, setInvite] = useState<{ url: string; email: string; name: string } | null>(null);
+  const [invite, setInvite] = useState<{ url: string; email: string; name: string; mailed?: boolean } | null>(null);
   const { copied, copy } = useCopy();
 
   const load = useCallback(() => {
@@ -401,8 +401,8 @@ function AdminDashboard({ user }: { user: User }) {
 
   async function approve(partner: AdminPartner, rate: number) {
     await run(async () => {
-      const result = await api<{ inviteUrl: string }>(`/api/admin/partners/${partner.id}/approve`, { ratePercent: rate });
-      setInvite({ url: result.inviteUrl, email: partner.email, name: partner.name });
+      const result = await api<{ inviteUrl: string; mailed: boolean }>(`/api/admin/partners/${partner.id}/approve`, { ratePercent: rate });
+      setInvite({ url: result.inviteUrl, email: partner.email, name: partner.name, mailed: result.mailed });
     });
   }
 
@@ -443,7 +443,12 @@ function AdminDashboard({ user }: { user: User }) {
       {invite && (
         <div className="pt-card pt-invite" role="status">
           <h2>Zugang für {invite.name} freigegeben</h2>
-          <p>Senden Sie diesen Link an {invite.email}. Er ist 7 Tage gültig und dient dazu, das Passwort zu setzen.</p>
+          <p>
+            {invite.mailed
+              ? `Die Einladung wurde per E-Mail an ${invite.email} gesendet. Falls sie nicht ankommt, können Sie den Link auch selbst weitergeben.`
+              : `Die E-Mail konnte nicht automatisch versendet werden. Senden Sie diesen Link bitte selbst an ${invite.email}.`}{" "}
+            Der Link ist 7 Tage gültig und dient dazu, das Passwort zu setzen.
+          </p>
           <code>{invite.url}</code>
           <div className="pt-link-actions">
             <button type="button" className="button button-primary" onClick={() => copy(invite.url)}>
@@ -493,7 +498,7 @@ function AdminDashboard({ user }: { user: User }) {
         <section className="pt-card pt-table-card">
           <CreatePartner
             onCreated={(result, name, email) => {
-              setInvite({ url: result.inviteUrl, email, name });
+              setInvite({ url: result.inviteUrl, email, name, mailed: result.mailed });
               load();
             }}
           />
@@ -635,7 +640,7 @@ function RightsTab({
 }: {
   data: AdminData;
   run: (action: () => Promise<unknown>) => Promise<void>;
-  setInvite: (invite: { url: string; email: string; name: string }) => void;
+  setInvite: (invite: { url: string; email: string; name: string; mailed?: boolean }) => void;
 }) {
   const [open, setOpen] = useState<string | null>(null);
   const [creating, setCreating] = useState(false);
@@ -649,12 +654,12 @@ function RightsTab({
     const formEl = event.currentTarget;
     const form = new FormData(formEl);
     await run(async () => {
-      const result = await api<{ inviteUrl: string }>("/api/admin/staff/create", {
+      const result = await api<{ inviteUrl: string; mailed: boolean }>("/api/admin/staff/create", {
         name: form.get("name"),
         email: form.get("email"),
         permissions: Object.fromEntries(STAFF_RIGHTS.map(([key]) => [key, newPerms[key]])),
       });
-      setInvite({ url: result.inviteUrl, email: String(form.get("email")), name: String(form.get("name")) });
+      setInvite({ url: result.inviteUrl, email: String(form.get("email")), name: String(form.get("name")), mailed: result.mailed });
       formEl.reset();
       setNewPerms(NO_STAFF_RIGHTS);
       setCreating(false);
@@ -724,8 +729,8 @@ function RightsTab({
                           className="text-link"
                           onClick={() =>
                             run(async () => {
-                              const result = await api<{ inviteUrl: string }>(`/api/admin/users/${person.id}/invite`, {});
-                              setInvite({ url: result.inviteUrl, email: person.email, name: person.name });
+                              const result = await api<{ inviteUrl: string; mailed: boolean }>(`/api/admin/users/${person.id}/invite`, {});
+                              setInvite({ url: result.inviteUrl, email: person.email, name: person.name, mailed: result.mailed });
                             })
                           }
                         >
@@ -761,7 +766,7 @@ function RightsTab({
   );
 }
 
-function CreatePartner({ onCreated }: { onCreated: (result: { inviteUrl: string; pageUrl: string }, name: string, email: string) => void }) {
+function CreatePartner({ onCreated }: { onCreated: (result: { inviteUrl: string; pageUrl: string; mailed: boolean }, name: string, email: string) => void }) {
   const [open, setOpen] = useState(false);
   const [error, setError] = useState("");
   async function submit(event: FormEvent<HTMLFormElement>) {
@@ -770,7 +775,7 @@ function CreatePartner({ onCreated }: { onCreated: (result: { inviteUrl: string;
     const data = Object.fromEntries(new FormData(formEl).entries());
     setError("");
     try {
-      const result = await api<{ inviteUrl: string; pageUrl: string }>("/api/admin/partners/create", { ...data, ratePercent: Number(data.ratePercent) });
+      const result = await api<{ inviteUrl: string; pageUrl: string; mailed: boolean }>("/api/admin/partners/create", { ...data, ratePercent: Number(data.ratePercent) });
       onCreated(result, String(data.name), String(data.email));
       formEl.reset();
       setOpen(false);

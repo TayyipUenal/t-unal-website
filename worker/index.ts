@@ -28,7 +28,40 @@ export interface Env {
   DB: D1Database;
   ASSETS: Fetcher;
   SETUP_TOKEN?: string;
+  RESEND_API_KEY?: string;
 }
+
+const MAIL_FROM = "Tayyip Ünal <t.uenal@united-certification.de>";
+const MAIL_OWNER = "t.uenal@united-certification.de";
+
+/** Sends a plain-text mail through Resend. Without a key (or on any error) it returns false and the caller falls back to the visible link. */
+async function sendMail(env: Env, to: string, subject: string, text: string): Promise<boolean> {
+  if (!env.RESEND_API_KEY) return false;
+  try {
+    const response = await fetch("https://api.resend.com/emails", {
+      method: "POST",
+      headers: { authorization: `Bearer ${env.RESEND_API_KEY}`, "content-type": "application/json" },
+      body: JSON.stringify({ from: MAIL_FROM, to: [to], reply_to: MAIL_OWNER, subject, text }),
+    });
+    if (!response.ok) console.error("mail failed", response.status, await response.text());
+    return response.ok;
+  } catch (error) {
+    console.error("mail error", error);
+    return false;
+  }
+}
+
+const inviteMail = (env: Env, to: string, name: string, link: string, what: string) =>
+  sendMail(
+    env,
+    to,
+    "Ihr Zugang zum Portal von Tayyip Ünal",
+    `Guten Tag ${name},\n\nhier ist Ihr persönlicher Zugang (${what}). Über den Link legen Sie Ihr Passwort fest:\n\n${link}\n\nDer Link ist 7 Tage gültig.\n\nBeste Grüße\nTayyip Ünal`,
+  );
+
+/** Tells the owner about something new (lead, application). */
+const notifyOwner = (env: Env, subject: string, lines: (string | false | undefined)[]) =>
+  sendMail(env, MAIL_OWNER, subject, lines.filter(Boolean).join("\n") + "\n\nAnsehen: https://www.tayyipuenal.de/portal");
 
 type Partner = {
   id: number;
@@ -306,6 +339,14 @@ async function handle(request: Request, env: Env): Promise<Response> {
     )
       .bind(email, name, clean(data.company, 160), clean(data.phone, 60), clean(data.pitch, 2000), now(), now(), now())
       .run();
+    await notifyOwner(env, `Neue Partner-Bewerbung: ${name}`, [
+      `Name: ${name}`,
+      `Firma: ${clean(data.company, 160) || "–"}`,
+      `E-Mail: ${email}`,
+      `Telefon: ${clean(data.phone, 60) || "–"}`,
+      "",
+      clean(data.pitch, 2000),
+    ]);
     return json({ ok: true });
   }
 
@@ -389,13 +430,23 @@ async function handle(request: Request, env: Env): Promise<Response> {
     ].filter(Boolean);
     const requestId = clean(data.requestId, 80) || randomToken(12);
     const kind = clean(data.kind, 20) === "quote" ? "Angebot" : clean(data.topic, 80) || "Erstgespräch";
-    await env.DB.prepare(
+    const result = await env.DB.prepare(
       `INSERT OR IGNORE INTO leads (source, contact_name, company, email, phone, topic, message, consent_at, request_id, created_at, updated_at)
        VALUES ('site', ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)`,
     )
       .bind(contactName, clean(data.company, 160), email, clean(data.phone, 60), kind, parts.join("\n").slice(0, 2000), now(), requestId, now(), now())
       .run();
     const row = await env.DB.prepare("SELECT id FROM leads WHERE request_id = ?").bind(requestId).first<{ id: number }>();
+    if (result.meta.changes) {
+      await notifyOwner(env, `Neue Anfrage: ${kind} von ${contactName}`, [
+        `Name: ${contactName}`,
+        `Firma: ${clean(data.company, 160) || "–"}`,
+        `E-Mail: ${email}`,
+        `Telefon: ${clean(data.phone, 60) || "–"}`,
+        "",
+        parts.join("\n").slice(0, 2000),
+      ]);
+    }
     return json({ ok: true, reference: `TU-${String(row?.id ?? 0).padStart(8, "0")}` });
   }
 
@@ -433,6 +484,17 @@ async function handle(request: Request, env: Env): Promise<Response> {
         now(),
       )
       .run();
+    const via = partnerId ? await env.DB.prepare("SELECT name FROM partners WHERE id = ?").bind(partnerId).first<{ name: string }>() : null;
+    await notifyOwner(env, `Neue Anfrage${via ? ` über ${via.name}` : ""}: ${contactName}`, [
+      via && `Empfohlen von: ${via.name}`,
+      `Name: ${contactName}`,
+      `Firma: ${clean(data.company, 160) || "–"}`,
+      `E-Mail: ${email}`,
+      `Telefon: ${clean(data.phone, 60) || "–"}`,
+      `Thema: ${clean(data.topic, 80) || "–"}`,
+      "",
+      clean(data.message, 2000),
+    ]);
     return json({ ok: true });
   }
 
@@ -504,6 +566,16 @@ async function handle(request: Request, env: Env): Promise<Response> {
     )
       .bind(user.id, contactName, clean(data.company, 160), email, clean(data.phone, 60), clean(data.topic, 80), clean(data.message, 2000), now(), now())
       .run();
+    await notifyOwner(env, `Neuer Kontakt von Partner ${user.name}: ${contactName}`, [
+      `Gemeldet von: ${user.name}`,
+      `Name: ${contactName}`,
+      `Firma: ${clean(data.company, 160) || "–"}`,
+      `E-Mail: ${email || "–"}`,
+      `Telefon: ${clean(data.phone, 60) || "–"}`,
+      `Thema: ${clean(data.topic, 80) || "–"}`,
+      "",
+      clean(data.message, 2000),
+    ]);
     return json({ ok: true });
   }
 
@@ -544,7 +616,8 @@ async function handle(request: Request, env: Env): Promise<Response> {
     )
       .bind(email, name, cleanPerms("staff", data.permissions), now(), now())
       .run();
-    return json({ ok: true, inviteUrl: await newInvite(Number(result.meta.last_row_id)) });
+    const link = await newInvite(Number(result.meta.last_row_id));
+    return json({ ok: true, inviteUrl: link, mailed: await inviteMail(env, email, name, link, "Mitarbeiter-Zugang") });
   }
 
   const userAction = path.match(/^\/api\/admin\/users\/(\d+)\/(permissions|invite|block)$/);
@@ -560,7 +633,10 @@ async function handle(request: Request, env: Env): Promise<Response> {
         .run();
       return json({ ok: true });
     }
-    if (userAction[2] === "invite") return json({ ok: true, inviteUrl: await newInvite(id) });
+    if (userAction[2] === "invite") {
+      const link = await newInvite(id);
+      return json({ ok: true, inviteUrl: link, mailed: await inviteMail(env, target.email, target.name, link, target.role === "staff" ? "Mitarbeiter-Zugang" : "Partnerportal") });
+    }
     await env.DB.prepare("UPDATE partners SET status = 'blocked', updated_at = ? WHERE id = ?").bind(now(), id).run();
     await env.DB.prepare("DELETE FROM sessions WHERE partner_id = ?").bind(id).run();
     return json({ ok: true });
@@ -616,7 +692,8 @@ async function handle(request: Request, env: Env): Promise<Response> {
     )
       .bind(email, name, clean(data.company, 160), clean(data.phone, 60), clean(data.bio, 1200), slug, rate, await sha256(token), new Date(Date.now() + 7 * 86400000).toISOString(), now(), now())
       .run();
-    return json({ ok: true, inviteUrl: `${url.origin}/portal/aktivieren?token=${token}`, slug, pageUrl: `${url.origin}/partner/${slug}` });
+    const link = `${url.origin}/portal/aktivieren?token=${token}`;
+    return json({ ok: true, inviteUrl: link, mailed: await inviteMail(env, email, name, link, "Partnerportal"), slug, pageUrl: `${url.origin}/partner/${slug}` });
   }
 
   const partnerAction = path.match(/^\/api\/admin\/partners\/(\d+)\/(approve|invite|block|rate|profile)$/);
@@ -636,7 +713,8 @@ async function handle(request: Request, env: Env): Promise<Response> {
       )
         .bind(rate, slug, await sha256(token), new Date(Date.now() + 7 * 86400000).toISOString(), now(), id)
         .run();
-      return json({ ok: true, inviteUrl: `${url.origin}/portal/aktivieren?token=${token}`, slug });
+      const link = `${url.origin}/portal/aktivieren?token=${token}`;
+      return json({ ok: true, inviteUrl: link, mailed: await inviteMail(env, target.email, target.name, link, "Partnerportal"), slug });
     }
     if (action === "block") {
       await env.DB.prepare("UPDATE partners SET status = 'blocked', updated_at = ? WHERE id = ?").bind(now(), id).run();

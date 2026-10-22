@@ -19,3 +19,5 @@ deployment-backups/
 
 # Local preview screenshots and demo logins
 previews/
+
+.secrets/

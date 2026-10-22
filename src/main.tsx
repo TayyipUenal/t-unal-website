@@ -28,7 +28,8 @@ import "./norm-check.css";
 import "./brand.css";
 import "./studio.css";
 import "./whatsapp.css";
-import "./audit-city.css";
+import "./nationwide.css";
+import "./portal/portal.css";
 
 const root = document.getElementById("root")!;
 const app = (
@@ -36,5 +37,7 @@ const app = (
     <App path={window.location.pathname} />
   </StrictMode>
 );
-if (root.hasChildNodes()) hydrateRoot(root, app);
+// Portal and partner pages come from the SPA fallback (the home page HTML), so they are rendered fresh.
+const dynamic = /^\/(portal|partner\/)/.test(window.location.pathname);
+if (root.hasChildNodes() && !dynamic) hydrateRoot(root, app);
 else createRoot(root).render(app);

@@ -5,7 +5,7 @@ import { Expertise } from "./components/Expertise";
 import { Footer } from "./components/Footer";
 import { Header } from "./components/Header";
 import { Hero } from "./components/Hero";
-import { AuditCity } from "./components/AuditCity";
+import { Nationwide } from "./components/Nationwide";
 import { Bento } from "./components/Bento";
 import { Services, Specialty, Statement } from "./components/Studio";
 import { NormCheck } from "./components/NormCheck";
@@ -17,6 +17,10 @@ import { useState } from "react";
 import { WhatsAppButton } from "./components/WhatsAppButton";
 import { audits } from "./audits";
 import { AuditPage } from "./components/AuditPage";
+import { PartnerApply } from "./portal/PartnerApply";
+import { PartnerLanding } from "./portal/PartnerLanding";
+import { PartnerTeaser } from "./portal/PartnerTeaser";
+import { Portal } from "./portal/Portal";
 import { ConsultationModal } from "./components/ConsultationModal";
 import { firstMeetingPreset, type ConsultationPreset } from "./consultation";
 
@@ -31,7 +35,10 @@ function App({ path = "/" }: { path?: string }) {
       : page === "/impressum"
         ? "imprint"
         : null;
-  const home = !legalPage && !audit;
+  const applyPage = page === "/partner-werden";
+  const portalPage = page === "/portal" || page.startsWith("/portal/");
+  const partnerSlug = page.startsWith("/partner/") ? page.slice("/partner/".length) : "";
+  const home = !legalPage && !audit && !applyPage && !portalPage && !partnerSlug;
   const { scrollYProgress } = useScroll();
   const scaleX = useSpring(scrollYProgress, {
     stiffness: 120,
@@ -44,7 +51,13 @@ function App({ path = "/" }: { path?: string }) {
       <motion.div className="scroll-progress" style={{ scaleX }} />
       <Header onConsultation={() => openConsultation()} home={home} />
       <main>
-        {legalPage ? (
+        {applyPage ? (
+          <PartnerApply />
+        ) : portalPage ? (
+          <Portal path={page} />
+        ) : partnerSlug ? (
+          <PartnerLanding slug={partnerSlug} />
+        ) : legalPage ? (
           <LegalPage kind={legalPage} />
         ) : audit ? (
           <AuditPage audit={audit} />
@@ -54,7 +67,7 @@ function App({ path = "/" }: { path?: string }) {
             <Services />
             <Statement />
             <Specialty />
-            <AuditCity onConsultation={() => openConsultation()} />
+            <Nationwide />
             <NightGlobe />
             <QuoteConfigurator onConsultation={() => openConsultation()} />
             <SccJourney onRequest={openConsultation} />
@@ -62,6 +75,7 @@ function App({ path = "/" }: { path?: string }) {
             <Bento />
             <NormCheck onRequest={() => openConsultation()} />
             <Expertise />
+            <PartnerTeaser />
             <Contact onConsultation={() => openConsultation()} />
           </>
         )}

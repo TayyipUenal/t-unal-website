@@ -15,6 +15,12 @@ export const pageMeta = [
     description: `${audit.standard} ${audit.eyebrow}: persönliche Beratung, strukturierte Dokumentation und Auditvorbereitung mit Tayyip Ünal. Unverbindlich anfragen.`,
   })),
   {
+    path: "/partner-werden/",
+    title: "Partner werden | Tayyip Ünal",
+    description:
+      "Werden Sie Partner von Tayyip Ünal: eigenes Portal, eigene Partnerseite, Live-Stand aller Kunden und Provision je Auftrag.",
+  },
+  {
     path: "/impressum/",
     title: "Impressum | Tayyip Ünal, Dortmund",
     description:

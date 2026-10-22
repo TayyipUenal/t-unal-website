@@ -33,6 +33,8 @@ writeFileSync(
 );
 writeFileSync(
   "dist/robots.txt",
-  `User-agent: *\nAllow: /\nDisallow: /api/\nSitemap: ${SITE_URL}/sitemap.xml\n`,
+  `User-agent: *\nAllow: /\nDisallow: /api/
+Disallow: /portal/
+Disallow: /partner/\nSitemap: ${SITE_URL}/sitemap.xml\n`,
 );
 import React from "react";

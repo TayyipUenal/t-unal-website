@@ -12,3 +12,10 @@ booking/config.php
 
 # Deployment backups (local only)
 deployment-backups/
+
+# Local worker secrets and state
+.dev.vars
+.wrangler/
+
+# Local preview screenshots and demo logins
+previews/

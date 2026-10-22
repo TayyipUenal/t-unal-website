@@ -68,3 +68,15 @@ CREATE TABLE IF NOT EXISTS rate_limits (
   count INTEGER NOT NULL,
   PRIMARY KEY (key, window_start)
 );
+
+-- History of a lead: status changes and notes. visible = 1 means the partner may see the entry.
+CREATE TABLE IF NOT EXISTS lead_events (
+  id INTEGER PRIMARY KEY AUTOINCREMENT,
+  lead_id INTEGER NOT NULL REFERENCES leads(id) ON DELETE CASCADE,
+  kind TEXT NOT NULL,                            -- 'status' | 'note'
+  status TEXT,
+  note TEXT,
+  visible INTEGER NOT NULL DEFAULT 1,
+  created_at TEXT NOT NULL
+);
+CREATE INDEX IF NOT EXISTS lead_events_lead ON lead_events(lead_id);

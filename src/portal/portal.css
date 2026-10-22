@@ -1277,3 +1277,65 @@ button.text-link {
 .pt-right small {
   opacity: 0.7;
 }
+
+/* lead history and sharing */
+.pt-timeline {
+  list-style: none;
+  margin: 0.5rem 0 1rem;
+  padding: 0 0 0 1.25rem;
+  border-left: 1px solid rgba(201, 164, 94, 0.45);
+  display: grid;
+  gap: 0.75rem;
+}
+.pt-timeline li {
+  position: relative;
+  display: flex;
+  gap: 1rem;
+  justify-content: space-between;
+}
+.pt-timeline li::before {
+  content: "";
+  position: absolute;
+  left: -1.55rem;
+  top: 0.45rem;
+  width: 0.55rem;
+  height: 0.55rem;
+  border-radius: 50%;
+  background: #c9a45e;
+}
+.pt-timeline li.is-note::before {
+  background: transparent;
+  border: 1px solid #c9a45e;
+}
+.pt-timeline time {
+  opacity: 0.65;
+  white-space: nowrap;
+}
+.pt-timeline em {
+  opacity: 0.65;
+}
+.pt-note {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.75rem 1rem;
+  align-items: center;
+}
+.pt-note > input {
+  flex: 1 1 280px;
+}
+.pt-qr {
+  display: grid;
+  gap: 0.75rem;
+  justify-items: start;
+}
+.pt-qr-code {
+  width: 176px;
+  padding: 0.5rem;
+  background: #fff;
+  border-radius: 6px;
+}
+.pt-qr-code svg {
+  display: block;
+  width: 100%;
+  height: auto;
+}

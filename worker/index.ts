@@ -374,7 +374,7 @@ async function handle(request: Request, env: Env): Promise<Response> {
 
   if (path === "/api/auth/invite" && method === "GET") {
     const token = url.searchParams.get("token") ?? "";
-    const row = await env.DB.prepare("SELECT name, email FROM partners WHERE invite_hash = ? AND invite_expires > ? AND status = 'approved'")
+    const row = await env.DB.prepare("SELECT name, email FROM partners WHERE invite_hash = ? AND invite_expires > ? AND status IN ('approved', 'active')")
       .bind(await sha256(token), now())
       .first<{ name: string; email: string }>();
     return row ? json({ ok: true, name: row.name, email: row.email }) : fail("Der Einladungslink ist ungültig oder abgelaufen.", 404);
@@ -385,7 +385,7 @@ async function handle(request: Request, env: Env): Promise<Response> {
     const data = await body();
     const password = clean(data.password, 200);
     if (password.length < 12) return fail("Das Passwort braucht mindestens 12 Zeichen.");
-    const row = await env.DB.prepare("SELECT * FROM partners WHERE invite_hash = ? AND invite_expires > ? AND status = 'approved'")
+    const row = await env.DB.prepare("SELECT * FROM partners WHERE invite_hash = ? AND invite_expires > ? AND status IN ('approved', 'active')")
       .bind(await sha256(clean(data.token, 200)), now())
       .first<Partner>();
     if (!row) return fail("Der Einladungslink ist ungültig oder abgelaufen.", 404);
@@ -550,6 +550,20 @@ async function handle(request: Request, env: Env): Promise<Response> {
       commission_status: can.seeAmounts ? row.commission_status : null,
     }));
     return json({ ok: true, leads });
+  }
+
+  /** What the partner may see of a lead's history: status changes (if allowed) and notes marked visible. */
+  const myLeadEvents = path.match(/^\/api\/partner\/leads\/(\d+)\/events$/);
+  if (myLeadEvents && method === "GET" && user.role === "partner") {
+    const id = Number(myLeadEvents[1]);
+    if (!(await env.DB.prepare("SELECT id FROM leads WHERE id = ? AND partner_id = ?").bind(id, user.id).first())) return fail("Nicht gefunden.", 404);
+    const can = permsOf(user);
+    const rows = await env.DB.prepare(
+      "SELECT kind, status, note, created_at FROM lead_events WHERE lead_id = ? AND visible = 1 ORDER BY created_at, id",
+    )
+      .bind(id)
+      .all<{ kind: string }>();
+    return json({ ok: true, events: rows.results.filter((e) => e.kind !== "status" || can.seeStatus) });
   }
 
   if (path === "/api/partner/leads" && method === "POST" && user.role === "partner") {
@@ -747,10 +761,42 @@ async function handle(request: Request, env: Env): Promise<Response> {
     if (status === "won" && (!euro || euro <= 0)) return fail("Für einen gewonnenen Auftrag bitte den Auftragswert angeben.");
     const paid = await env.DB.prepare("SELECT id FROM commissions WHERE lead_id = ? AND status = 'paid'").bind(id).first();
     if (paid) return fail("Die Provision ist bereits ausgezahlt. Der Lead lässt sich nicht mehr ändern.", 409);
+    const before = await env.DB.prepare("SELECT status FROM leads WHERE id = ?").bind(id).first<{ status: string }>();
+    if (!before) return fail("Lead nicht gefunden.", 404);
     await env.DB.prepare("UPDATE leads SET status = ?, deal_cents = ?, updated_at = ? WHERE id = ?")
       .bind(status, euro === null ? null : Math.round(euro * 100), now(), id)
       .run();
+    if (before.status !== status) {
+      await env.DB.prepare("INSERT INTO lead_events (lead_id, kind, status, visible, created_at) VALUES (?, 'status', ?, 1, ?)")
+        .bind(id, status, now())
+        .run();
+    }
     await syncCommission(env, id);
+    return json({ ok: true });
+  }
+
+  /** Timeline of one lead, including internal notes. */
+  const leadEvents = path.match(/^\/api\/admin\/leads\/(\d+)\/events$/);
+  if (leadEvents && method === "GET") {
+    if (!can.manageLeads) return denied();
+    const rows = await env.DB.prepare("SELECT id, kind, status, note, visible, created_at FROM lead_events WHERE lead_id = ? ORDER BY created_at, id")
+      .bind(Number(leadEvents[1]))
+      .all();
+    return json({ ok: true, events: rows.results });
+  }
+
+  /** A note on a lead; "visible" decides whether the partner sees it. */
+  const leadNote = path.match(/^\/api\/admin\/leads\/(\d+)\/notes$/);
+  if (leadNote && method === "POST") {
+    if (!can.manageLeads) return denied();
+    const data = await body();
+    const note = clean(data.note, 1000);
+    if (!note) return fail("Bitte eine Notiz eingeben.");
+    const id = Number(leadNote[1]);
+    if (!(await env.DB.prepare("SELECT id FROM leads WHERE id = ?").bind(id).first())) return fail("Lead nicht gefunden.", 404);
+    await env.DB.prepare("INSERT INTO lead_events (lead_id, kind, note, visible, created_at) VALUES (?, 'note', ?, ?, ?)")
+      .bind(id, note, data.visible === true ? 1 : 0, now())
+      .run();
     return json({ ok: true });
   }
 

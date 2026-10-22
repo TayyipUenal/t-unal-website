@@ -1,4 +1,5 @@
 import { Check, Copy, LogOut, Plus, ShieldCheck } from "lucide-react";
+import qrcode from "qrcode-generator";
 import { Fragment, useCallback, useEffect, useState, type FormEvent } from "react";
 import {
   api,
@@ -11,6 +12,7 @@ import {
   STAFF_RIGHTS,
   type AdminLead,
   type AdminPartner,
+  type LeadEvent,
   type LeadStatus,
   type PartnerLead,
   type Perms,
@@ -106,6 +108,58 @@ function Login({ onUser }: { onUser: (user: User) => void }) {
   );
 }
 
+/* ---------- history and sharing ---------- */
+
+/** Vertical history of a customer: arrival, status changes and notes. */
+function Timeline({ created, events, internalLabels = false }: { created: string; events: LeadEvent[] | null; internalLabels?: boolean }) {
+  return (
+    <ol className="pt-timeline">
+      <li>
+        <b>Eingegangen</b>
+        <time>{dateDe(created)}</time>
+      </li>
+      {events === null && <li className="is-muted">Wird geladen …</li>}
+      {(events ?? []).map((event, index) => (
+        <li key={index} className={event.kind === "note" ? "is-note" : undefined}>
+          {event.kind === "status" && event.status ? (
+            <b>{STATUS_LABEL[event.status]}</b>
+          ) : (
+            <span>
+              {event.note}
+              {internalLabels && event.visible === 0 && <em> · intern</em>}
+            </span>
+          )}
+          <time>{dateDe(event.created_at)}</time>
+        </li>
+      ))}
+    </ol>
+  );
+}
+
+/** QR code for a link, drawn as inline SVG so it prints sharp. */
+function QrCode({ value }: { value: string }) {
+  const code = qrcode(0, "M");
+  code.addData(value);
+  code.make();
+  const svg = code.createSvgTag({ cellSize: 6, margin: 3, scalable: true });
+  const download = () => {
+    const blob = new Blob([svg], { type: "image/svg+xml" });
+    const link = document.createElement("a");
+    link.href = URL.createObjectURL(blob);
+    link.download = "empfehlung-qr.svg";
+    link.click();
+    URL.revokeObjectURL(link.href);
+  };
+  return (
+    <div className="pt-qr">
+      <div className="pt-qr-code" role="img" aria-label="QR-Code zu Ihrer Partnerseite" dangerouslySetInnerHTML={{ __html: svg }} />
+      <button type="button" className="text-link" onClick={download}>
+        Als Datei speichern
+      </button>
+    </div>
+  );
+}
+
 /* ---------- partner dashboard ---------- */
 
 function PartnerDashboard({ user }: { user: User }) {
@@ -116,6 +170,15 @@ function PartnerDashboard({ user }: { user: User }) {
   const [bio, setBio] = useState(user.bio);
   const [bioSaved, setBioSaved] = useState(false);
   const { copied, copy } = useCopy();
+  const [qr, setQr] = useState(false);
+  const [openLead, setOpenLead] = useState<number | null>(null);
+  const [leadEvents, setLeadEvents] = useState<Record<number, LeadEvent[]>>({});
+  const toggleLead = (id: number) => {
+    setOpenLead((current) => (current === id ? null : id));
+    api<{ events: LeadEvent[] }>(`/api/partner/leads/${id}/events`)
+      .then((result) => setLeadEvents((all) => ({ ...all, [id]: result.events })))
+      .catch(() => setLeadEvents((all) => ({ ...all, [id]: [] })));
+  };
 
   const load = useCallback(() => {
     Promise.all([api<Summary>("/api/partner/summary"), api<{ leads: PartnerLead[] }>("/api/partner/leads")])
@@ -226,12 +289,30 @@ function PartnerDashboard({ user }: { user: User }) {
               {copied === pageUrl ? <Check size={16} aria-hidden="true" /> : <Copy size={16} aria-hidden="true" />}
               {copied === pageUrl ? "Kopiert" : "Link kopieren"}
             </button>
+            <a
+              className="button button-light"
+              href={`https://wa.me/?text=${encodeURIComponent(`Ich empfehle Tayyip Ünal für Audit, Zertifizierung und Schulung: ${pageUrl}`)}`}
+              target="_blank"
+              rel="noreferrer"
+            >
+              Per WhatsApp teilen
+            </a>
+            <button type="button" className="button button-light" onClick={() => setQr((value) => !value)}>
+              {qr ? "QR-Code ausblenden" : "QR-Code"}
+            </button>
             <a className="text-link" href={pageUrl} target="_blank" rel="noreferrer">
               Seite ansehen
             </a>
           </div>
         )}
       </div>
+      )}
+
+      {qr && pageUrl && (
+        <div className="pt-card">
+          <QrCode value={pageUrl} />
+          <p className="pt-hint">Für Visitenkarte, Flyer oder Mail-Signatur. Wer den Code scannt, landet auf Ihrer Partnerseite.</p>
+        </div>
       )}
 
       <section className="pt-card pt-table-card">
@@ -302,10 +383,14 @@ function PartnerDashboard({ user }: { user: User }) {
               </thead>
               <tbody>
                 {leads.map((lead) => (
-                  <tr key={lead.id}>
+                  <Fragment key={lead.id}>
+                  <tr>
                     <td>
                       <b>{lead.company || lead.contact_name}</b>
                       <small>{lead.company ? lead.contact_name : lead.email || lead.phone}</small>
+                      <button type="button" className="text-link" onClick={() => toggleLead(lead.id)}>
+                        {openLead === lead.id ? "Verlauf schließen" : "Verlauf"}
+                      </button>
                     </td>
                     <td>{lead.topic || "–"}</td>
                     {can.seeStatus && (
@@ -334,6 +419,14 @@ function PartnerDashboard({ user }: { user: User }) {
                     )}
                     <td>{dateDe(lead.created_at)}</td>
                   </tr>
+                  {openLead === lead.id && (
+                    <tr>
+                      <td colSpan={6}>
+                        <Timeline created={lead.created_at} events={leadEvents[lead.id] ?? null} />
+                      </td>
+                    </tr>
+                  )}
+                  </Fragment>
                 ))}
               </tbody>
             </table>
@@ -918,41 +1011,97 @@ function PartnerRow({
 function LeadRow({ lead, onSave }: { lead: AdminLead; onSave: (status: LeadStatus, dealEuro: number | null) => void }) {
   const [status, setStatus] = useState<LeadStatus>(lead.status);
   const [deal, setDeal] = useState(lead.deal_cents === null ? "" : String(lead.deal_cents / 100));
+  const [open, setOpen] = useState(false);
+  const [events, setEvents] = useState<LeadEvent[] | null>(null);
+  const [note, setNote] = useState("");
+  const [shared, setShared] = useState(false);
+  const [error, setError] = useState("");
   const locked = lead.commission_status === "paid";
   const changed = status !== lead.status || deal !== (lead.deal_cents === null ? "" : String(lead.deal_cents / 100));
+
+  const loadEvents = useCallback(() => {
+    api<{ events: LeadEvent[] }>(`/api/admin/leads/${lead.id}/events`)
+      .then((result) => setEvents(result.events))
+      .catch(() => setEvents([]));
+  }, [lead.id]);
+  useEffect(() => {
+    if (open) loadEvents();
+  }, [open, loadEvents, lead.status]);
+
+  async function addNote(event: FormEvent<HTMLFormElement>) {
+    event.preventDefault();
+    setError("");
+    try {
+      await api(`/api/admin/leads/${lead.id}/notes`, { note, visible: shared });
+      setNote("");
+      loadEvents();
+    } catch (cause) {
+      setError(cause instanceof Error ? cause.message : "Speichern nicht möglich.");
+    }
+  }
+
   return (
-    <tr>
-      <td>
-        <b>{lead.company || lead.contact_name}</b>
-        <small>
-          {lead.company ? `${lead.contact_name} · ` : ""}
-          {lead.email || lead.phone}
-        </small>
-        {lead.message && <small>{lead.message}</small>}
-      </td>
-      <td>{lead.partner_name ?? <small>Direkt über die Seite</small>}</td>
-      <td>{lead.topic || "–"}</td>
-      <td>
-        <select value={status} onChange={(event) => setStatus(event.target.value as LeadStatus)} disabled={locked} aria-label="Stand">
-          {STATUS_ORDER.map((key) => (
-            <option key={key} value={key}>
-              {STATUS_LABEL[key]}
-            </option>
-          ))}
-        </select>
-      </td>
-      <td>
-        <input type="number" min={0} step={50} value={deal} onChange={(event) => setDeal(event.target.value)} disabled={locked} aria-label="Auftragswert in Euro" />
-      </td>
-      <td>
-        {changed && !locked && (
-          <button className="button button-primary pt-small" onClick={() => onSave(status, deal === "" ? null : Number(deal))}>
-            Speichern
+    <>
+      <tr>
+        <td>
+          <b>{lead.company || lead.contact_name}</b>
+          <small>
+            {lead.company ? `${lead.contact_name} · ` : ""}
+            {lead.email || lead.phone}
+          </small>
+          {lead.message && <small>{lead.message}</small>}
+          <button type="button" className="text-link" onClick={() => setOpen((value) => !value)}>
+            {open ? "Verlauf schließen" : "Verlauf und Notizen"}
           </button>
-        )}
-        {locked && <small>ausgezahlt</small>}
-      </td>
-    </tr>
+        </td>
+        <td>{lead.partner_name ?? <small>Direkt über die Seite</small>}</td>
+        <td>{lead.topic || "–"}</td>
+        <td>
+          <select value={status} onChange={(event) => setStatus(event.target.value as LeadStatus)} disabled={locked} aria-label="Stand">
+            {STATUS_ORDER.map((key) => (
+              <option key={key} value={key}>
+                {STATUS_LABEL[key]}
+              </option>
+            ))}
+          </select>
+        </td>
+        <td>
+          <input type="number" min={0} step={50} value={deal} onChange={(event) => setDeal(event.target.value)} disabled={locked} aria-label="Auftragswert in Euro" />
+        </td>
+        <td>
+          {changed && !locked && (
+            <button className="button button-primary pt-small" onClick={() => onSave(status, deal === "" ? null : Number(deal))}>
+              Speichern
+            </button>
+          )}
+          {locked && <small>ausgezahlt</small>}
+        </td>
+      </tr>
+      {open && (
+        <tr>
+          <td colSpan={6}>
+            <Timeline created={lead.created_at} events={events} internalLabels />
+            <form className="pt-note" onSubmit={addNote}>
+              <input value={note} onChange={(event) => setNote(event.target.value)} placeholder="Notiz zum Kunden, zum Beispiel Telefonat, Angebot raus …" maxLength={1000} aria-label="Notiz" />
+              <label className="pt-right">
+                <input type="checkbox" checked={shared} onChange={(event) => setShared(event.target.checked)} disabled={!lead.partner_id} />
+                <span>
+                  <b>Für den Partner sichtbar</b>
+                </span>
+              </label>
+              <button className="button button-light pt-small" disabled={!note.trim()}>
+                Notiz speichern
+              </button>
+            </form>
+            {error && (
+              <p className="pa-error" role="alert">
+                {error}
+              </p>
+            )}
+          </td>
+        </tr>
+      )}
+    </>
   );
 }
 

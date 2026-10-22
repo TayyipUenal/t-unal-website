@@ -68,6 +68,14 @@ export type PartnerLead = {
   commission_status: "open" | "paid" | null;
 };
 
+export type LeadEvent = {
+  kind: "status" | "note";
+  status: LeadStatus | null;
+  note: string | null;
+  visible?: number;
+  created_at: string;
+};
+
 export type Summary = {
   ratePercent: number | null;
   total: number;

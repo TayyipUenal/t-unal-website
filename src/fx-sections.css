@@ -88,7 +88,7 @@
   overflow: hidden;
   padding: var(--section-y) var(--gutter);
   background: var(--navy-950);
-  color: #e8ebf0;
+  color: #f0ece4;
 }
 
 .bento-section::before {
@@ -110,7 +110,7 @@
 
 .bento-head .section-kicker {
   margin: 0;
-  color: oklch(0.8 0.05 240);
+  color: var(--gold-soft);
 }
 
 .bento-head h2 {
@@ -124,13 +124,13 @@
 }
 
 .bento-mark {
-  color: oklch(0.8 0.05 240);
+  color: var(--gold-soft);
 }
 
 .bento-head p {
   max-width: 56ch;
   margin: 0;
-  color: #9aa3af;
+  color: #a8a296;
   font-size: clamp(16px, 1.4vw, 18px);
   line-height: 1.65;
 }
@@ -139,8 +139,8 @@
   display: grid;
   grid-template-columns: repeat(6, minmax(0, 1fr));
   gap: 1px;
-  border: 1px solid #232932;
-  background: #232932;
+  border: 1px solid #262626;
+  background: #262626;
 }
 
 .bx-slot {
@@ -158,13 +158,13 @@
   overflow: hidden;
   padding: 30px;
   border-radius: 0;
-  background: #10141a;
+  background: #121212;
   box-shadow: none;
   transition: background-color 0.4s ease;
 }
 
 .bx:hover {
-  background: #171c23;
+  background: #1a1a1a;
   transform: none;
   box-shadow: none;
 }
@@ -190,7 +190,7 @@
 .bx p {
   max-width: 40ch;
   margin: 0;
-  color: #9aa3af;
+  color: #a8a296;
   font-size: 0.93rem;
   line-height: 1.6;
 }
@@ -211,7 +211,7 @@
   grid-template-columns: 96px 1fr 40px;
   align-items: center;
   gap: 14px;
-  color: #9aa3af;
+  color: #a8a296;
   font-size: 0.74rem;
   letter-spacing: 0.04em;
 }
@@ -220,7 +220,7 @@
   position: relative;
   height: 2px;
   overflow: hidden;
-  background: #2a313b;
+  background: #323232;
 }
 
 .bx-ready-row i::after {
@@ -228,7 +228,7 @@
   position: absolute;
   inset: 0;
   width: var(--w);
-  background: oklch(0.8 0.05 240);
+  background: var(--gold-soft);
   transform-origin: 0 50%;
   animation: bar-in 1.8s cubic-bezier(0.22, 1, 0.36, 1) both;
 }
@@ -259,7 +259,7 @@
   gap: 8px;
   padding: 16px 14px;
   border-radius: 2px;
-  background: #f1f3f6;
+  background: #f2efe8;
   box-shadow: 0 18px 30px -16px rgba(0, 0, 0, 0.8);
   transition: transform 0.7s cubic-bezier(0.22, 1, 0.36, 1);
 }
@@ -267,12 +267,12 @@
 .bx-doc i {
   display: block;
   height: 4px;
-  background: #cfd5dd;
+  background: #d8d2c6;
 }
 
 .bx-doc i:first-child {
   width: 60%;
-  background: oklch(0.43 0.07 240);
+  background: var(--gold-deep);
 }
 
 .d1 {
@@ -307,7 +307,7 @@
   height: 28px;
   place-items: center;
   border-radius: 50%;
-  background: oklch(0.43 0.07 240);
+  background: var(--gold-deep);
   color: #fff;
   animation: none;
 }
@@ -316,7 +316,7 @@
   display: grid;
   height: 120px;
   place-items: center;
-  color: oklch(0.8 0.05 240);
+  color: var(--gold-soft);
 }
 
 .bx-pulse {
@@ -326,7 +326,7 @@
   width: 70px;
   height: 70px;
   margin: -35px 0 0 -35px;
-  border: 1px solid oklch(0.8 0.05 240);
+  border: 1px solid var(--gold-soft);
   border-radius: 50%;
   opacity: 0;
   animation: ring-out 4s ease-out infinite;
@@ -362,12 +362,12 @@
 
 .bx-cycle circle {
   fill: none;
-  stroke: #2a313b;
+  stroke: #323232;
   stroke-width: 2;
 }
 
 .bx-cycle circle.spin {
-  stroke: oklch(0.8 0.05 240);
+  stroke: var(--gold-soft);
   stroke-linecap: butt;
   stroke-dasharray: 60 216;
   transform-origin: 60px 60px;
@@ -391,7 +391,7 @@
 .bx-inbox {
   display: grid;
   gap: 1px;
-  background: #232932;
+  background: #262626;
 }
 
 .bx-inbox div {
@@ -400,9 +400,9 @@
   gap: 12px;
   padding: 11px 12px;
   border-radius: 0;
-  background: #0b0e12;
+  background: #0c0c0c;
   box-shadow: none;
-  color: #dfe4ea;
+  color: #ece8df;
   font-size: 0.8rem;
   animation: slide-in 0.8s cubic-bezier(0.22, 1, 0.36, 1) both;
 }
@@ -422,12 +422,12 @@
   height: 6px;
   flex: none;
   border-radius: 50%;
-  background: oklch(0.8 0.05 240);
+  background: var(--gold-soft);
 }
 
 .bx-inbox em {
   margin-left: auto;
-  color: #7a838f;
+  color: #8d877b;
   font-size: 0.7rem;
   font-style: normal;
 }

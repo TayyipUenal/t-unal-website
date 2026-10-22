@@ -1252,3 +1252,28 @@ button.text-link {
   color: var(--gold);
   text-decoration: underline;
 }
+
+/* permission editor */
+.pt-rights {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(260px, 1fr));
+  gap: 0.75rem 1.5rem;
+  padding: 1rem 0 0.5rem;
+}
+.pt-right {
+  display: flex;
+  gap: 0.75rem;
+  align-items: flex-start;
+  cursor: pointer;
+}
+.pt-right input {
+  margin-top: 0.3rem;
+  accent-color: #c9a45e;
+}
+.pt-right b,
+.pt-right small {
+  display: block;
+}
+.pt-right small {
+  opacity: 0.7;
+}

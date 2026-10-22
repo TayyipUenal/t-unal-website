@@ -41,7 +41,7 @@ export function structuredData(path: string) {
     "@id": `${SITE_URL}/#unternehmen`,
     name: "Tayyip Ünal",
     url: SITE_URL,
-    image: `${SITE_URL}/brand-logo.png`,
+    image: `${SITE_URL}/icon-512x512.png`,
     telephone: "+4915563084795",
     email: contact.email,
     address: {

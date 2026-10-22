@@ -1,81 +1,29 @@
-import { createCanvas, loadImage } from "@napi-rs/canvas";
+import { createCanvas } from "@napi-rs/canvas";
 import fs from "node:fs";
 
-// Builds the favicon set from the TÜ monogram inside public/brand-logo.png.
-// The wordmark artwork is too detailed for tab size, so the monogram is
-// measured, cropped to a square, keyed off its white background and
-// exported in the sizes browsers and platforms actually request.
-const source = await loadImage("public/brand-logo.png");
-const SW = source.width,
-  SH = source.height;
-
-const probe = createCanvas(SW, SH);
-const pctx = probe.getContext("2d");
-pctx.drawImage(source, 0, 0);
-const pixels = pctx.getImageData(0, 0, SW, SH).data;
-
-// Monogram sits above the wordmark text; find its exact bounding box.
-const TEXT_TOP = 780;
-let minX = SW,
-  minY = TEXT_TOP,
-  maxX = 0,
-  maxY = 0;
-for (let y = 0; y < TEXT_TOP; y++) {
-  for (let x = 0; x < SW; x++) {
-    const i = (y * SW + x) * 4;
-    if (pixels[i] < 245 || pixels[i + 1] < 245 || pixels[i + 2] < 245) {
-      if (x < minX) minX = x;
-      if (x > maxX) maxX = x;
-      if (y < minY) minY = y;
-      if (y > maxY) maxY = y;
-    }
-  }
+// Draws the gold TÜ monogram on black and exports the favicon set.
+function drawMark(size){
+  const c=createCanvas(size,size),g=c.getContext('2d');
+  const r=size*0.22;
+  g.beginPath();g.roundRect(0,0,size,size,r);g.closePath();
+  g.fillStyle='#0b0b0b';g.fill();
+  const grad=g.createLinearGradient(0,0,size,size);
+  grad.addColorStop(0,'#f1dca0');grad.addColorStop(0.5,'#c9a45e');grad.addColorStop(1,'#9a7a3a');
+  g.strokeStyle=grad;g.lineWidth=Math.max(1,size*0.035);
+  g.beginPath();g.roundRect(size*0.07,size*0.07,size*0.86,size*0.86,r*0.7);g.stroke();
+  g.fillStyle=grad;g.textAlign='center';g.textBaseline='middle';
+  g.font='800 '+(size*0.5)+'px "Plus Jakarta Sans", "Segoe UI", Arial, sans-serif';
+  g.fillText('TÜ',size/2,size*0.54);
+  return c;
 }
-
-const side = Math.ceil(Math.max(maxX - minX, maxY - minY) * 1.14);
-const cx = (minX + maxX) / 2,
-  cy = (minY + maxY) / 2;
-const sx = Math.round(Math.max(0, Math.min(SW - side, cx - side / 2)));
-// Keep clear of the wordmark text below when centering vertically.
-const sy = Math.round(
-  Math.max(0, Math.min(TEXT_TOP - 8 - side, cy - side / 2)),
-);
-console.log(
-  `Monogram box ${minX},${minY} – ${maxX},${maxY} → crop ${sx},${sy} ${side}px`,
-);
-
-// Master render at 512px.
-const MASTER = 512;
-const master = createCanvas(MASTER, MASTER);
-const mctx = master.getContext("2d");
-mctx.imageSmoothingEnabled = true;
-mctx.imageSmoothingQuality = "high";
-mctx.drawImage(source, sx, sy, side, side, 0, 0, MASTER, MASTER);
-
-// Un-blend from white: observed = fg·a + 255·(1-a)  →  recover fg and alpha.
-const img = mctx.getImageData(0, 0, MASTER, MASTER);
-const d = img.data;
-for (let i = 0; i < d.length; i += 4) {
-  const a = 255 - Math.min(d[i], d[i + 1], d[i + 2]);
-  if (a === 0) {
-    d[i + 3] = 0;
-    continue;
-  }
-  const keep = 255 - a;
-  d[i] = Math.max(0, Math.round(((d[i] - keep) * 255) / a));
-  d[i + 1] = Math.max(0, Math.round(((d[i + 1] - keep) * 255) / a));
-  d[i + 2] = Math.max(0, Math.round(((d[i + 2] - keep) * 255) / a));
-  d[i + 3] = a;
-}
-mctx.putImageData(img, 0, 0);
-
+const master=drawMark(512);
 function render(size, { opaque = false, inset = 0 } = {}) {
   const canvas = createCanvas(size, size);
   const ctx = canvas.getContext("2d");
   ctx.imageSmoothingEnabled = true;
   ctx.imageSmoothingQuality = "high";
   if (opaque) {
-    ctx.fillStyle = "#ffffff";
+    ctx.fillStyle = "#0b0b0b";
     ctx.fillRect(0, 0, size, size);
   }
   const inner = size - inset * 2;
@@ -129,8 +77,8 @@ fs.writeFileSync(
         { src: "/icon-192x192.png", sizes: "192x192", type: "image/png" },
         { src: "/icon-512x512.png", sizes: "512x512", type: "image/png" },
       ],
-      theme_color: "#f3f1eb",
-      background_color: "#f3f1eb",
+      theme_color: "#0b0b0b",
+      background_color: "#0b0b0b",
       display: "browser",
     },
     null,

@@ -1,5 +1,5 @@
 import { Check, Copy, LogOut, Plus, ShieldCheck } from "lucide-react";
-import { useCallback, useEffect, useState, type FormEvent } from "react";
+import { Fragment, useCallback, useEffect, useState, type FormEvent } from "react";
 import {
   api,
   dateDe,
@@ -7,10 +7,14 @@ import {
   setPageMeta,
   STATUS_LABEL,
   STATUS_ORDER,
+  PARTNER_RIGHTS,
+  STAFF_RIGHTS,
   type AdminLead,
   type AdminPartner,
   type LeadStatus,
   type PartnerLead,
+  type Perms,
+  type StaffMember,
   type Summary,
   type User,
 } from "./api";
@@ -149,7 +153,9 @@ function PartnerDashboard({ user }: { user: User }) {
 
   const pageUrl = summary?.slug ? `${window.location.origin}/partner/${summary.slug}` : "";
   const counts = summary?.leadsByStatus ?? {};
-  const total = STATUS_ORDER.reduce((sum, key) => sum + (counts[key] ?? 0), 0);
+  const total = summary?.total ?? 0;
+  const can = user.permissions;
+  const showMoney = summary !== null && summary.openCents !== null;
 
   return (
     <>
@@ -161,29 +167,35 @@ function PartnerDashboard({ user }: { user: User }) {
       </div>
 
       <div className="pt-stats">
-        <div className="pt-card pt-rate">
-          <small>Ihr Anteil</small>
-          <strong>{summary ? `${String(summary.ratePercent).replace(".", ",")} %` : "–"}</strong>
-          <span>vom Auftragswert, einmalig je Auftrag</span>
-        </div>
-        <div className="pt-card">
-          <small>Offene Provision</small>
-          <strong>{summary ? euro(summary.openCents) : "–"}</strong>
-          <span>aus gewonnenen Aufträgen</span>
-        </div>
-        <div className="pt-card">
-          <small>Ausgezahlt</small>
-          <strong>{summary ? euro(summary.paidCents) : "–"}</strong>
-          <span>bisher an Sie überwiesen</span>
-        </div>
+        {can.seeRate && (
+          <div className="pt-card pt-rate">
+            <small>Ihr Anteil</small>
+            <strong>{summary && summary.ratePercent !== null ? `${String(summary.ratePercent).replace(".", ",")} %` : "–"}</strong>
+            <span>vom Auftragswert, einmalig je Auftrag</span>
+          </div>
+        )}
+        {can.seeAmounts && (
+          <>
+            <div className="pt-card">
+              <small>Offene Provision</small>
+              <strong>{showMoney ? euro(summary.openCents) : "–"}</strong>
+              <span>aus gewonnenen Aufträgen</span>
+            </div>
+            <div className="pt-card">
+              <small>Ausgezahlt</small>
+              <strong>{showMoney ? euro(summary.paidCents) : "–"}</strong>
+              <span>bisher an Sie überwiesen</span>
+            </div>
+          </>
+        )}
         <div className="pt-card">
           <small>Ihre Kunden</small>
           <strong>{total}</strong>
-          <span>{counts.won ?? 0} Aufträge erhalten</span>
+          <span>{can.seeStatus ? `${summary?.won ?? 0} Aufträge erhalten` : "von Ihnen vermittelt"}</span>
         </div>
       </div>
 
-      {total > 0 && (
+      {can.seeStatus && total > 0 && (
         <div className="pt-card pt-pipeline" aria-label="Verteilung nach Stand">
           <div className="pt-pipeline-bar">
             {STATUS_ORDER.map((key) =>
@@ -201,6 +213,7 @@ function PartnerDashboard({ user }: { user: User }) {
         </div>
       )}
 
+      {can.pageActive && (
       <div className="pt-card pt-link">
         <div>
           <small>Ihre Partnerseite und Ihr Empfehlungslink</small>
@@ -219,16 +232,19 @@ function PartnerDashboard({ user }: { user: User }) {
           </div>
         )}
       </div>
+      )}
 
       <section className="pt-card pt-table-card">
         <div className="pt-table-head">
-          <h2>Ihre Kunden und ihr Stand</h2>
-          <button type="button" className="button button-primary" onClick={() => setForm((open) => !open)}>
-            <Plus size={16} aria-hidden="true" /> Kontakt melden
-          </button>
+          <h2>{can.seeStatus ? "Ihre Kunden und ihr Stand" : "Ihre Kunden"}</h2>
+          {can.submitLeads && (
+            <button type="button" className="button button-primary" onClick={() => setForm((open) => !open)}>
+              <Plus size={16} aria-hidden="true" /> Kontakt melden
+            </button>
+          )}
         </div>
 
-        {form && (
+        {form && can.submitLeads && (
           <form className="pt-form" onSubmit={addLead}>
             <Field label="Ansprechpartner *">
               <input name="name" required maxLength={120} />
@@ -278,9 +294,9 @@ function PartnerDashboard({ user }: { user: User }) {
                 <tr>
                   <th>Kunde</th>
                   <th>Thema</th>
-                  <th>Stand</th>
-                  <th>Auftragswert</th>
-                  <th>Ihre Provision</th>
+                  {can.seeStatus && <th>Stand</th>}
+                  {can.seeAmounts && <th>Auftragswert</th>}
+                  {(can.seeAmounts || can.seeRate) && <th>Ihre Provision</th>}
                   <th>Seit</th>
                 </tr>
               </thead>
@@ -292,23 +308,30 @@ function PartnerDashboard({ user }: { user: User }) {
                       <small>{lead.company ? lead.contact_name : lead.email || lead.phone}</small>
                     </td>
                     <td>{lead.topic || "–"}</td>
-                    <td>
-                      <StatusPill status={lead.status} />
-                      <Progress status={lead.status} />
-                    </td>
-                    <td>{euro(lead.deal_cents)}</td>
-                    <td>
-                      {lead.commission_cents !== null ? (
-                        <>
-                          <b>{euro(lead.commission_cents)}</b>
-                          <small>
-                            {String(lead.commission_rate).replace(".", ",")} % · {lead.commission_status === "paid" ? "ausgezahlt" : "offen"}
-                          </small>
-                        </>
-                      ) : (
-                        <small>{summary ? `${String(summary.ratePercent).replace(".", ",")} % bei Auftrag` : "–"}</small>
-                      )}
-                    </td>
+                    {can.seeStatus && (
+                      <td>
+                        {lead.status && <StatusPill status={lead.status} />}
+                        {lead.status && <Progress status={lead.status} />}
+                      </td>
+                    )}
+                    {can.seeAmounts && <td>{euro(lead.deal_cents)}</td>}
+                    {(can.seeAmounts || can.seeRate) && (
+                      <td>
+                        {lead.commission_cents !== null ? (
+                          <>
+                            <b>{euro(lead.commission_cents)}</b>
+                            <small>
+                              {lead.commission_rate !== null && `${String(lead.commission_rate).replace(".", ",")} % · `}
+                              {lead.commission_status === "paid" ? "ausgezahlt" : "offen"}
+                            </small>
+                          </>
+                        ) : summary && summary.ratePercent !== null ? (
+                          <small>{`${String(summary.ratePercent).replace(".", ",")} % bei Auftrag`}</small>
+                        ) : (
+                          <small>–</small>
+                        )}
+                      </td>
+                    )}
                     <td>{dateDe(lead.created_at)}</td>
                   </tr>
                 ))}
@@ -318,6 +341,7 @@ function PartnerDashboard({ user }: { user: User }) {
         )}
       </section>
 
+      {can.editProfile && (
       <section className="pt-card">
         <h2>Text auf Ihrer Partnerseite</h2>
         <p className="pt-hint">Dieser Text erscheint auf Ihrer Seite, zum Beispiel wer Sie sind und warum Sie Tayyip Ünal empfehlen.</p>
@@ -326,23 +350,27 @@ function PartnerDashboard({ user }: { user: User }) {
           {bioSaved ? "Gespeichert" : "Speichern"}
         </button>
       </section>
+      )}
     </>
   );
 }
 
 /* ---------- admin dashboard ---------- */
 
-type Tab = "bewerbungen" | "partner" | "leads" | "provisionen";
+type Tab = "bewerbungen" | "partner" | "leads" | "provisionen" | "rechte";
+type AdminData = { isSuper: boolean; permissions: Perms; partners: AdminPartner[]; staff: StaffMember[]; leads: AdminLead[] };
 
-function AdminDashboard() {
-  const [data, setData] = useState<{ partners: AdminPartner[]; leads: AdminLead[] } | null>(null);
-  const [tab, setTab] = useState<Tab>("bewerbungen");
+function AdminDashboard({ user }: { user: User }) {
+  const [data, setData] = useState<AdminData | null>(null);
+  const mine = user.permissions;
+  const tabs: [Tab, string][] = [];
+  const [tab, setTab] = useState<Tab>(mine.managePartners ? "bewerbungen" : mine.manageLeads ? "leads" : mine.managePayouts ? "provisionen" : "rechte");
   const [error, setError] = useState("");
   const [invite, setInvite] = useState<{ url: string; email: string; name: string } | null>(null);
   const { copied, copy } = useCopy();
 
   const load = useCallback(() => {
-    api<{ partners: AdminPartner[]; leads: AdminLead[] }>("/api/admin/overview")
+    api<AdminData>("/api/admin/overview")
       .then((result) => setData(result))
       .catch(() => setError("Die Daten konnten nicht geladen werden."));
   }, []);
@@ -359,6 +387,11 @@ function AdminDashboard() {
       setError(cause instanceof Error ? cause.message : "Aktion nicht möglich.");
     }
   };
+
+  if (mine.managePartners) tabs.push(["bewerbungen", `Bewerbungen (${data?.partners.filter((p) => p.status === "pending").length ?? 0})`], ["partner", "Partner"]);
+  if (mine.manageLeads) tabs.push(["leads", "Kunden und Leads"]);
+  if (mine.managePayouts) tabs.push(["provisionen", "Provisionen"]);
+  if (user.role === "admin") tabs.push(["rechte", "Team und Rechte"]);
 
   const pending = data?.partners.filter((p) => p.status === "pending") ?? [];
   const others = data?.partners.filter((p) => p.status !== "pending") ?? [];
@@ -380,7 +413,7 @@ function AdminDashboard() {
           <p className="pt-eyebrow">
             <ShieldCheck size={14} aria-hidden="true" /> Verwaltung
           </p>
-          <h1>Partner und Provisionen</h1>
+          <h1>{user.role === "admin" ? "Partner und Provisionen" : "Verwaltung"}</h1>
         </div>
       </div>
 
@@ -431,14 +464,7 @@ function AdminDashboard() {
       )}
 
       <div className="pt-tabs" role="tablist">
-        {(
-          [
-            ["bewerbungen", `Bewerbungen (${pending.length})`],
-            ["partner", "Partner"],
-            ["leads", "Kunden und Leads"],
-            ["provisionen", "Provisionen"],
-          ] as [Tab, string][]
-        ).map(([id, label]) => (
+        {tabs.map(([id, label]) => (
           <button key={id} role="tab" aria-selected={tab === id} className={tab === id ? "is-on" : undefined} onClick={() => setTab(id)}>
             {label}
           </button>
@@ -451,7 +477,9 @@ function AdminDashboard() {
         </p>
       )}
 
-      {tab === "bewerbungen" && (
+      {tab === "rechte" && user.role === "admin" && data && <RightsTab data={data} run={run} setInvite={setInvite} />}
+
+      {tab === "bewerbungen" && mine.managePartners && (
         <section className="pt-card pt-table-card">
           {pending.length === 0 ? (
             <p className="pt-empty">Keine offenen Bewerbungen.</p>
@@ -461,7 +489,7 @@ function AdminDashboard() {
         </section>
       )}
 
-      {tab === "partner" && (
+      {tab === "partner" && mine.managePartners && (
         <section className="pt-card pt-table-card">
           <CreatePartner
             onCreated={(result, name, email) => {
@@ -499,7 +527,7 @@ function AdminDashboard() {
         </section>
       )}
 
-      {tab === "leads" && (
+      {tab === "leads" && mine.manageLeads && (
         <section className="pt-card pt-table-card">
           <div className="pt-scroll">
             <table className="pt-table">
@@ -524,7 +552,7 @@ function AdminDashboard() {
         </section>
       )}
 
-      {tab === "provisionen" && (
+      {tab === "provisionen" && mine.managePayouts && (
         <section className="pt-card pt-table-card">
           <div className="pt-scroll">
             <table className="pt-table">
@@ -564,6 +592,172 @@ function AdminDashboard() {
         </section>
       )}
     </>
+  );
+}
+
+function RightsEditor({
+  rights,
+  value,
+  onSave,
+}: {
+  rights: [keyof Perms, string, string][];
+  value: Perms;
+  onSave: (perms: Partial<Perms>) => void;
+}) {
+  const [draft, setDraft] = useState<Perms>(value);
+  const changed = rights.some(([key]) => draft[key] !== value[key]);
+  return (
+    <div className="pt-rights">
+      {rights.map(([key, label, hint]) => (
+        <label key={key} className="pt-right">
+          <input type="checkbox" checked={draft[key]} onChange={(event) => setDraft({ ...draft, [key]: event.target.checked })} />
+          <span>
+            <b>{label}</b>
+            <small>{hint}</small>
+          </span>
+        </label>
+      ))}
+      {changed && (
+        <button type="button" className="button button-primary pt-small" onClick={() => onSave(Object.fromEntries(rights.map(([key]) => [key, draft[key]])))}>
+          Rechte speichern
+        </button>
+      )}
+    </div>
+  );
+}
+
+const NO_STAFF_RIGHTS = { managePartners: false, manageLeads: false, managePayouts: false } as Perms;
+
+function RightsTab({
+  data,
+  run,
+  setInvite,
+}: {
+  data: AdminData;
+  run: (action: () => Promise<unknown>) => Promise<void>;
+  setInvite: (invite: { url: string; email: string; name: string }) => void;
+}) {
+  const [open, setOpen] = useState<string | null>(null);
+  const [creating, setCreating] = useState(false);
+  const [newPerms, setNewPerms] = useState<Perms>(NO_STAFF_RIGHTS);
+  const people = [
+    ...data.staff.map((p) => ({ ...p, kind: "staff" as const, company: "" })),
+    ...data.partners.filter((p) => p.status !== "pending").map((p) => ({ ...p, kind: "partner" as const })),
+  ];
+  async function createStaff(event: FormEvent<HTMLFormElement>) {
+    event.preventDefault();
+    const formEl = event.currentTarget;
+    const form = new FormData(formEl);
+    await run(async () => {
+      const result = await api<{ inviteUrl: string }>("/api/admin/staff/create", {
+        name: form.get("name"),
+        email: form.get("email"),
+        permissions: Object.fromEntries(STAFF_RIGHTS.map(([key]) => [key, newPerms[key]])),
+      });
+      setInvite({ url: result.inviteUrl, email: String(form.get("email")), name: String(form.get("name")) });
+      formEl.reset();
+      setNewPerms(NO_STAFF_RIGHTS);
+      setCreating(false);
+    });
+  }
+  const statusLabel = { approved: "eingeladen", active: "aktiv", blocked: "gesperrt", pending: "offen" };
+  return (
+    <section className="pt-card pt-table-card">
+      <div className="pt-create">
+        <p className="pt-hint">
+          Als Superadmin haben nur Sie alle Rechte. Hier legen Sie fest, was Mitarbeiter bearbeiten dürfen und was jeder Partner im Portal sehen und tun darf.
+        </p>
+        <button type="button" className="button button-primary" onClick={() => setCreating((value) => !value)}>
+          <Plus size={16} aria-hidden="true" /> Mitarbeiter anlegen
+        </button>
+        {creating && (
+          <form className="pt-form" onSubmit={createStaff}>
+            <Field label="Name *">
+              <input name="name" required maxLength={120} />
+            </Field>
+            <Field label="E-Mail *">
+              <input name="email" type="email" required maxLength={200} />
+            </Field>
+            <div className="pt-rights">
+              {STAFF_RIGHTS.map(([key, label, hint]) => (
+                <label key={key} className="pt-right">
+                  <input type="checkbox" checked={newPerms[key]} onChange={(event) => setNewPerms({ ...newPerms, [key]: event.target.checked })} />
+                  <span>
+                    <b>{label}</b>
+                    <small>{hint}</small>
+                  </span>
+                </label>
+              ))}
+            </div>
+            <button className="button button-primary">Anlegen und Einladung erzeugen</button>
+          </form>
+        )}
+      </div>
+      <div className="pt-scroll">
+        <table className="pt-table">
+          <thead>
+            <tr>
+              <th>Name</th>
+              <th>Rolle</th>
+              <th>Status</th>
+              <th />
+            </tr>
+          </thead>
+          <tbody>
+            {people.map((person) => {
+              const key = `${person.kind}-${person.id}`;
+              return (
+                <Fragment key={key}>
+                  <tr>
+                    <td>
+                      <b>{person.name}</b>
+                      <small>{person.company || person.email}</small>
+                    </td>
+                    <td>{person.kind === "staff" ? "Mitarbeiter" : "Partner"}</td>
+                    <td>{statusLabel[person.status]}</td>
+                    <td className="pt-actions">
+                      <button className="text-link" onClick={() => setOpen(open === key ? null : key)}>
+                        Rechte
+                      </button>
+                      {person.status !== "blocked" && (
+                        <button
+                          className="text-link"
+                          onClick={() =>
+                            run(async () => {
+                              const result = await api<{ inviteUrl: string }>(`/api/admin/users/${person.id}/invite`, {});
+                              setInvite({ url: result.inviteUrl, email: person.email, name: person.name });
+                            })
+                          }
+                        >
+                          Neuer Link
+                        </button>
+                      )}
+                      {person.status !== "blocked" && (
+                        <button className="text-link" onClick={() => run(() => api(`/api/admin/users/${person.id}/block`, {}))}>
+                          Sperren
+                        </button>
+                      )}
+                    </td>
+                  </tr>
+                  {open === key && (
+                    <tr>
+                      <td colSpan={4}>
+                        <RightsEditor
+                          rights={person.kind === "staff" ? STAFF_RIGHTS : PARTNER_RIGHTS}
+                          value={person.perms}
+                          onSave={(permissions) => run(() => api(`/api/admin/users/${person.id}/permissions`, { permissions }))}
+                        />
+                      </td>
+                    </tr>
+                  )}
+                </Fragment>
+              );
+            })}
+          </tbody>
+        </table>
+        {people.length === 0 && <p className="pt-empty">Noch keine Partner oder Mitarbeiter.</p>}
+      </div>
+    </section>
   );
 }
 
@@ -902,13 +1096,13 @@ export function Portal({ path }: { path: string }) {
           <>
             <div className="pt-bar">
               <span>
-                {user.name} · {user.role === "admin" ? "Verwaltung" : "Partner"}
+                {user.name} · {user.role === "admin" ? "Superadmin" : user.role === "staff" ? "Mitarbeiter" : "Partner"}
               </span>
               <button type="button" className="text-link" onClick={signOut}>
                 <LogOut size={15} aria-hidden="true" /> Abmelden
               </button>
             </div>
-            {user.role === "admin" ? <AdminDashboard /> : <PartnerDashboard user={user} />}
+            {user.role === "partner" ? <PartnerDashboard user={user} /> : <AdminDashboard user={user} />}
           </>
         )}
       </div>

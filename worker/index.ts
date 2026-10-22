@@ -42,6 +42,7 @@ type Partner = {
   slug: string | null;
   bio: string;
   rate_percent: number;
+  permissions: string;
   password_hash: string | null;
   password_salt: string | null;
   created_at: string;
@@ -154,6 +155,45 @@ async function startSession(env: Env, partnerId: number) {
   return sessionCookie(token, SESSION_DAYS * 86400);
 }
 
+/**
+ * Permissions the superadmin hands out. Partners start with everything switched on and can have
+ * single rights taken away; staff (Mitarbeiter) start with nothing and get rights one by one.
+ * The superadmin (role "admin") always has every right.
+ */
+const PARTNER_PERMS = {
+  seeStatus: true, // sees the stage of each customer
+  seeRate: true, // sees their own percentage
+  seeAmounts: true, // sees commission amounts and deal values
+  seeContact: true, // sees e-mail and phone of their customers
+  submitLeads: true, // may enter customers in the portal
+  editProfile: true, // may edit the text of their partner page
+  pageActive: true, // partner page is publicly reachable and attributes leads
+};
+const STAFF_PERMS = { managePartners: false, manageLeads: false, managePayouts: false };
+type Perms = typeof PARTNER_PERMS & typeof STAFF_PERMS;
+
+function permsOf(p: { role: string; permissions?: string | null }): Perms {
+  if (p.role === "admin") {
+    return Object.fromEntries([...Object.keys(PARTNER_PERMS), ...Object.keys(STAFF_PERMS)].map((k) => [k, true])) as Perms;
+  }
+  let stored: Record<string, unknown> = {};
+  try {
+    stored = JSON.parse(p.permissions || "{}");
+  } catch {
+    stored = {};
+  }
+  const base: Record<string, boolean> = p.role === "staff" ? { ...STAFF_PERMS } : { ...PARTNER_PERMS };
+  for (const key of Object.keys(base)) if (typeof stored[key] === "boolean") base[key] = stored[key] as boolean;
+  return { ...Object.fromEntries(Object.keys(PARTNER_PERMS).map((k) => [k, false])), ...Object.fromEntries(Object.keys(STAFF_PERMS).map((k) => [k, false])), ...base } as Perms;
+}
+
+/** Keeps only the rights that exist for this role. */
+function cleanPerms(role: string, input: unknown) {
+  const allowed = Object.keys(role === "staff" ? STAFF_PERMS : PARTNER_PERMS);
+  const source = input && typeof input === "object" ? (input as Record<string, unknown>) : {};
+  return JSON.stringify(Object.fromEntries(allowed.filter((k) => typeof source[k] === "boolean").map((k) => [k, source[k]])));
+}
+
 const publicPartner = (p: Partner) => ({
   id: p.id,
   role: p.role,
@@ -163,6 +203,7 @@ const publicPartner = (p: Partner) => ({
   slug: p.slug,
   bio: p.bio,
   ratePercent: p.rate_percent,
+  permissions: permsOf(p),
 });
 
 const STATUSES = ["new", "contacted", "offer", "won", "lost"];
@@ -319,10 +360,11 @@ async function handle(request: Request, env: Env): Promise<Response> {
 
   if (path.startsWith("/api/partner-page/") && method === "GET") {
     const slug = decodeURIComponent(path.slice("/api/partner-page/".length));
-    const row = await env.DB.prepare("SELECT name, company, bio, slug FROM partners WHERE slug = ? AND status = 'active'")
+    const row = await env.DB.prepare("SELECT name, company, bio, slug, role, permissions FROM partners WHERE slug = ? AND status = 'active'")
       .bind(slug)
-      .first<{ name: string; company: string; bio: string; slug: string }>();
-    return row ? json({ ok: true, partner: row }) : fail("Partnerseite nicht gefunden.", 404);
+      .first<{ name: string; company: string; bio: string; slug: string; role: string; permissions: string }>();
+    if (!row || !permsOf(row).pageActive) return fail("Partnerseite nicht gefunden.", 404);
+    return json({ ok: true, partner: { name: row.name, company: row.company, bio: row.bio, slug: row.slug } });
   }
 
   /** The site's own consultation and quote forms (same payload as the old PHP endpoint). */
@@ -368,8 +410,10 @@ async function handle(request: Request, env: Env): Promise<Response> {
     let partnerId: number | null = null;
     const slug = clean(data.partnerSlug, 80);
     if (slug) {
-      const partner = await env.DB.prepare("SELECT id FROM partners WHERE slug = ? AND status = 'active'").bind(slug).first<{ id: number }>();
-      partnerId = partner?.id ?? null;
+      const partner = await env.DB.prepare("SELECT id, role, permissions FROM partners WHERE slug = ? AND status = 'active'")
+        .bind(slug)
+        .first<{ id: number; role: string; permissions: string }>();
+      partnerId = partner && permsOf(partner).pageActive ? partner.id : null;
     }
     await env.DB.prepare(
       `INSERT INTO leads (partner_id, source, contact_name, company, email, phone, topic, message, consent_at, created_at, updated_at)
@@ -410,13 +454,16 @@ async function handle(request: Request, env: Env): Promise<Response> {
     )
       .bind(user.id)
       .first<{ open_cents: number; paid_cents: number }>();
+    const can = permsOf(user);
     return json({
       ok: true,
-      ratePercent: user.rate_percent,
-      slug: user.slug,
-      leadsByStatus: Object.fromEntries(leads.results.map((r) => [r.status, r.n])),
-      openCents: money?.open_cents ?? 0,
-      paidCents: money?.paid_cents ?? 0,
+      ratePercent: can.seeRate ? user.rate_percent : null,
+      slug: can.pageActive ? user.slug : null,
+      total: leads.results.reduce((sum, r) => sum + r.n, 0),
+      won: leads.results.find((r) => r.status === "won")?.n ?? 0,
+      leadsByStatus: can.seeStatus ? Object.fromEntries(leads.results.map((r) => [r.status, r.n])) : {},
+      openCents: can.seeAmounts ? (money?.open_cents ?? 0) : null,
+      paidCents: can.seeAmounts ? (money?.paid_cents ?? 0) : null,
     });
   }
 
@@ -428,11 +475,23 @@ async function handle(request: Request, env: Env): Promise<Response> {
        WHERE l.partner_id = ? ORDER BY l.created_at DESC LIMIT 500`,
     )
       .bind(user.id)
-      .all();
-    return json({ ok: true, leads: rows.results });
+      .all<Record<string, unknown>>();
+    const can = permsOf(user);
+    const leads = rows.results.map((row) => ({
+      ...row,
+      status: can.seeStatus ? row.status : null,
+      email: can.seeContact ? row.email : "",
+      phone: can.seeContact ? row.phone : "",
+      deal_cents: can.seeAmounts ? row.deal_cents : null,
+      commission_cents: can.seeAmounts ? row.commission_cents : null,
+      commission_rate: can.seeRate ? row.commission_rate : null,
+      commission_status: can.seeAmounts ? row.commission_status : null,
+    }));
+    return json({ ok: true, leads });
   }
 
   if (path === "/api/partner/leads" && method === "POST" && user.role === "partner") {
+    if (!permsOf(user).submitLeads) return fail("Dafür fehlt die Berechtigung.", 403);
     const data = await body();
     const contactName = clean(data.name, 120);
     if (!contactName) return fail("Bitte den Namen des Ansprechpartners angeben.");
@@ -449,6 +508,7 @@ async function handle(request: Request, env: Env): Promise<Response> {
   }
 
   if (path === "/api/partner/profile" && method === "POST" && user.role === "partner") {
+    if (!permsOf(user).editProfile) return fail("Dafür fehlt die Berechtigung.", 403);
     const data = await body();
     await env.DB.prepare("UPDATE partners SET bio = ?, company = ?, phone = ?, updated_at = ? WHERE id = ?")
       .bind(clean(data.bio, 1200), clean(data.company, 160), clean(data.phone, 60), now(), user.id)
@@ -457,27 +517,89 @@ async function handle(request: Request, env: Env): Promise<Response> {
   }
 
   /* --- admin --- */
-  if (user.role !== "admin") return fail("Nicht gefunden.", 404);
+  if (user.role !== "admin" && user.role !== "staff") return fail("Nicht gefunden.", 404);
+  const can = permsOf(user);
+  const isSuper = user.role === "admin";
+  const denied = () => fail("Dafür fehlt die Berechtigung.", 403);
+  const newInvite = async (id: number) => {
+    const token = randomToken(24);
+    await env.DB.prepare(
+      "UPDATE partners SET status = CASE WHEN status = 'active' THEN 'active' ELSE 'approved' END, invite_hash = ?, invite_expires = ?, updated_at = ? WHERE id = ?",
+    )
+      .bind(await sha256(token), new Date(Date.now() + 7 * 86400000).toISOString(), now(), id)
+      .run();
+    return `${url.origin}/portal/aktivieren?token=${token}`;
+  };
+
+  /* --- superadmin only: staff and permissions --- */
+  if (path === "/api/admin/staff/create" && method === "POST") {
+    if (!isSuper) return denied();
+    const data = await body();
+    const name = clean(data.name, 120);
+    const email = clean(data.email, 200).toLowerCase();
+    if (!name || !validEmail(email)) return fail("Bitte Namen und eine gültige E-Mail-Adresse angeben.");
+    if (await env.DB.prepare("SELECT id FROM partners WHERE email = ?").bind(email).first()) return fail("Zu dieser E-Mail-Adresse gibt es schon einen Zugang.", 409);
+    const result = await env.DB.prepare(
+      `INSERT INTO partners (role, status, email, name, permissions, created_at, updated_at) VALUES ('staff', 'approved', ?, ?, ?, ?, ?)`,
+    )
+      .bind(email, name, cleanPerms("staff", data.permissions), now(), now())
+      .run();
+    return json({ ok: true, inviteUrl: await newInvite(Number(result.meta.last_row_id)) });
+  }
+
+  const userAction = path.match(/^\/api\/admin\/users\/(\d+)\/(permissions|invite|block)$/);
+  if (userAction && method === "POST") {
+    if (!isSuper) return denied();
+    const id = Number(userAction[1]);
+    const target = await env.DB.prepare("SELECT * FROM partners WHERE id = ? AND role IN ('partner', 'staff')").bind(id).first<Partner>();
+    if (!target) return fail("Zugang nicht gefunden.", 404);
+    const data = await body();
+    if (userAction[2] === "permissions") {
+      await env.DB.prepare("UPDATE partners SET permissions = ?, updated_at = ? WHERE id = ?")
+        .bind(cleanPerms(target.role, data.permissions), now(), id)
+        .run();
+      return json({ ok: true });
+    }
+    if (userAction[2] === "invite") return json({ ok: true, inviteUrl: await newInvite(id) });
+    await env.DB.prepare("UPDATE partners SET status = 'blocked', updated_at = ? WHERE id = ?").bind(now(), id).run();
+    await env.DB.prepare("DELETE FROM sessions WHERE partner_id = ?").bind(id).run();
+    return json({ ok: true });
+  }
 
   if (path === "/api/admin/overview" && method === "GET") {
-    const partners = await env.DB.prepare(
-      `SELECT p.id, p.status, p.email, p.name, p.company, p.phone, p.pitch, p.slug, p.rate_percent, p.created_at,
+    const staff = isSuper
+      ? await env.DB.prepare("SELECT id, status, email, name, permissions, created_at FROM partners WHERE role = 'staff' ORDER BY created_at DESC").all<Partner>()
+      : null;
+    const wantsPartners = can.managePartners || can.managePayouts;
+    const wantsLeads = can.manageLeads || can.managePayouts;
+    const partners = !wantsPartners ? { results: [] } : await env.DB.prepare(
+      `SELECT p.id, p.status, p.email, p.name, p.company, p.phone, p.pitch, p.slug, p.rate_percent, p.permissions, p.created_at,
               (SELECT COUNT(*) FROM leads l WHERE l.partner_id = p.id) AS leads,
               (SELECT COUNT(*) FROM leads l WHERE l.partner_id = p.id AND l.status = 'won') AS won,
               COALESCE((SELECT SUM(amount_cents) FROM commissions c WHERE c.partner_id = p.id AND c.status = 'open'), 0) AS open_cents,
               COALESCE((SELECT SUM(amount_cents) FROM commissions c WHERE c.partner_id = p.id AND c.status = 'paid'), 0) AS paid_cents
        FROM partners p WHERE p.role = 'partner' ORDER BY p.created_at DESC`,
-    ).all();
-    const leads = await env.DB.prepare(
+    ).all<Partner & Record<string, unknown>>();
+    const leads = !wantsLeads ? { results: [] } : await env.DB.prepare(
       `SELECT l.*, p.name AS partner_name, c.id AS commission_id, c.amount_cents AS commission_cents, c.status AS commission_status
        FROM leads l LEFT JOIN partners p ON p.id = l.partner_id LEFT JOIN commissions c ON c.lead_id = l.id
        ORDER BY l.created_at DESC LIMIT 500`,
     ).all();
-    return json({ ok: true, partners: partners.results, leads: leads.results });
+    const withPerms = <T extends { permissions?: string }>(rows: T[], role: string) =>
+      rows.map(({ permissions, ...rest }) => ({ ...rest, perms: permsOf({ role, permissions }) }));
+    return json({
+      ok: true,
+      isSuper,
+      permissions: can,
+      partners: withPerms(partners.results as (Partner & { permissions: string })[], "partner"),
+      staff: staff ? withPerms(staff.results as (Partner & { permissions: string })[], "staff") : [],
+      leads: leads.results,
+    });
   }
 
   /** Admin creates a partner directly, including the text of the partner page. */
   if (path === "/api/admin/partners/create" && method === "POST") {
+    if (!can.managePartners) return denied();
     const data = await body();
     const name = clean(data.name, 120);
     const email = clean(data.email, 200).toLowerCase();
@@ -499,6 +621,7 @@ async function handle(request: Request, env: Env): Promise<Response> {
 
   const partnerAction = path.match(/^\/api\/admin\/partners\/(\d+)\/(approve|invite|block|rate|profile)$/);
   if (partnerAction && method === "POST") {
+    if (!can.managePartners) return denied();
     const id = Number(partnerAction[1]);
     const action = partnerAction[2];
     const data = await body();
@@ -526,12 +649,6 @@ async function handle(request: Request, env: Env): Promise<Response> {
         .run();
       return json({ ok: true });
     }
-    if (action === "profile") {
-      await env.DB.prepare("UPDATE partners SET bio = ?, company = ?, phone = ?, updated_at = ? WHERE id = ?")
-        .bind(clean(data.bio, 1200), clean(data.company, 160), clean(data.phone, 60), now(), id)
-        .run();
-      return json({ ok: true });
-    }
     if (action === "rate") {
       const rate = Number(data.ratePercent);
       if (!Number.isFinite(rate) || rate < 0 || rate > 50) return fail("Der Prozentsatz muss zwischen 0 und 50 liegen.");
@@ -542,6 +659,7 @@ async function handle(request: Request, env: Env): Promise<Response> {
 
   const leadUpdate = path.match(/^\/api\/admin\/leads\/(\d+)$/);
   if (leadUpdate && method === "POST") {
+    if (!can.manageLeads) return denied();
     const id = Number(leadUpdate[1]);
     const data = await body();
     const status = clean(data.status, 20);
@@ -560,6 +678,7 @@ async function handle(request: Request, env: Env): Promise<Response> {
 
   const payout = path.match(/^\/api\/admin\/commissions\/(\d+)\/pay$/);
   if (payout && method === "POST") {
+    if (!can.managePayouts) return denied();
     await env.DB.prepare("UPDATE commissions SET status = 'paid', paid_at = ? WHERE id = ? AND status = 'open'")
       .bind(now(), Number(payout[1]))
       .run();

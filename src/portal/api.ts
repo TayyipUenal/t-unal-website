@@ -1,6 +1,36 @@
+export type Perms = {
+  seeStatus: boolean;
+  seeRate: boolean;
+  seeAmounts: boolean;
+  seeContact: boolean;
+  submitLeads: boolean;
+  editProfile: boolean;
+  pageActive: boolean;
+  managePartners: boolean;
+  manageLeads: boolean;
+  managePayouts: boolean;
+};
+
+/** Labels shown in the permission editor, grouped by who they apply to. */
+export const PARTNER_RIGHTS: [keyof Perms, string, string][] = [
+  ["seeStatus", "Stand der Kunden sehen", "Eingegangen, in Kontakt, Angebot, Auftrag"],
+  ["seeRate", "Eigenen Prozentsatz sehen", "Der Anteil, der dem Partner zusteht"],
+  ["seeAmounts", "Beträge sehen", "Auftragswerte und Provisionen in Euro"],
+  ["seeContact", "Kontaktdaten der Kunden sehen", "E-Mail und Telefon (sonst nur Name und Firma)"],
+  ["submitLeads", "Kunden selbst melden", "Kontakt im Portal eintragen"],
+  ["editProfile", "Text der Partnerseite ändern", "Sonst pflegen nur Sie den Text"],
+  ["pageActive", "Partnerseite öffentlich", "Seite ist erreichbar und ordnet Anfragen zu"],
+];
+export const STAFF_RIGHTS: [keyof Perms, string, string][] = [
+  ["managePartners", "Partner verwalten", "Bewerbungen, Anlegen, Anteil, Sperren"],
+  ["manageLeads", "Kunden und Leads bearbeiten", "Stand und Auftragswert setzen"],
+  ["managePayouts", "Provisionen auszahlen", "Provisionen einsehen und als ausgezahlt markieren"],
+];
+
 export type User = {
   id: number;
-  role: "admin" | "partner";
+  role: "admin" | "staff" | "partner";
+  permissions: Perms;
   name: string;
   company: string;
   email: string;
@@ -28,7 +58,7 @@ export type PartnerLead = {
   phone: string;
   topic: string;
   message: string;
-  status: LeadStatus;
+  status: LeadStatus | null;
   deal_cents: number | null;
   source: string;
   created_at: string;
@@ -39,11 +69,13 @@ export type PartnerLead = {
 };
 
 export type Summary = {
-  ratePercent: number;
+  ratePercent: number | null;
+  total: number;
+  won: number;
   slug: string | null;
   leadsByStatus: Partial<Record<LeadStatus, number>>;
-  openCents: number;
-  paidCents: number;
+  openCents: number | null;
+  paidCents: number | null;
 };
 
 export type AdminPartner = {
@@ -61,9 +93,20 @@ export type AdminPartner = {
   won: number;
   open_cents: number;
   paid_cents: number;
+  perms: Perms;
 };
 
-export type AdminLead = PartnerLead & {
+export type StaffMember = {
+  id: number;
+  status: "approved" | "active" | "blocked";
+  email: string;
+  name: string;
+  created_at: string;
+  perms: Perms;
+};
+
+export type AdminLead = Omit<PartnerLead, "status"> & {
+  status: LeadStatus;
   partner_id: number | null;
   partner_name: string | null;
   commission_id: number | null;

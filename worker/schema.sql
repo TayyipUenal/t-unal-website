@@ -3,7 +3,7 @@
 
 CREATE TABLE IF NOT EXISTS partners (
   id INTEGER PRIMARY KEY AUTOINCREMENT,
-  role TEXT NOT NULL DEFAULT 'partner',          -- 'partner' | 'admin'
+  role TEXT NOT NULL DEFAULT 'partner',          -- 'partner' | 'staff' | 'admin' (superadmin)
   status TEXT NOT NULL DEFAULT 'pending',        -- 'pending' | 'approved' | 'active' | 'blocked'
   email TEXT NOT NULL UNIQUE,
   name TEXT NOT NULL,
@@ -13,6 +13,7 @@ CREATE TABLE IF NOT EXISTS partners (
   slug TEXT UNIQUE,                              -- public page: /partner/<slug>
   bio TEXT NOT NULL DEFAULT '',                  -- text shown on the partner page
   rate_percent REAL NOT NULL DEFAULT 10,
+  permissions TEXT NOT NULL DEFAULT '{}',        -- JSON of single rights, see permsOf() in worker/index.ts
   password_hash TEXT,
   password_salt TEXT,
   invite_hash TEXT,

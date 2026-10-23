@@ -1,13 +1,8 @@
 import { useMemo, useState } from "react";
 import { euro, type AdminLead } from "./api";
+import { areaLabel } from "./areas";
 
 const MONTHS = ["Jan", "Feb", "Mär", "Apr", "Mai", "Jun", "Jul", "Aug", "Sep", "Okt", "Nov", "Dez"];
-const AREA_LABEL: Record<string, string> = {
-  zertifizierung: "Zertifizierung",
-  personenzertifizierung: "Personenzertifizierung",
-  arbeitssicherheit: "Arbeitssicherheit (Grundbetreuung)",
-  "": "Nicht zugeordnet",
-};
 const percent = (part: number, whole: number) => (whole ? `${Math.round((part / whole) * 100)} %` : "–");
 
 type Month = { key: string; label: string; total: number; won: number };
@@ -253,7 +248,7 @@ export function Kpis({ leads }: { leads: AdminLead[] }) {
               {stats.areas.map((row) => (
                 <tr key={row.area || "none"}>
                   <td>
-                    <b>{AREA_LABEL[row.area] ?? row.area}</b>
+                    <b>{row.area ? areaLabel(row.area) : "Nicht zugeordnet"}</b>
                   </td>
                   <td>{row.total}</td>
                   <td>{row.open}</td>

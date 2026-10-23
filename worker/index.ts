@@ -243,7 +243,7 @@ const publicPartner = (p: Partner) => ({
 
 const STATUSES = ["new", "contacted", "offer", "won", "lost"];
 /** The two areas partners refer customers to. Empty = not assigned yet. */
-const CATEGORIES = ["", "zertifizierung", "personenzertifizierung", "arbeitssicherheit"];
+const CATEGORIES = ["", "zertifizierung", "personenzertifizierung", "arbeitsschutz", "arbeitssicherheit", "it-sicherheit", "factoring", "webseiten"];
 const MAX_FILE_BYTES = 1_800_000;
 const ALLOWED_MIME = [
   "application/pdf",
@@ -630,7 +630,7 @@ async function handle(request: Request, env: Env): Promise<Response> {
     if (!permsOf(user).submitLeads) return fail("Dafür fehlt die Berechtigung.", 403);
     const data = await body();
     const category = clean(data.category, 30);
-    if (!["zertifizierung", "personenzertifizierung", "arbeitssicherheit"].includes(category)) return fail("Bitte einen Bereich wählen.");
+    if (!category || !CATEGORIES.includes(category)) return fail("Bitte einen Bereich wählen.");
     const company = clean(data.company, 160);
     const contactName = clean(data.contactName, 120);
     if (!company || !contactName) return fail("Bitte Firma und Ansprechpartner angeben.");
@@ -638,27 +638,13 @@ async function handle(request: Request, env: Env): Promise<Response> {
     if (email && !validEmail(email)) return fail("Die E-Mail-Adresse ist ungültig.");
     if (!email && !clean(data.phone, 60)) return fail("Bitte E-Mail oder Telefonnummer angeben.");
     if (data.consent !== true) return fail("Bitte bestätigen Sie, dass der Kunde mit der Weitergabe einverstanden ist.");
-    const fields: [string, string][] = [
-      ["Straße", clean(data.street, 160)],
-      ["PLZ und Ort", clean(data.city, 120)],
-      ["Mitarbeitende", clean(data.employees, 20)],
-      ["Standorte", clean(data.sites, 20)],
-      ["Normen", Array.isArray(data.standards) ? data.standards.map((s) => clean(s, 40)).filter(Boolean).join(", ") : ""],
-      ["Verfahren", clean(data.procedure, 60)],
-      ["Geltungsbereich / Tätigkeit", clean(data.scope, 600)],
-      ["Vorhandenes Managementsystem", clean(data.existingSystem, 60)],
-      ["Schulung / Zertifikat", clean(data.course, 120)],
-      ["Teilnehmende", clean(data.participants, 20)],
-      ["Wunschtermin", clean(data.desiredDate, 40)],
-      ["Anmerkungen", clean(data.notes, 2000)],
-    ];
-    const filled = fields.filter(([, value]) => value);
-    const topic =
-      category === "zertifizierung"
-        ? `Antrag Zertifizierung ${fields[4][1] || ""}`.trim()
-        : category === "personenzertifizierung"
-          ? `Antrag Personenzertifizierung ${fields[8][1] || ""}`.trim()
-          : "Antrag Arbeitssicherheit Grundbetreuung";
+    // details arrive as label → text from the form; keep them short and plain
+    const source = data.details && typeof data.details === "object" ? (data.details as Record<string, unknown>) : {};
+    const filled = Object.entries(source)
+      .slice(0, 40)
+      .map(([label, value]): [string, string] => [clean(label, 60), clean(value, 600)])
+      .filter(([label, value]) => label && value);
+    const topic = clean(data.topic, 80) || "Antrag";
     const result = await env.DB.prepare(
       `INSERT INTO leads (partner_id, source, contact_name, company, email, phone, topic, message, status, category, request_json, consent_at, created_at, updated_at)
        VALUES (?, 'antrag', ?, ?, ?, ?, ?, ?, 'new', ?, ?, ?, ?, ?)`,
@@ -669,7 +655,7 @@ async function handle(request: Request, env: Env): Promise<Response> {
         company,
         email,
         clean(data.phone, 60),
-        topic.slice(0, 80),
+        topic,
         filled.map(([label, value]) => `${label}: ${value}`).join("\n").slice(0, 2000),
         category,
         JSON.stringify(Object.fromEntries(filled)),

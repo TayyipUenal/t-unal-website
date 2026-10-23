@@ -1,6 +1,7 @@
 import { Check, Copy, LogOut, Plus, ShieldCheck } from "lucide-react";
 import qrcode from "qrcode-generator";
 import { DownloadsAdmin, FileLinks, OfferUpload, PartnerDownloads } from "./Files";
+import { AREAS, areaHint, areaLabel, noCommission } from "./areas";
 import { Kpis } from "./Kpis";
 import { RequestForm } from "./RequestForm";
 import { Fragment, useCallback, useEffect, useState, type FormEvent } from "react";
@@ -166,24 +167,12 @@ function QrCode({ value }: { value: string }) {
 
 /* ---------- partner dashboard ---------- */
 
-const CATEGORY_LABEL: Record<string, string> = {
-  zertifizierung: "Zertifizierung",
-  personenzertifizierung: "Personenzertifizierung",
-  arbeitssicherheit: "Arbeitssicherheit (Grundbetreuung)",
-  "": "Weitere Kunden",
-};
-const CATEGORY_HINT: Record<string, string> = {
-  zertifizierung: "Was wir Ihren Kunden an Zertifizierung angeboten haben und wie weit es ist.",
-  personenzertifizierung: "Was wir Ihren Kunden an Personenzertifizierung angeboten haben und wie weit es ist.",
-  arbeitssicherheit: "Für die Grundbetreuung in der Arbeitssicherheit gibt es keine Provision. Ihre vermittelten Kunden sehen Sie hier trotzdem.",
-  "": "",
-};
 const pct = (value: number) => String(value).replace(".", ",");
 
 /** Provision of one customer: expected while open, then waiting for the customer's payment, due, paid out. */
 function ProvisionCell({ lead, rate }: { lead: PartnerLead; rate: number | null }) {
   const used = lead.commission_rate ?? rate;
-  if (lead.category === "arbeitssicherheit") return <small>keine Provision</small>;
+  if (noCommission(lead.category)) return <small>keine Provision</small>;
   if (lead.commission_cents !== null) {
     const state = lead.commission_status === "paid" ? "ausgezahlt" : lead.customer_paid_at ? "fällig, wird ausgezahlt" : "wartet auf Zahlung des Kunden";
     return (
@@ -244,8 +233,8 @@ function LeadGroup({
     <section className="pt-card pt-table-card pt-group">
       <div className="pt-table-head">
         <div>
-          <h2>{CATEGORY_LABEL[category]}</h2>
-          {CATEGORY_HINT[category] && <p className="pt-hint">{CATEGORY_HINT[category]}</p>}
+          <h2>{areaLabel(category)}</h2>
+          {areaHint(category) && <p className="pt-hint">{areaHint(category)}</p>}
         </div>
         {can.seeStatus && leads.length > 0 && (
           <p className="pt-group-count">
@@ -547,9 +536,9 @@ function PartnerDashboard({ user, preview, onExit }: { user: User; preview?: Par
       ) : leads.length === 0 ? (
         <p className="pt-empty">Noch keine Kunden. Melden Sie einen Kontakt oder teilen Sie Ihre Partnerseite.</p>
       ) : (
-        (["zertifizierung", "personenzertifizierung", "arbeitssicherheit", ""] as const).map((category) => {
+        [...AREAS.map((area) => area.key as string), ""].map((category) => {
           const rows = leads.filter((lead) => (lead.category ?? "") === category);
-          if ((category === "" || category === "arbeitssicherheit") && rows.length === 0) return null;
+          if (category !== "zertifizierung" && category !== "personenzertifizierung" && rows.length === 0) return null;
           return (
             <LeadGroup
               key={category || "other"}
@@ -1168,9 +1157,7 @@ type LeadChanges = {
 
 const CATEGORY_OPTIONS: [string, string][] = [
   ["", "Noch nicht zugeordnet"],
-  ["zertifizierung", "Zertifizierung"],
-  ["personenzertifizierung", "Personenzertifizierung"],
-  ["arbeitssicherheit", "Arbeitssicherheit Grundbetreuung (keine Provision)"],
+  ...AREAS.map((area): [string, string] => [area.key, area.noCommission ? `${area.label} (keine Provision)` : area.label]),
 ];
 
 function LeadRow({

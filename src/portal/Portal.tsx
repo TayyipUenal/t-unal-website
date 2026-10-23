@@ -165,11 +165,13 @@ function QrCode({ value }: { value: string }) {
 const CATEGORY_LABEL: Record<string, string> = {
   zertifizierung: "Zertifizierung",
   personenzertifizierung: "Personenzertifizierung",
+  arbeitssicherheit: "Arbeitssicherheit (Grundbetreuung)",
   "": "Weitere Kunden",
 };
 const CATEGORY_HINT: Record<string, string> = {
   zertifizierung: "Was wir Ihren Kunden an Zertifizierung angeboten haben und wie weit es ist.",
   personenzertifizierung: "Was wir Ihren Kunden an Personenzertifizierung angeboten haben und wie weit es ist.",
+  arbeitssicherheit: "Für die Grundbetreuung in der Arbeitssicherheit gibt es keine Provision. Ihre vermittelten Kunden sehen Sie hier trotzdem.",
   "": "",
 };
 const pct = (value: number) => String(value).replace(".", ",");
@@ -177,6 +179,7 @@ const pct = (value: number) => String(value).replace(".", ",");
 /** Provision of one customer: expected while open, then waiting for the customer's payment, due, paid out. */
 function ProvisionCell({ lead, rate }: { lead: PartnerLead; rate: number | null }) {
   const used = lead.commission_rate ?? rate;
+  if (lead.category === "arbeitssicherheit") return <small>keine Provision</small>;
   if (lead.commission_cents !== null) {
     const state = lead.commission_status === "paid" ? "ausgezahlt" : lead.customer_paid_at ? "fällig, wird ausgezahlt" : "wartet auf Zahlung des Kunden";
     return (
@@ -394,7 +397,7 @@ function PartnerDashboard({ user, preview, onExit }: { user: User; preview?: Par
           <div className="pt-card pt-rate">
             <small>Ihr Anteil</small>
             <strong>{summary && summary.ratePercent !== null ? `${String(summary.ratePercent).replace(".", ",")} %` : "–"}</strong>
-            <span>vom Auftragswert, einmalig je Auftrag</span>
+            <span>vom Nettoauftragswert, einmalig je Auftrag. Keine Provision bei Arbeitssicherheit (Grundbetreuung).</span>
           </div>
         )}
         {can.seeAmounts && (
@@ -531,7 +534,7 @@ function PartnerDashboard({ user, preview, onExit }: { user: User; preview?: Par
       ) : leads.length === 0 ? (
         <p className="pt-empty">Noch keine Kunden. Melden Sie einen Kontakt oder teilen Sie Ihre Partnerseite.</p>
       ) : (
-        (["zertifizierung", "personenzertifizierung", ""] as const).map((category) => {
+        (["zertifizierung", "personenzertifizierung", "arbeitssicherheit", ""] as const).map((category) => {
           const rows = leads.filter((lead) => (lead.category ?? "") === category);
           if (category === "" && rows.length === 0) return null;
           return (
@@ -1146,6 +1149,7 @@ const CATEGORY_OPTIONS: [string, string][] = [
   ["", "Noch nicht zugeordnet"],
   ["zertifizierung", "Zertifizierung"],
   ["personenzertifizierung", "Personenzertifizierung"],
+  ["arbeitssicherheit", "Arbeitssicherheit Grundbetreuung (keine Provision)"],
 ];
 
 function LeadRow({

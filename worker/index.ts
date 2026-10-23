@@ -241,7 +241,9 @@ const publicPartner = (p: Partner) => ({
 
 const STATUSES = ["new", "contacted", "offer", "won", "lost"];
 /** The two areas partners refer customers to. Empty = not assigned yet. */
-const CATEGORIES = ["", "zertifizierung", "personenzertifizierung"];
+const CATEGORIES = ["", "zertifizierung", "personenzertifizierung", "arbeitssicherheit"];
+/** Areas without commission: customers are shown to the partner, but no commission is ever created. */
+const NO_COMMISSION = ["arbeitssicherheit"];
 
 /** Commission follows the lead: created when it is won, removed when it is not (unless already paid). */
 async function syncCommission(env: Env, leadId: number) {
@@ -250,8 +252,13 @@ async function syncCommission(env: Env, leadId: number) {
     partner_id: number | null;
     status: string;
     deal_cents: number | null;
+    category: string;
   }>();
   if (!lead || !lead.partner_id) return;
+  if (NO_COMMISSION.includes(lead.category)) {
+    await env.DB.prepare("DELETE FROM commissions WHERE lead_id = ? AND status = 'open'").bind(leadId).run();
+    return;
+  }
   const existing = await env.DB.prepare("SELECT * FROM commissions WHERE lead_id = ?").bind(leadId).first<{
     id: number;
     status: string;

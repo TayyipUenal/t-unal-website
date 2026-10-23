@@ -225,7 +225,7 @@ const privacySections: LegalSection[] = [
   },
   {
     id: "partner",
-    title: "Partnerprogramm & Partnerseiten",
+    title: "Partnerprogramm",
     content: (
       <>
         <h3>Bewerbung und Partnerportal</h3>
@@ -235,16 +235,16 @@ const privacySections: LegalSection[] = [
           Bewerbung zu prüfen. Nach der Freigabe erhalten Sie einen Zugang zum
           Partnerportal. Dafür speichern wir zusätzlich Ihr Passwort
           ausschließlich als verschlüsselten Hash, Ihren Prozentsatz, den Text
-          Ihrer Partnerseite sowie die Ihnen zugeordneten Kunden, Provisionen
+          die Ihnen zugeordneten Kunden, Provisionen
           und Auszahlungen. Rechtsgrundlage ist die Anbahnung und Durchführung
           der Partnerschaft gemäß Art. 6 Abs. 1 lit. b DSGVO.
         </p>
-        <h3>Anfragen über eine Partnerseite</h3>
+        <h3>Vermittlung durch einen Partner</h3>
         <p>
-          Partner haben eine eigene Seite unter tayyipuenal.de/partner/…. Wenn
-          Sie über eine solche Seite anfragen, wird Ihre Anfrage dem jeweiligen
-          Partner zugeordnet, damit seine Vermittlung nachvollzogen und eine
-          Provision abgerechnet werden kann. Der Partner sieht in seinem Portal
+          Wenn ein Partner Sie an uns vermittelt, etwa indem er gemeinsam mit
+          Ihnen einen Antrag ausfüllt, wird Ihre Anfrage dem jeweiligen Partner
+          zugeordnet, damit seine Vermittlung nachvollzogen und eine Provision
+          abgerechnet werden kann. Der Partner sieht in seinem Portal
           Ihren Namen bzw. Ihr Unternehmen, das angefragte Thema, den Stand der
           Bearbeitung und gegebenenfalls den Auftragswert. Ihre Kontaktdaten sieht
           er nur, soweit wir ihm dies freigegeben haben. Rechtsgrundlage ist

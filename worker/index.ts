@@ -373,6 +373,9 @@ const publicPartner = (p: Partner) => ({
 const STATUSES = ["new", "contacted", "offer", "won", "lost"];
 /** The two areas partners refer customers to. Empty = not assigned yet. */
 const CATEGORIES = ["", "zertifizierung", "personenzertifizierung", "arbeitsschutz", "arbeitssicherheit", "it-sicherheit", "factoring", "webseiten"];
+/** Personal partner pages (/partner/<name>); off for now, keep in step with src/portal/features.ts. */
+const PARTNER_PAGES = false;
+
 const MAX_FILE_BYTES = 1_800_000;
 const ALLOWED_MIME = [
   "application/pdf",
@@ -444,7 +447,7 @@ async function partnerSummary(env: Env, p: Partner) {
   const can = permsOf(p);
   return {
     ratePercent: can.seeRate ? p.rate_percent : null,
-    slug: can.pageActive ? p.slug : null,
+    slug: PARTNER_PAGES && can.pageActive ? p.slug : null,
     total: leads.results.reduce((sum, r) => sum + r.n, 0),
     won: leads.results.find((r) => r.status === "won")?.n ?? 0,
     leadsByStatus: can.seeStatus ? Object.fromEntries(leads.results.map((r) => [r.status, r.n])) : {},
@@ -619,6 +622,7 @@ async function handle(request: Request, env: Env): Promise<Response> {
   }
 
   if (path.startsWith("/api/partner-page/") && method === "GET") {
+    if (!PARTNER_PAGES) return fail("Partnerseite nicht gefunden.", 404);
     const slug = decodeURIComponent(path.slice("/api/partner-page/".length));
     const row = await env.DB.prepare("SELECT name, company, bio, slug, role, permissions FROM partners WHERE slug = ? AND status = 'active'")
       .bind(slug)
@@ -678,7 +682,7 @@ async function handle(request: Request, env: Env): Promise<Response> {
     if (!contactName || !validEmail(email)) return fail("Bitte Namen und eine gültige E-Mail-Adresse angeben.");
     if (data.consent !== true) return fail("Bitte stimmen Sie der Datenschutzerklärung zu.");
     let partnerId: number | null = null;
-    const slug = clean(data.partnerSlug, 80);
+    const slug = PARTNER_PAGES ? clean(data.partnerSlug, 80) : "";
     if (slug) {
       const partner = await env.DB.prepare("SELECT id, role, permissions FROM partners WHERE slug = ? AND status = 'active'")
         .bind(slug)

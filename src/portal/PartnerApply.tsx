@@ -12,7 +12,7 @@ const steps = [
   {
     icon: UserCheck,
     title: "Freischalten",
-    text: "Tayyip Ünal prüft Ihre Bewerbung persönlich und richtet Ihren Zugang mit eigener Partnerseite ein.",
+    text: "Tayyip Ünal prüft Ihre Bewerbung persönlich und richtet Ihren Zugang zum Partnerportal ein.",
   },
   {
     icon: LineChart,
@@ -116,8 +116,7 @@ export function PartnerApply() {
           </h1>
           <p className="pa-lead">
             Als Partner von Tayyip Ünal bringen Sie Betriebe zusammen mit Audit, Zertifizierung und Schulung. Sie
-            bekommen ein eigenes Portal, eine eigene Partnerseite und sehen jederzeit, wo Ihre Kunden stehen und was
-            Ihnen zusteht.
+            bekommen ein eigenes Portal und sehen jederzeit, wo Ihre Kunden stehen und was Ihnen zusteht.
           </p>
           <div className="pa-actions">
             <a className="button button-primary" href="#bewerben">
@@ -158,7 +157,7 @@ export function PartnerApply() {
             </Wipe>
             <Rise delay={0.08}>
               <p className="pa-text">
-                Im Partnerportal sehen Sie alle Kontakte, die Sie melden oder die über Ihre Partnerseite kommen, mit dem
+                Im Partnerportal sehen Sie alle Kunden, für die Sie einen Antrag ausfüllen oder einen Kontakt melden, mit dem
                 aktuellen Stand. Ihr Prozentsatz steht oben, und bei jedem Auftrag sehen Sie, was Ihnen zusteht.
               </p>
             </Rise>
@@ -170,7 +169,7 @@ export function PartnerApply() {
                 <Check size={18} aria-hidden="true" /> Ihr Prozentsatz und Ihre Provision auf einen Blick
               </li>
               <li>
-                <Check size={18} aria-hidden="true" /> Eigene Partnerseite mit Ihrem Namen und Empfehlungslink
+                <Check size={18} aria-hidden="true" /> Antrag direkt beim Kunden ausfüllen, Angebot kommt ins Portal
               </li>
             </ul>
           </div>

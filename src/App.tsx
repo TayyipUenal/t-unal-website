@@ -18,6 +18,7 @@ import { WhatsAppButton } from "./components/WhatsAppButton";
 import { audits } from "./audits";
 import { AuditPage } from "./components/AuditPage";
 import { PartnerApply } from "./portal/PartnerApply";
+import { PARTNER_PAGES } from "./portal/features";
 import { PartnerLanding } from "./portal/PartnerLanding";
 import { PartnerTeaser } from "./portal/PartnerTeaser";
 import { PartnerShell } from "./portal/PartnerShell";
@@ -38,7 +39,8 @@ function App({ path = "/" }: { path?: string }) {
         : null;
   const applyPage = page === "/partner-werden";
   const portalPage = page === "/portal" || page.startsWith("/portal/");
-  const partnerSlug = page.startsWith("/partner/") ? page.slice("/partner/".length) : "";
+  // partner pages are switched off for now: /partner/<name> shows the homepage
+  const partnerSlug = PARTNER_PAGES && page.startsWith("/partner/") ? page.slice("/partner/".length) : "";
   const home = !legalPage && !audit && !applyPage && !portalPage && !partnerSlug;
   const { scrollYProgress } = useScroll();
   const scaleX = useSpring(scrollYProgress, {

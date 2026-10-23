@@ -2,6 +2,7 @@ import { Check, Copy, LogOut, Plus, ShieldCheck } from "lucide-react";
 import qrcode from "qrcode-generator";
 import { DownloadsAdmin, FileLinks, OfferUpload, PartnerDownloads } from "./Files";
 import { AREAS, areaHint, areaLabel, noCommission } from "./areas";
+import { PARTNER_PAGES } from "./features";
 import { Kpis } from "./Kpis";
 import { RequestForm } from "./RequestForm";
 import { Fragment, useCallback, useEffect, useState, type FormEvent } from "react";
@@ -434,7 +435,7 @@ function PartnerDashboard({ user, preview, onExit }: { user: User; preview?: Par
         </div>
       )}
 
-      {can.pageActive && (
+      {PARTNER_PAGES && can.pageActive && (
       <div className="pt-card pt-link">
         <div>
           <small>Ihre Partnerseite und Ihr Empfehlungslink</small>
@@ -466,7 +467,7 @@ function PartnerDashboard({ user, preview, onExit }: { user: User; preview?: Par
       </div>
       )}
 
-      {qr && pageUrl && (
+      {PARTNER_PAGES && qr && pageUrl && (
         <div className="pt-card">
           <QrCode value={pageUrl} />
           <p className="pt-hint">Für Visitenkarte, Flyer oder Mail-Signatur. Wer den Code scannt, landet auf Ihrer Partnerseite.</p>
@@ -534,7 +535,7 @@ function PartnerDashboard({ user, preview, onExit }: { user: User; preview?: Par
       {leads === null ? (
         <p className="pt-empty">Wird geladen …</p>
       ) : leads.length === 0 ? (
-        <p className="pt-empty">Noch keine Kunden. Melden Sie einen Kontakt oder teilen Sie Ihre Partnerseite.</p>
+        <p className="pt-empty">Noch keine Kunden. Füllen Sie mit Ihrem Kunden einen Antrag aus oder melden Sie einen Kontakt.</p>
       ) : (
         [...AREAS.map((area) => area.key as string), ""].map((category) => {
           const rows = leads.filter((lead) => (lead.category ?? "") === category);
@@ -556,7 +557,7 @@ function PartnerDashboard({ user, preview, onExit }: { user: User; preview?: Par
 
       <PartnerDownloads preset={preview?.downloads} />
 
-      {can.editProfile && (
+      {PARTNER_PAGES && can.editProfile && (
       <section className="pt-card">
         <h2>Text auf Ihrer Partnerseite</h2>
         <p className="pt-hint">Dieser Text erscheint auf Ihrer Seite, zum Beispiel wer Sie sind und warum Sie Tayyip Ünal empfehlen.</p>
@@ -989,7 +990,7 @@ function RightsTab({
                     <tr>
                       <td colSpan={4}>
                         <RightsEditor
-                          rights={person.kind === "staff" ? STAFF_RIGHTS : PARTNER_RIGHTS}
+                          rights={person.kind === "staff" ? STAFF_RIGHTS : PARTNER_RIGHTS.filter(([key]) => PARTNER_PAGES || (key !== "editProfile" && key !== "pageActive"))}
                           value={person.perms}
                           onSave={(permissions) => run(() => api(`/api/admin/users/${person.id}/permissions`, { permissions }))}
                         />
@@ -1046,9 +1047,11 @@ function CreatePartner({ onCreated }: { onCreated: (result: { inviteUrl: string;
           <Field label="Anteil in %">
             <input name="ratePercent" type="number" min={0} max={50} step={0.5} defaultValue={10} />
           </Field>
-          <Field label="Text auf der Partnerseite">
-            <input name="bio" maxLength={1200} placeholder="Wer ist der Partner, warum empfiehlt er Tayyip Ünal?" />
-          </Field>
+          {PARTNER_PAGES && (
+            <Field label="Text auf der Partnerseite">
+              <input name="bio" maxLength={1200} placeholder="Wer ist der Partner, warum empfiehlt er Tayyip Ünal?" />
+            </Field>
+          )}
           {error && (
             <p className="pa-error" role="alert">
               {error}
@@ -1117,7 +1120,7 @@ function PartnerRow({
       <td>
         <b>{partner.name}</b>
         <small>{partner.company || partner.email}</small>
-        {partner.slug && partner.status !== "blocked" && (
+        {PARTNER_PAGES && partner.slug && partner.status !== "blocked" && (
           <small>
             <a href={`/partner/${partner.slug}`} target="_blank" rel="noreferrer">
               /partner/{partner.slug}

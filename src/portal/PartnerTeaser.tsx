@@ -38,8 +38,8 @@ export function PartnerTeaser() {
             <span>Prozentsatz und Provision je Auftrag</span>
           </li>
           <li>
-            <b>Eigene Partnerseite</b>
-            <span>Mit Ihrem Namen und Empfehlungslink</span>
+            <b>Antrag beim Kunden</b>
+            <span>Ausfüllen, absenden, Angebot im Portal</span>
           </li>
         </ul>
       </div>

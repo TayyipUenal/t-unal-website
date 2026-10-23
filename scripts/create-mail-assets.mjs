@@ -50,12 +50,7 @@ function goldFill(g, x0, x1, sweep) {
 function header(g, t) {
   g.fillStyle = "#0e0e0e";
   g.fillRect(0, 0, HW, HH);
-  // soft glow behind the seal
-  const glow = g.createRadialGradient(110, 100, 10, 110, 100, 170);
-  glow.addColorStop(0, "rgba(201,164,94,0.16)"); // steady: the seal itself stays calm
-  glow.addColorStop(1, "rgba(201,164,94,0)");
-  g.fillStyle = glow;
-  g.fillRect(0, 0, 400, HH);
+  // the seal stays plain: no glow, no light; only the name gets the light pass below
 
   // the light runs over the name only
   const sweep = t === null ? null : 40 + ease(t) * 900;

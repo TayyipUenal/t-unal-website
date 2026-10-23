@@ -75,7 +75,7 @@ function mailHtml(content: MailContent) {
 <body id="body" style="margin:0;padding:0;background:#0e0e0e;font-family:Segoe UI,Helvetica,Arial,sans-serif">
 <table role="presentation" width="100%" cellpadding="0" cellspacing="0" bgcolor="#0e0e0e" style="background:#0e0e0e"><tr><td align="center" style="padding:32px 16px">
   <table role="presentation" width="600" cellpadding="0" cellspacing="0" style="width:100%;max-width:600px">
-    <tr><td style="padding:0 0 18px;line-height:0;font-size:0"><img src="${SITE}/mail/header.gif?v=2" width="600" height="100" alt="Tayyip Ünal · Audit · Zertifizierung · Schulung" style="display:block;width:100%;max-width:600px;height:auto;border:0;color:#c9a45e;font-size:16px"></td></tr>
+    <tr><td style="padding:0 0 18px;line-height:0;font-size:0"><img src="${SITE}/mail/header.gif?v=3" width="600" height="100" alt="Tayyip Ünal · Audit · Zertifizierung · Schulung" style="display:block;width:100%;max-width:600px;height:auto;border:0;color:#c9a45e;font-size:16px"></td></tr>
     <tr><td style="line-height:0;font-size:0"><img src="${SITE}/mail/gold-line.gif" width="600" height="8" alt="" style="display:block;width:100%;max-width:600px;height:8px;border:0"></td></tr>
     <tr><td class="tu-card" bgcolor="#181818" style="background:#181818;border:1px solid #2a2a2a;border-top:0;padding:36px 32px">
       <div style="color:${gold};font-size:11px;font-weight:700;letter-spacing:.22em;text-transform:uppercase">${escapeHtml(content.eyebrow)}</div>

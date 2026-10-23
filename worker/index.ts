@@ -257,7 +257,7 @@ const ALLOWED_MIME = [
   "application/vnd.openxmlformats-officedocument.spreadsheetml.sheet",
 ];
 /** Areas without commission: customers are shown to the partner, but no commission is ever created. */
-const NO_COMMISSION = ["arbeitssicherheit"];
+const NO_COMMISSION = ["arbeitssicherheit", "it-sicherheit", "factoring"];
 
 /** Commission follows the lead: created when it is won, removed when it is not (unless already paid). */
 async function syncCommission(env: Env, leadId: number) {

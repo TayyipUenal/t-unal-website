@@ -227,7 +227,7 @@ export function PartnerApply() {
               <p className="pa-text">
                 Sie erhalten einen festen Prozentsatz vom Auftragswert, einmalig pro abgeschlossenem Auftrag. Der Satz wird
                 individuell festgelegt und steht in Ihrem Portal. Keine versteckten Abzüge in der Anzeige: Sie sehen
-                Auftragswert, Prozentsatz und Betrag. Für die Grundbetreuung in der Arbeitssicherheit gibt es keine Provision.
+                Auftragswert, Prozentsatz und Betrag. Für die Grundbetreuung in der Arbeitssicherheit, IT-Sicherheit und Factoring gibt es keine Provision.
               </p>
             </Rise>
             <ul className="pa-tags">

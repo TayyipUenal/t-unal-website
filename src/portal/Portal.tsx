@@ -392,7 +392,7 @@ function PartnerDashboard({ user, preview, onExit }: { user: User; preview?: Par
           <div className="pt-card pt-rate">
             <small>Ihr Anteil</small>
             <strong>{summary && summary.ratePercent !== null ? `${String(summary.ratePercent).replace(".", ",")} %` : "–"}</strong>
-            <span>vom Nettoauftragswert, einmalig je Auftrag. Keine Provision bei Arbeitssicherheit (Grundbetreuung).</span>
+            <span>vom Nettoauftragswert, einmalig je Auftrag. Keine Provision bei Arbeitssicherheit (Grundbetreuung), IT-Sicherheit und Factoring.</span>
           </div>
         )}
         {can.seeAmounts && (

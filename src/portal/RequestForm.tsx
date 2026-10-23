@@ -225,7 +225,6 @@ function AreaFields({ area }: { area: AreaKey }) {
               </select>
             </Field>
           </div>
-          <p className="pt-hint">Für die Grundbetreuung in der Arbeitssicherheit gibt es keine Provision.</p>
         </>
       );
     case "it-sicherheit":
@@ -500,6 +499,9 @@ export function RequestForm({ onDone, onCancel, disabled = false }: { onDone: ()
 
       <h4>{AREAS.find((item) => item.key === area)?.label}</h4>
       <div className="pt-area-fields" key={area}>
+        {AREAS.find((item) => item.key === area)?.noCommission && (
+          <p className="pt-no-commission">Hinweis für Sie: Für diesen Bereich gibt es keine Provision.</p>
+        )}
         <AreaFields area={area} />
       </div>
 

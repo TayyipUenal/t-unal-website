@@ -42,14 +42,16 @@ export const AREAS: Area[] = [
   {
     key: "it-sicherheit",
     label: "IT-Sicherheit",
-    short: "ISO 27001, NIS2, Datenschutz, Awareness",
-    hint: "Informationssicherheit, Datenschutz und IT-Schutz für Ihre Kunden.",
+    short: "ISO 27001, NIS2, Datenschutz, ohne Provision",
+    hint: "Für IT-Sicherheit gibt es keine Provision. Ihre vermittelten Kunden sehen Sie hier trotzdem.",
+    noCommission: true,
   },
   {
     key: "factoring",
     label: "Factoring",
-    short: "Liquidität durch Forderungsverkauf",
-    hint: "Factoring-Anfragen Ihrer Kunden und wie weit sie sind.",
+    short: "Liquidität durch Forderungsverkauf, ohne Provision",
+    hint: "Für Factoring gibt es keine Provision. Ihre vermittelten Kunden sehen Sie hier trotzdem.",
+    noCommission: true,
   },
   {
     key: "webseiten",

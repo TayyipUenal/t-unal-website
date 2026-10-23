@@ -638,7 +638,8 @@ async function handle(request: Request, env: Env): Promise<Response> {
       .bind(await hashPassword(password, salt), salt, now(), row.id)
       .run();
     const first = row.status === "approved";
-    await notifyOwner(env, first ? `Partner registriert: ${row.name}` : `Partner hat neues Passwort gesetzt: ${row.name}`, [
+    const who = row.role === "staff" ? "Mitarbeiter" : "Partner";
+    await notifyOwner(env, first ? `${who} registriert: ${row.name}` : `${who} hat neues Passwort gesetzt: ${row.name}`, [
       `Name: ${row.name}`,
       `Firma: ${row.company || "–"}`,
       `E-Mail: ${row.email}`,

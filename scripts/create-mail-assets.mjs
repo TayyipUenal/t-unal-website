@@ -11,14 +11,14 @@ fs.mkdirSync("public/mail", { recursive: true });
 
 const ease = (t) => (t < 0.5 ? 2 * t * t : 1 - Math.pow(-2 * t + 2, 2) / 2);
 
-function encode(file, width, height, frames, draw) {
+function encode(file, width, height, frames, draw, colors = 192) {
   const gif = GIFEncoder();
   frames.forEach(({ t, delay }) => {
     const canvas = createCanvas(width, height);
     const g = canvas.getContext("2d");
     draw(g, t);
     const data = g.getImageData(0, 0, width, height).data;
-    const palette = quantize(data, 192);
+    const palette = quantize(data, colors);
     gif.writeFrame(applyPalette(data, palette), width, height, { palette, delay });
   });
   gif.finish();
@@ -97,6 +97,112 @@ const sweepFrames = [
   { t: 1, delay: 2600 },
 ];
 encode("public/mail/header.gif", HW, HH, sweepFrames, header);
+
+/* ---------- services as planets slowly orbiting the TÜ seal ---------- */
+const PW = 800;
+const PH = 440;
+const SERVICES = [
+  "Zertifizierung",
+  "Personenzertifizierung",
+  "Schulungen",
+  "Arbeitsschutz",
+  "Arbeitssicherheit",
+  "IT-Sicherheit",
+  "Factoring",
+  "Webseiten",
+];
+const STEP = (Math.PI * 2) / SERVICES.length;
+const ORBIT = { cx: PW / 2, cy: 228, rx: 330, ry: 118 };
+
+function planets(g, t) {
+  g.fillStyle = "#0e0e0e";
+  g.fillRect(0, 0, PW, PH);
+
+  // a few fixed stars
+  g.fillStyle = "rgba(245,242,236,0.35)";
+  for (let i = 0; i < 46; i += 1) {
+    const x = (i * 137.5) % PW;
+    const y = (i * 71.3 + (i % 5) * 29) % PH;
+    g.fillRect(x, y, i % 7 === 0 ? 2 : 1, i % 7 === 0 ? 2 : 1);
+  }
+
+  // orbit ring
+  g.strokeStyle = "rgba(201,164,94,0.35)";
+  g.lineWidth = 1.5;
+  g.beginPath();
+  g.ellipse(ORBIT.cx, ORBIT.cy, ORBIT.rx, ORBIT.ry, 0, 0, Math.PI * 2);
+  g.stroke();
+
+  // one slot per loop: after the last frame every planet sits where its neighbour started, so the GIF loops seamlessly
+  const turn = t * STEP;
+  const bodies = SERVICES.map((label, i) => {
+    const angle = i * STEP + turn + Math.PI / 2;
+    const depth = (Math.sin(angle) + 1) / 2; // 0 = back, 1 = front
+    return {
+      label,
+      x: ORBIT.cx + Math.cos(angle) * ORBIT.rx,
+      y: ORBIT.cy + Math.sin(angle) * ORBIT.ry,
+      depth,
+    };
+  }).sort((a, b) => a.depth - b.depth);
+
+  const drawPlanet = (body) => {
+    const r = 9 + body.depth * 11;
+    const fill = g.createRadialGradient(body.x - r * 0.4, body.y - r * 0.4, r * 0.1, body.x, body.y, r);
+    fill.addColorStop(0, "#f1dca0");
+    fill.addColorStop(0.55, "#c9a45e");
+    fill.addColorStop(1, "#6e5321");
+    g.globalAlpha = 0.55 + body.depth * 0.45;
+    g.fillStyle = fill;
+    g.beginPath();
+    g.arc(body.x, body.y, r, 0, Math.PI * 2);
+    g.fill();
+    g.font = `${body.depth > 0.55 ? 600 : 400} ${Math.round(13 + body.depth * 6)}px 'Segoe UI'`;
+    g.textAlign = "center";
+    g.textBaseline = "top";
+    g.fillStyle = body.depth > 0.55 ? "#f5f2ec" : "#bdb7ab";
+    g.fillText(body.label, body.x, body.y + r + 7);
+    g.globalAlpha = 1;
+  };
+
+  // back half, then the seal, then the front half
+  bodies.filter((b) => b.depth < 0.5).forEach(drawPlanet);
+  g.fillStyle = "#0e0e0e";
+  g.beginPath();
+  g.arc(ORBIT.cx, ORBIT.cy, 60, 0, Math.PI * 2);
+  g.fill();
+  const ring = g.createLinearGradient(ORBIT.cx - 60, 0, ORBIT.cx + 60, 0);
+  ring.addColorStop(0, "#8f7038");
+  ring.addColorStop(0.5, "#e6c98a");
+  ring.addColorStop(1, "#8f7038");
+  g.strokeStyle = ring;
+  g.lineWidth = 3;
+  g.beginPath();
+  g.arc(ORBIT.cx, ORBIT.cy, 54, 0, Math.PI * 2);
+  g.stroke();
+  g.fillStyle = ring;
+  g.font = "700 40px 'Segoe UI'";
+  g.textAlign = "center";
+  g.textBaseline = "middle";
+  g.fillText("TÜ", ORBIT.cx, ORBIT.cy + 2);
+  bodies.filter((b) => b.depth >= 0.5).forEach(drawPlanet);
+
+  // caption
+  g.fillStyle = "#c9a45e";
+  g.font = "700 15px 'Segoe UI'";
+  g.textAlign = "center";
+  g.textBaseline = "alphabetic";
+  g.fillText("A L L E S   A U S   E I N E R   H A N D", PW / 2, 40);
+}
+
+encode(
+  "public/mail/services.gif",
+  PW,
+  PH,
+  Array.from({ length: 32 }, (_, i) => ({ t: i / 32, delay: 110 })),
+  planets,
+  96,
+);
 
 /* ---------- gold line under the header, light running left to right ---------- */
 const LW = 1200;

@@ -50,7 +50,31 @@ type MailContent = {
   body?: string;
   cta?: { label: string; url: string };
   note?: string;
+  /** Adds the "Alles aus einer Hand" block with the services orbiting the seal. */
+  promo?: boolean;
 };
+
+const SERVICES = ["Zertifizierung", "Personenzertifizierung", "Schulungen", "Arbeitsschutz", "Arbeitssicherheit", "IT-Sicherheit", "Factoring", "Webseiten"];
+
+/** Advertising block for partner mails: animated planets plus the same services as text for clients without images. */
+function promoHtml(gold: string) {
+  const chips = SERVICES.map(
+    (service) =>
+      `<td style="padding:4px"><span style="display:inline-block;padding:6px 12px;border:1px solid #3a3226;border-radius:999px;color:#f5f2ec;font-size:13px;white-space:nowrap">${service}</span></td>`,
+  );
+  const lines = [chips.slice(0, 4), chips.slice(4)].map((row) => `<tr>${row.join("")}</tr>`).join("");
+  return `<tr><td style="padding:28px 0 0">
+      <table role="presentation" width="100%" cellpadding="0" cellspacing="0" bgcolor="#121212" style="background:#121212;border:1px solid #2a2a2a;border-radius:12px">
+        <tr><td style="padding:28px 32px 8px">
+          <div style="color:${gold};font-size:11px;font-weight:700;letter-spacing:.22em;text-transform:uppercase">Unser Leistungsspektrum</div>
+          <div style="margin-top:10px;color:#f5f2ec;font-size:22px;line-height:1.3;font-weight:800">Ein Ansprechpartner für alles, bundesweit.</div>
+          <div style="margin-top:8px;color:#bdb7ab;font-size:14px;line-height:1.6">Empfehlen Sie uns für jedes dieser Themen. Wir kümmern uns um das Angebot und halten Sie im Portal auf dem Laufenden.</div>
+        </td></tr>
+        <tr><td style="padding:8px 0 0;line-height:0;font-size:0"><a href="${SITE}"><img src="${SITE}/mail/services.gif?v=1" width="598" height="329" alt="Zertifizierung, Personenzertifizierung, Schulungen, Arbeitsschutz, Arbeitssicherheit, IT-Sicherheit, Factoring, Webseiten" style="display:block;width:100%;max-width:598px;height:auto;border:0;color:#bdb7ab;font-size:14px"></a></td></tr>
+        <tr><td align="center" style="padding:8px 24px 28px"><table role="presentation" cellpadding="0" cellspacing="0">${lines}</table></td></tr>
+      </table>
+    </td></tr>`;
+}
 
 /**
  * Branded HTML mail in the black and gold of the portal. Table layout and inline styles only, so Outlook,
@@ -92,6 +116,7 @@ function mailHtml(content: MailContent) {
       }
       ${content.note ? `<p style="margin:20px 0 0;color:#8d877b;font-size:13px;line-height:1.5">${escapeHtml(content.note)}</p>` : ""}
     </td></tr>
+    ${content.promo ? promoHtml(gold) : ""}
     <tr><td style="padding:24px 4px 0;color:#6f6a62;font-size:12px;line-height:1.6">
       Tayyip Ünal · Audit, Zertifizierung und Schulung · <a href="https://www.tayyipuenal.de" style="color:${gold};text-decoration:none">tayyipuenal.de</a><br>
       Diese Nachricht wurde automatisch aus dem Partnerportal versendet.
@@ -140,10 +165,11 @@ async function sendMail(env: Env, to: string, subject: string, content: MailCont
 const inviteMail = (env: Env, to: string, name: string, link: string, what: string) =>
   sendMail(env, to, "Ihr Zugang zum Portal von Tayyip Ünal", {
     eyebrow: what,
-    title: `Willkommen, ${name}`,
+    title: `Herzlich willkommen, ${name}`,
     intro: "Ihr persönlicher Zugang ist eingerichtet. Legen Sie über den Button Ihr Passwort fest, danach melden Sie sich jederzeit im Partnerportal an.",
     cta: { label: "Passwort festlegen", url: link },
     note: "Der Link ist 7 Tage gültig. Falls Sie diesen Zugang nicht erwartet haben, können Sie diese Nachricht ignorieren.",
+    promo: true,
   });
 
 /**
@@ -880,6 +906,7 @@ async function handle(request: Request, env: Env): Promise<Response> {
           ["Angebot", "Angebot ISO 9001 Erstzertifizierung"],
         ],
         cta: { label: "Angebot im Portal öffnen", url: PORTAL_URL },
+        promo: true,
       }),
     ]);
     return results.every(Boolean) ? json({ ok: true }) : fail("Die Beispiel-Mails konnten nicht versendet werden.", 502);
@@ -998,6 +1025,7 @@ async function handle(request: Request, env: Env): Promise<Response> {
             ["Angebot", title],
           ],
           cta: { label: "Angebot im Portal öffnen", url: PORTAL_URL },
+        promo: true,
         });
       }
     }

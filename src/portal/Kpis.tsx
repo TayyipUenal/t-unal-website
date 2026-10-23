@@ -5,10 +5,10 @@ import { areaLabel } from "./areas";
 const MONTHS = ["Jan", "Feb", "Mär", "Apr", "Mai", "Jun", "Jul", "Aug", "Sep", "Okt", "Nov", "Dez"];
 const percent = (part: number, whole: number) => (whole ? `${Math.round((part / whole) * 100)} %` : "–");
 
-type Month = { key: string; label: string; total: number; won: number };
+export type Month = { key: string; label: string; total: number; won: number };
 
 /** Last twelve months, oldest first, counted by the month a lead came in. */
-function monthly(leads: AdminLead[]): Month[] {
+export function monthly(leads: { created_at: string; status: string | null }[]): Month[] {
   const now = new Date();
   const months: Month[] = [];
   for (let back = 11; back >= 0; back -= 1) {
@@ -32,7 +32,7 @@ function monthly(leads: AdminLead[]): Month[] {
 }
 
 /** Inquiries per month as thin bars with a hover tooltip; a table view sits underneath. */
-function MonthChart({ months }: { months: Month[] }) {
+export function MonthChart({ months, unit = ["Anfrage", "Anfragen"] }: { months: Month[]; unit?: [string, string] }) {
   const [hover, setHover] = useState<number | null>(null);
   const max = Math.max(1, ...months.map((month) => month.total));
   const width = 1100;
@@ -47,7 +47,7 @@ function MonthChart({ months }: { months: Month[] }) {
 
   return (
     <div className="kpi-chart">
-      <svg viewBox={`0 0 ${width} ${height}`} role="img" aria-label="Anfragen pro Monat in den letzten zwölf Monaten">
+      <svg viewBox={`0 0 ${width} ${height}`} role="img" aria-label={`${unit[1]} pro Monat in den letzten zwölf Monaten`}>
         {ticks.map((tick) => {
           const y = top + plot - (tick / max) * plot;
           return (
@@ -83,7 +83,7 @@ function MonthChart({ months }: { months: Month[] }) {
       <p className="kpi-tooltip" aria-live="polite">
         {active ? (
           <>
-            <b>{active.label}</b> · {active.total} {active.total === 1 ? "Anfrage" : "Anfragen"} · {active.won} beauftragt
+            <b>{active.label}</b> · {active.total} {active.total === 1 ? unit[0] : unit[1]} · {active.won} beauftragt
           </>
         ) : (
           "Fahren Sie über einen Monat für Details."
@@ -95,7 +95,7 @@ function MonthChart({ months }: { months: Month[] }) {
           <thead>
             <tr>
               <th>Monat</th>
-              <th>Anfragen</th>
+              <th>{unit[1]}</th>
               <th>Beauftragt</th>
             </tr>
           </thead>

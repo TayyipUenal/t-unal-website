@@ -5,6 +5,8 @@ import { AREAS, areaHint, areaLabel, noCommission } from "./areas";
 import { PARTNER_PAGES } from "./features";
 import { Kpis } from "./Kpis";
 import { RequestForm } from "./RequestForm";
+import { PartnerMonths } from "./PartnerMonths";
+import { PartnerTree } from "./Tree";
 import { Fragment, useCallback, useEffect, useState, type FormEvent } from "react";
 import {
   api,
@@ -473,6 +475,10 @@ function PartnerDashboard({ user, preview, onExit }: { user: User; preview?: Par
           <p className="pt-hint">Für Visitenkarte, Flyer oder Mail-Signatur. Wer den Code scannt, landet auf Ihrer Partnerseite.</p>
         </div>
       )}
+
+      {leads && leads.length > 0 && <PartnerTree name={user.name} leads={leads} showStatus={can.seeStatus} />}
+
+      {leads && leads.length > 0 && <PartnerMonths leads={leads} />}
 
       <section className="pt-card pt-table-card">
         <div className="pt-table-head">

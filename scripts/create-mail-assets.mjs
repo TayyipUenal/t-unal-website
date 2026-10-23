@@ -115,63 +115,26 @@ const SERVICES = [
 const STEP = (Math.PI * 2) / SERVICES.length;
 const ORBIT = { cx: PW / 2, cy: 228, rx: 285, ry: 112 };
 
-/**
- * The TÜ seal as a 3D gold coin turning around its vertical axis: the face narrows with cos(angle),
- * the rim shows as stacked ellipses, and the light on the face follows the turn.
- */
-function drawCoin(g, cx, cy, angle) {
-  const R = 56;
-  const THICK = 9;
-  const c = Math.cos(angle);
-  const s = Math.sin(angle);
-  const w = Math.max(Math.abs(c) * R, 1.5);
-
-  // soft shadow under the coin
-  const shadow = g.createRadialGradient(cx, cy + R + 14, 4, cx, cy + R + 14, R);
-  shadow.addColorStop(0, "rgba(0,0,0,0.55)");
-  shadow.addColorStop(1, "rgba(0,0,0,0)");
-  g.fillStyle = shadow;
+/** The flat TÜ seal: gold ring and letters on black, no turning and no light. */
+function drawSeal(g, cx, cy) {
+  g.fillStyle = "#0e0e0e";
   g.beginPath();
-  g.ellipse(cx, cy + R + 14, R, 10, 0, 0, Math.PI * 2);
+  g.arc(cx, cy, 60, 0, Math.PI * 2);
   g.fill();
-
-  // rim: a stack of thin ellipses from back to front
-  for (let i = THICK; i >= 0; i -= 1) {
-    const offset = s * i * (c >= 0 ? -1 : 1);
-    g.fillStyle = i === 0 ? "#b08d57" : i % 2 ? "#6e5321" : "#7a5f2c";
-    g.beginPath();
-    g.ellipse(cx + offset, cy, w, R, 0, 0, Math.PI * 2);
-    g.fill();
-  }
-
-  // face with moving light
-  const light = cx - w * 0.6 + (1 - (s + 1) / 2) * w * 1.2;
-  const face = g.createRadialGradient(light, cy - R * 0.35, 4, cx, cy, R * 1.1);
-  face.addColorStop(0, "#f6e3ad");
-  face.addColorStop(0.45, "#c9a45e");
-  face.addColorStop(1, "#7a5f2c");
-  g.fillStyle = face;
+  const ring = g.createLinearGradient(cx - 60, 0, cx + 60, 0);
+  ring.addColorStop(0, "#8f7038");
+  ring.addColorStop(0.5, "#e6c98a");
+  ring.addColorStop(1, "#8f7038");
+  g.strokeStyle = ring;
+  g.lineWidth = 3;
   g.beginPath();
-  g.ellipse(cx, cy, w, R, 0, 0, Math.PI * 2);
-  g.fill();
-
-  // engraved ring and TÜ, squeezed with the turn (both sides carry the mark)
-  g.save();
-  g.translate(cx, cy);
-  g.scale(Math.max(Math.abs(c), 0.02), 1);
-  g.strokeStyle = "rgba(80,60,22,0.85)";
-  g.lineWidth = 2.5;
-  g.beginPath();
-  g.arc(0, 0, R - 8, 0, Math.PI * 2);
+  g.arc(cx, cy, 54, 0, Math.PI * 2);
   g.stroke();
-  g.fillStyle = "rgba(70,52,18,0.9)";
-  g.font = "800 40px 'Segoe UI'";
+  g.fillStyle = ring;
+  g.font = "700 40px 'Segoe UI'";
   g.textAlign = "center";
   g.textBaseline = "middle";
-  g.fillText("TÜ", 0, 2);
-  g.fillStyle = "rgba(255,240,205,0.35)";
-  g.fillText("TÜ", -1, 1);
-  g.restore();
+  g.fillText("TÜ", cx, cy + 2);
 }
 
 function planets(g, t) {
@@ -228,7 +191,7 @@ function planets(g, t) {
 
   // back half, then the seal, then the front half
   bodies.filter((b) => b.depth < 0.5).forEach(drawPlanet);
-  drawCoin(g, ORBIT.cx, ORBIT.cy, t * Math.PI * 2);
+  drawSeal(g, ORBIT.cx, ORBIT.cy);
   bodies.filter((b) => b.depth >= 0.5).forEach(drawPlanet);
 
   // caption

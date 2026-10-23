@@ -1352,3 +1352,62 @@ button.text-link {
 .pt-preview p {
   margin: 0;
 }
+
+/* ===== Stand-alone partner frame ===== */
+.ps-shell {
+  min-height: 100vh;
+  display: flex;
+  flex-direction: column;
+  background: var(--white);
+}
+.ps-header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 1rem;
+  padding: 1.25rem var(--gutter);
+  border-bottom: 1px solid var(--line);
+}
+.ps-brand {
+  display: flex;
+  align-items: center;
+  gap: 1.25rem;
+}
+.ps-tag {
+  padding-left: 1.25rem;
+  border-left: 1px solid var(--line);
+  font-size: 0.7rem;
+  letter-spacing: 0.22em;
+  text-transform: uppercase;
+  color: #c9a45e;
+}
+.ps-actions {
+  display: flex;
+  align-items: center;
+  gap: 1.25rem;
+}
+.ps-main {
+  flex: 1;
+}
+.ps-main .pt-page,
+.ps-main .pa-page {
+  padding-top: clamp(32px, 6vh, 72px);
+}
+.ps-footer {
+  display: flex;
+  flex-wrap: wrap;
+  justify-content: space-between;
+  gap: 0.75rem 2rem;
+  padding: 1.5rem var(--gutter);
+  border-top: 1px solid var(--line);
+  font-size: 0.7rem;
+  opacity: 0.85;
+}
+.ps-footer a + a {
+  margin-left: 1.5rem;
+}
+@media (max-width: 640px) {
+  .ps-tag {
+    display: none;
+  }
+}

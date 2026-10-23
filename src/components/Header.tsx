@@ -106,7 +106,7 @@ export function Header({
       </nav>
 
       <div className="header-actions">
-        <a className="header-partner" href="/partner-werden">
+        <a className="header-partner" href="/partner-werden" target="_blank" rel="noopener">
           Partner werden
         </a>
         <ThemeToggle />
@@ -150,7 +150,7 @@ export function Header({
                 {link.label}
               </motion.a>
             ))}
-            <motion.a href="/partner-werden" onClick={closeMenu} initial={{ opacity: 0, x: -12 }} animate={{ opacity: 1, x: 0 }} transition={{ delay: navLinks.length * 0.05 }}>
+            <motion.a href="/partner-werden" target="_blank" rel="noopener" onClick={closeMenu} initial={{ opacity: 0, x: -12 }} animate={{ opacity: 1, x: 0 }} transition={{ delay: navLinks.length * 0.05 }}>
               <span>0{navLinks.length + 1}</span>
               Partner werden
             </motion.a>

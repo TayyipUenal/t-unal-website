@@ -20,6 +20,7 @@ import { AuditPage } from "./components/AuditPage";
 import { PartnerApply } from "./portal/PartnerApply";
 import { PartnerLanding } from "./portal/PartnerLanding";
 import { PartnerTeaser } from "./portal/PartnerTeaser";
+import { PartnerShell } from "./portal/PartnerShell";
 import { Portal } from "./portal/Portal";
 import { ConsultationModal } from "./components/ConsultationModal";
 import { firstMeetingPreset, type ConsultationPreset } from "./consultation";
@@ -46,16 +47,21 @@ function App({ path = "/" }: { path?: string }) {
     restDelta: 0.001,
   });
 
+  // Partner world: own frame, no homepage navigation
+  if (applyPage || portalPage) {
+    return (
+      <MotionConfig reducedMotion="user">
+        <PartnerShell>{applyPage ? <PartnerApply /> : <Portal path={page} />}</PartnerShell>
+      </MotionConfig>
+    );
+  }
+
   return (
     <MotionConfig reducedMotion="user">
       <motion.div className="scroll-progress" style={{ scaleX }} />
       <Header onConsultation={() => openConsultation()} home={home} />
       <main>
-        {applyPage ? (
-          <PartnerApply />
-        ) : portalPage ? (
-          <Portal path={page} />
-        ) : partnerSlug ? (
+        {partnerSlug ? (
           <PartnerLanding slug={partnerSlug} />
         ) : legalPage ? (
           <LegalPage kind={legalPage} />

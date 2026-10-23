@@ -20,10 +20,10 @@ export function PartnerTeaser() {
             </p>
           </Rise>
           <div className="pj-actions">
-            <a className="button button-primary" href="/partner-werden">
+            <a className="button button-primary" href="/partner-werden" target="_blank" rel="noopener">
               Jetzt Partner werden <ArrowUpRight size={17} aria-hidden="true" />
             </a>
-            <a className="text-link" href="/portal">
+            <a className="text-link" href="/portal" target="_blank" rel="noopener">
               Zum Partner-Login
             </a>
           </div>

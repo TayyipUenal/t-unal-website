@@ -133,8 +133,8 @@ function planets(g, t) {
   g.ellipse(ORBIT.cx, ORBIT.cy, ORBIT.rx, ORBIT.ry, 0, 0, Math.PI * 2);
   g.stroke();
 
-  // one slot per loop: after the last frame every planet sits where its neighbour started, so the GIF loops seamlessly
-  const turn = t * STEP;
+  // one full revolution per loop, so every planet keeps its own name all the way round
+  const turn = t * Math.PI * 2;
   const bodies = SERVICES.map((label, i) => {
     const angle = i * STEP + turn + Math.PI / 2;
     const depth = (Math.sin(angle) + 1) / 2; // 0 = back, 1 = front
@@ -199,9 +199,9 @@ encode(
   "public/mail/services.gif",
   PW,
   PH,
-  Array.from({ length: 32 }, (_, i) => ({ t: i / 32, delay: 110 })),
+  Array.from({ length: 60 }, (_, i) => ({ t: i / 60, delay: 120 })),
   planets,
-  96,
+  80,
 );
 
 /* ---------- gold line under the header, light running left to right ---------- */

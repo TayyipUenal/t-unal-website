@@ -52,12 +52,13 @@ function header(g, t) {
   g.fillRect(0, 0, HW, HH);
   // soft glow behind the seal
   const glow = g.createRadialGradient(110, 100, 10, 110, 100, 170);
-  glow.addColorStop(0, `rgba(201,164,94,${0.18 + 0.1 * Math.sin(t * Math.PI)})`);
+  glow.addColorStop(0, "rgba(201,164,94,0.16)"); // steady: the seal itself stays calm
   glow.addColorStop(1, "rgba(201,164,94,0)");
   g.fillStyle = glow;
   g.fillRect(0, 0, 400, HH);
 
-  const sweep = t === null ? null : -200 + ease(t) * (HW + 400);
+  // the light runs over the name only
+  const sweep = t === null ? null : 40 + ease(t) * 900;
   const draw = () => {
     g.lineWidth = 4;
     g.beginPath();
@@ -87,14 +88,7 @@ function header(g, t) {
     band.addColorStop(1, "rgba(120,90,30,0)");
     g.fillStyle = band;
     g.strokeStyle = band;
-    g.lineWidth = 4;
-    g.beginPath();
-    g.arc(110, 100, 62, 0, Math.PI * 2);
-    g.stroke();
-    g.font = "700 50px 'Segoe UI'";
-    g.textAlign = "center";
     g.textBaseline = "middle";
-    g.fillText("TÜ", 110, 103);
     g.textAlign = "left";
     g.font = "700 58px 'Segoe UI'";
     g.fillText("T A Y Y İ P   Ü N A L", 210, 82);

@@ -36,8 +36,90 @@ const MAIL_FROM = "Tayyip Ünal <info@tayyipuenal.de>";
 const MAIL_REPLY_TO = "info@tayyipuenal.de";
 const MAIL_OWNER = "t.uenal@united-certification.de";
 
-/** Sends a plain-text mail through Resend. Without a key (or on any error) it returns false and the caller falls back to the visible link. */
-async function sendMail(env: Env, to: string, subject: string, text: string): Promise<boolean> {
+const PORTAL_URL = "https://www.tayyipuenal.de/portal";
+
+const escapeHtml = (value: string) =>
+  value.replace(/[&<>"']/g, (char) => ({ "&": "&amp;", "<": "&lt;", ">": "&gt;", '"': "&quot;", "'": "&#39;" })[char] as string);
+
+type MailContent = {
+  eyebrow: string;
+  title: string;
+  intro?: string;
+  rows?: [string, string][];
+  body?: string;
+  cta?: { label: string; url: string };
+  note?: string;
+};
+
+/**
+ * Branded HTML mail in the black and gold of the portal. Table layout and inline styles only, so Outlook,
+ * Gmail and phones render it the same; a plain-text version is sent along.
+ */
+function mailHtml(content: MailContent) {
+  const gold = "#c9a45e";
+  const rows = (content.rows ?? [])
+    .map(
+      ([label, value]) => `<tr>
+        <td style="padding:10px 0;border-bottom:1px solid #2a2a2a;color:#8d877b;font-size:12px;letter-spacing:.08em;text-transform:uppercase;vertical-align:top;width:38%">${escapeHtml(label)}</td>
+        <td style="padding:10px 0;border-bottom:1px solid #2a2a2a;color:#f5f2ec;font-size:15px;line-height:1.5;vertical-align:top">${escapeHtml(value).replace(/\n/g, "<br>")}</td>
+      </tr>`,
+    )
+    .join("");
+  return `<!doctype html>
+<html lang="de"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1"><meta name="color-scheme" content="dark light"><title>${escapeHtml(content.title)}</title></head>
+<body style="margin:0;padding:0;background:#0e0e0e;font-family:Segoe UI,Helvetica,Arial,sans-serif">
+<table role="presentation" width="100%" cellpadding="0" cellspacing="0" bgcolor="#0e0e0e" style="background:#0e0e0e"><tr><td align="center" style="padding:32px 16px">
+  <table role="presentation" width="600" cellpadding="0" cellspacing="0" style="width:100%;max-width:600px">
+    <tr><td style="padding:0 0 24px">
+      <table role="presentation" cellpadding="0" cellspacing="0"><tr>
+        <td style="width:44px;height:44px;border:1px solid ${gold};border-radius:22px;text-align:center;vertical-align:middle;color:${gold};font-weight:700;font-size:15px">TÜ</td>
+        <td style="padding-left:14px">
+          <div style="color:${gold};font-size:16px;font-weight:700;letter-spacing:.18em">TAYYİP ÜNAL</div>
+          <div style="color:#8d877b;font-size:10px;letter-spacing:.2em">AUDIT · ZERTIFIZIERUNG · SCHULUNG</div>
+        </td>
+      </tr></table>
+    </td></tr>
+    <tr><td bgcolor="#181818" style="background:#181818;border:1px solid #2a2a2a;border-top:3px solid ${gold};border-radius:12px;padding:36px 32px">
+      <div style="color:${gold};font-size:11px;font-weight:700;letter-spacing:.22em;text-transform:uppercase">${escapeHtml(content.eyebrow)}</div>
+      <h1 style="margin:12px 0 0;color:#f5f2ec;font-size:28px;line-height:1.2;font-weight:800;letter-spacing:-.01em">${escapeHtml(content.title)}</h1>
+      ${content.intro ? `<p style="margin:16px 0 0;color:#bdb7ab;font-size:15px;line-height:1.6">${escapeHtml(content.intro).replace(/\n/g, "<br>")}</p>` : ""}
+      ${rows ? `<table role="presentation" width="100%" cellpadding="0" cellspacing="0" style="margin-top:24px;border-top:1px solid #2a2a2a">${rows}</table>` : ""}
+      ${content.body ? `<div style="margin-top:24px;padding:16px 18px;background:#121212;border-left:3px solid ${gold};color:#f5f2ec;font-size:15px;line-height:1.6">${escapeHtml(content.body).replace(/\n/g, "<br>")}</div>` : ""}
+      ${
+        content.cta
+          ? `<table role="presentation" cellpadding="0" cellspacing="0" style="margin-top:28px"><tr><td bgcolor="${gold}" style="background:${gold};border-radius:6px">
+          <a href="${escapeHtml(content.cta.url)}" style="display:inline-block;padding:14px 26px;color:#17140f;font-size:15px;font-weight:700;text-decoration:none">${escapeHtml(content.cta.label)} &rarr;</a>
+        </td></tr></table>`
+          : ""
+      }
+      ${content.note ? `<p style="margin:20px 0 0;color:#8d877b;font-size:13px;line-height:1.5">${escapeHtml(content.note)}</p>` : ""}
+    </td></tr>
+    <tr><td style="padding:24px 4px 0;color:#6f6a62;font-size:12px;line-height:1.6">
+      Tayyip Ünal · Audit, Zertifizierung und Schulung · <a href="https://www.tayyipuenal.de" style="color:${gold};text-decoration:none">tayyipuenal.de</a><br>
+      Diese Nachricht wurde automatisch aus dem Partnerportal versendet.
+    </td></tr>
+  </table>
+</td></tr></table>
+</body></html>`;
+}
+
+/** Plain-text twin of the HTML mail. */
+function mailText(content: MailContent) {
+  return [
+    content.title,
+    content.intro,
+    ...(content.rows ?? []).map(([label, value]) => `${label}: ${value}`),
+    content.body,
+    content.cta && `${content.cta.label}: ${content.cta.url}`,
+    content.note,
+    "Tayyip Ünal · tayyipuenal.de",
+  ]
+    .filter(Boolean)
+    .join("\n\n");
+}
+
+/** Sends a branded mail through Resend. Without a key (or on any error) it returns false and the caller falls back to the visible link. */
+async function sendMail(env: Env, to: string, subject: string, content: MailContent): Promise<boolean> {
   if (!env.RESEND_API_KEY) {
     console.warn("mail skipped: RESEND_API_KEY missing");
     return false;
@@ -46,7 +128,7 @@ async function sendMail(env: Env, to: string, subject: string, text: string): Pr
     const response = await fetch("https://api.resend.com/emails", {
       method: "POST",
       headers: { authorization: `Bearer ${env.RESEND_API_KEY}`, "content-type": "application/json" },
-      body: JSON.stringify({ from: MAIL_FROM, to: [to], reply_to: MAIL_REPLY_TO, subject, text }),
+      body: JSON.stringify({ from: MAIL_FROM, to: [to], reply_to: MAIL_REPLY_TO, subject, html: mailHtml(content), text: mailText(content) }),
     });
     if (!response.ok) console.error("mail failed", response.status, await response.text());
     else console.log("mail sent", response.status);
@@ -58,16 +140,35 @@ async function sendMail(env: Env, to: string, subject: string, text: string): Pr
 }
 
 const inviteMail = (env: Env, to: string, name: string, link: string, what: string) =>
-  sendMail(
-    env,
-    to,
-    "Ihr Zugang zum Portal von Tayyip Ünal",
-    `Guten Tag ${name},\n\nhier ist Ihr persönlicher Zugang (${what}). Über den Link legen Sie Ihr Passwort fest:\n\n${link}\n\nDer Link ist 7 Tage gültig.\n\nBeste Grüße\nTayyip Ünal`,
-  );
+  sendMail(env, to, "Ihr Zugang zum Portal von Tayyip Ünal", {
+    eyebrow: what,
+    title: `Willkommen, ${name}`,
+    intro: "Ihr persönlicher Zugang ist eingerichtet. Legen Sie über den Button Ihr Passwort fest, danach melden Sie sich jederzeit im Partnerportal an.",
+    cta: { label: "Passwort festlegen", url: link },
+    note: "Der Link ist 7 Tage gültig. Falls Sie diesen Zugang nicht erwartet haben, können Sie diese Nachricht ignorieren.",
+  });
 
-/** Tells the owner about something new (lead, application). */
-const notifyOwner = (env: Env, subject: string, lines: (string | false | undefined)[]) =>
-  sendMail(env, MAIL_OWNER, subject, lines.filter(Boolean).join("\n") + "\n\nAnsehen: https://www.tayyipuenal.de/portal");
+/**
+ * Tells the owner about something new (lead, application). Lines of the form "Label: Wert" become table rows,
+ * everything else the message block.
+ */
+const notifyOwner = (env: Env, subject: string, lines: (string | false | undefined)[]) => {
+  const rows: [string, string][] = [];
+  const text: string[] = [];
+  for (const line of lines) {
+    if (!line) continue;
+    const match = line.match(/^([^:\n]{1,40}):\s([\s\S]*)$/);
+    if (match) rows.push([match[1], match[2]]);
+    else text.push(line);
+  }
+  return sendMail(env, MAIL_OWNER, subject, {
+    eyebrow: "Partnerportal",
+    title: subject,
+    rows,
+    body: text.join("\n") || undefined,
+    cta: { label: "Im Portal ansehen", url: PORTAL_URL },
+  });
+};
 
 type Partner = {
   id: number;
@@ -871,12 +972,16 @@ async function handle(request: Request, env: Env): Promise<Response> {
         ? await env.DB.prepare("SELECT name, email FROM partners WHERE id = ? AND status = 'active'").bind(lead.partner_id).first<{ name: string; email: string }>()
         : null;
       if (partner) {
-        await sendMail(
-          env,
-          partner.email,
-          `Angebot für ${lead.company || lead.contact_name} liegt bereit`,
-          `Guten Tag ${partner.name},\n\nfür Ihren Kunden ${lead.company || lead.contact_name} liegt jetzt das Angebot im Partnerportal bereit:\n\nhttps://www.tayyipuenal.de/portal\n\nBeste Grüße\nTayyip Ünal`,
-        );
+        await sendMail(env, partner.email, `Angebot für ${lead.company || lead.contact_name} liegt bereit`, {
+          eyebrow: "Neues Angebot",
+          title: "Ihr Angebot liegt bereit",
+          intro: `Guten Tag ${partner.name}, für Ihren Kunden liegt jetzt das Angebot im Partnerportal. Sie können es dort ansehen und an den Kunden weitergeben.`,
+          rows: [
+            ["Kunde", lead.company || lead.contact_name],
+            ["Angebot", title],
+          ],
+          cta: { label: "Angebot im Portal öffnen", url: PORTAL_URL },
+        });
       }
     }
     return json({ ok: true });

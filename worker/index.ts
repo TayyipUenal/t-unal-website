@@ -36,6 +36,9 @@ const MAIL_FROM = "Tayyip Ünal <info@tayyipuenal.de>";
 const MAIL_REPLY_TO = "info@tayyipuenal.de";
 const MAIL_OWNER = "t.uenal@united-certification.de";
 
+const WHATSAPP_URL = "https://wa.me/4915563084795";
+const WHATSAPP_LABEL = "0155 63084795";
+
 const SITE = "https://www.tayyipuenal.de";
 const PORTAL_URL = `${SITE}/portal`;
 
@@ -73,6 +76,21 @@ function promoHtml(gold: string) {
         <tr><td style="padding:8px 0 0;line-height:0;font-size:0"><a href="${SITE}"><img src="${SITE}/mail/services.gif?v=4" width="598" height="329" alt="Zertifizierung, Personenzertifizierung, Schulungen, Arbeitsschutz, Arbeitssicherheit, IT-Sicherheit, Factoring, Webseiten" style="display:block;width:100%;max-width:598px;height:auto;border:0;color:#bdb7ab;font-size:14px"></a></td></tr>
         <tr><td align="center" style="padding:8px 24px 28px"><table role="presentation" cellpadding="0" cellspacing="0">${lines}</table></td></tr>
       </table>
+    </td></tr>`;
+}
+
+/** Direct line for partners: WhatsApp and mail, as two buttons. */
+function directHtml(gold: string) {
+  const button = (href: string, label: string, value: string) =>
+    `<td style="padding:6px" width="50%"><a href="${href}" style="display:block;padding:14px 16px;border:1px solid #3a3226;border-radius:10px;background:#121212;text-decoration:none">
+      <span style="display:block;color:${gold};font-size:11px;font-weight:700;letter-spacing:.18em;text-transform:uppercase">${label}</span>
+      <span style="display:block;margin-top:4px;color:#f5f2ec;font-size:15px;font-weight:600">${value}</span></a></td>`;
+  return `<tr><td style="padding:24px 0 0">
+      <div style="padding:0 6px 6px;color:#bdb7ab;font-size:14px">Fragen? Schreiben Sie mir direkt:</div>
+      <table role="presentation" width="100%" cellpadding="0" cellspacing="0"><tr>
+        ${button(WHATSAPP_URL, "WhatsApp", WHATSAPP_LABEL)}
+        ${button(`mailto:${MAIL_REPLY_TO}`, "E-Mail", MAIL_REPLY_TO)}
+      </tr></table>
     </td></tr>`;
 }
 
@@ -117,6 +135,7 @@ function mailHtml(content: MailContent) {
       ${content.note ? `<p style="margin:20px 0 0;color:#8d877b;font-size:13px;line-height:1.5">${escapeHtml(content.note)}</p>` : ""}
     </td></tr>
     ${content.promo ? promoHtml(gold) : ""}
+    ${content.promo ? directHtml(gold) : ""}
     <tr><td style="padding:24px 4px 0;color:#6f6a62;font-size:12px;line-height:1.6">
       Tayyip Ünal · Audit, Zertifizierung und Schulung · <a href="https://www.tayyipuenal.de" style="color:${gold};text-decoration:none">tayyipuenal.de</a><br>
       Diese Nachricht wurde automatisch aus dem Partnerportal versendet.
@@ -135,6 +154,7 @@ function mailText(content: MailContent) {
     content.body,
     content.cta && `${content.cta.label}: ${content.cta.url}`,
     content.note,
+    content.promo && `Direkt erreichbar: WhatsApp ${WHATSAPP_LABEL} (${WHATSAPP_URL}) · E-Mail ${MAIL_REPLY_TO}`,
     "Tayyip Ünal · tayyipuenal.de",
   ]
     .filter(Boolean)
@@ -617,6 +637,14 @@ async function handle(request: Request, env: Env): Promise<Response> {
     )
       .bind(await hashPassword(password, salt), salt, now(), row.id)
       .run();
+    const first = row.status === "approved";
+    await notifyOwner(env, first ? `Partner registriert: ${row.name}` : `Partner hat neues Passwort gesetzt: ${row.name}`, [
+      `Name: ${row.name}`,
+      `Firma: ${row.company || "–"}`,
+      `E-Mail: ${row.email}`,
+      `Telefon: ${row.phone || "–"}`,
+      `Status: ${first ? "Zugang aktiviert, erstes Login" : "Einladung erneut genutzt"}`,
+    ]);
     const cookie = await startSession(env, row.id);
     return json({ ok: true }, 200, { "set-cookie": cookie });
   }

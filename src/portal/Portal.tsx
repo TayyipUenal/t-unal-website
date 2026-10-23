@@ -1,5 +1,7 @@
-import { Check, Copy, LogOut, Plus, ShieldCheck } from "lucide-react";
+import { Check, Copy, LogOut, Mail, Plus, ShieldCheck } from "lucide-react";
 import qrcode from "qrcode-generator";
+import { WhatsAppIcon } from "../components/WhatsAppIcon";
+import { contact } from "../content";
 import { DownloadsAdmin, FileLinks, OfferUpload, PartnerDownloads } from "./Files";
 import { AREAS, areaHint, areaLabel, noCommission } from "./areas";
 import { PARTNER_PAGES } from "./features";
@@ -562,6 +564,21 @@ function PartnerDashboard({ user, preview, onExit }: { user: User; preview?: Par
       )}
 
       <PartnerDownloads preset={preview?.downloads} />
+
+      <section className="pt-card pt-direct">
+        <h2>Direkter Draht</h2>
+        <p className="pt-hint">Fragen zu einem Kunden oder Antrag? Schreiben Sie mir direkt.</p>
+        <div className="pt-direct-links">
+          <a href="https://wa.me/4915563084795?text=Hallo%20Tayyip%2C%20ich%20bin%20Partner%20und%20habe%20eine%20Frage%3A%20" target="_blank" rel="noreferrer">
+            <WhatsAppIcon size={20} />
+            <span><small>WhatsApp</small>0155 63084795</span>
+          </a>
+          <a href={`mailto:${contact.email}`}>
+            <Mail size={20} />
+            <span><small>E-Mail</small>{contact.email}</span>
+          </a>
+        </div>
+      </section>
 
       {PARTNER_PAGES && can.editProfile && (
       <section className="pt-card">

@@ -250,7 +250,7 @@ function LeadGroup({
       {leads.length === 0 ? (
         <p className="pt-empty">Noch keine Kunden in diesem Bereich.</p>
       ) : (
-        <div className="pt-scroll">
+        <div className="pt-scroll pt-cards-mobile">
           <table className="pt-table">
             <thead>
               <tr>
@@ -274,19 +274,19 @@ function LeadGroup({
                         {openLead === lead.id ? "Verlauf schließen" : "Verlauf"}
                       </button>
                     </td>
-                    <td>{lead.topic || "–"}</td>
+                    <td data-label="Leistung">{lead.topic || "–"}</td>
                     {can.seeStatus && (
-                      <td>
+                      <td data-label="Stand">
                         <StatusCell lead={lead} showPayment={can.seeAmounts} />
                       </td>
                     )}
-                    {can.seeAmounts && <td>{euro(lead.deal_cents)}</td>}
+                    {can.seeAmounts && <td data-label="Wert (netto)">{euro(lead.deal_cents)}</td>}
                     {(can.seeAmounts || can.seeRate) && (
-                      <td>
+                      <td data-label="Ihre Provision">
                         <ProvisionCell lead={lead} rate={rate} />
                       </td>
                     )}
-                    <td>{dateDe(lead.created_at)}</td>
+                    <td data-label="Seit">{dateDe(lead.created_at)}</td>
                   </tr>
                   {openLead === lead.id && (
                     <tr>

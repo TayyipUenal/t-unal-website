@@ -2017,3 +2017,77 @@ button.text-link {
   text-transform: uppercase;
   letter-spacing: 0.18em;
 }
+
+/* partner customer lists: on phones each customer becomes a card instead of a wide table */
+@media (max-width: 720px) {
+  .pt-cards-mobile {
+    overflow: visible;
+  }
+  .pt-cards-mobile .pt-table,
+  .pt-cards-mobile .pt-table tbody,
+  .pt-cards-mobile .pt-table tr,
+  .pt-cards-mobile .pt-table td {
+    display: block;
+    width: 100%;
+  }
+  .pt-cards-mobile .pt-table thead {
+    display: none;
+  }
+  .pt-cards-mobile .pt-table tr {
+    padding: 16px 18px;
+    border-bottom: 1px solid var(--line);
+  }
+  .pt-cards-mobile .pt-table td {
+    padding: 6px 0;
+    border: 0;
+  }
+  .pt-cards-mobile .pt-table td[data-label] {
+    display: grid;
+    grid-template-columns: 112px 1fr;
+    gap: 12px;
+    align-items: start;
+  }
+  .pt-cards-mobile .pt-table td[data-label]::before {
+    content: attr(data-label);
+    padding-top: 2px;
+    font-size: 0.7rem;
+    letter-spacing: 0.1em;
+    text-transform: uppercase;
+    color: var(--muted);
+  }
+  .pt-cards-mobile .pt-table td:first-child b {
+    font-size: 1.05rem;
+  }
+}
+@media (max-width: 720px) {
+  .pt-cards-mobile .pt-table {
+    min-width: 0;
+  }
+  .pt-cards-mobile .pt-table td,
+  .pt-cards-mobile .pt-table td * {
+    white-space: normal;
+  }
+  /* label in the first column, everything the cell holds in the second */
+  .pt-cards-mobile .pt-table td[data-label]::before {
+    grid-row: 1 / span 6;
+  }
+  .pt-cards-mobile .pt-table td[data-label] > * {
+    grid-column: 2;
+  }
+  .pt-cards-mobile .pt-table td[data-label] > small {
+    display: block;
+  }
+  .pt-group .pt-table-head {
+    flex-wrap: wrap;
+    gap: 0.5rem 1rem;
+  }
+}
+@media (max-width: 720px) {
+  .pt-cards-mobile .pt-table td[data-label] {
+    row-gap: 4px;
+    grid-auto-rows: min-content;
+  }
+  .pt-cards-mobile .pt-table td[data-label]::before {
+    grid-row: 1;
+  }
+}

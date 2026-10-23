@@ -132,7 +132,9 @@ const privacySections: LegalSection[] = [
         </p>
         <p>
           Die Website informiert über unsere Leistungen. Sie können uns über die
-          Anfrageformulare, per E-Mail oder telefonisch erreichen.
+          Anfrageformulare, per E-Mail oder telefonisch erreichen. Für
+          Vertriebspartner betreiben wir zusätzlich ein geschütztes
+          Partnerportal.
         </p>
       </>
     ),
@@ -153,31 +155,37 @@ const privacySections: LegalSection[] = [
   },
   {
     id: "hosting",
-    title: "Hosting & Server-Protokolle",
+    title: "Hosting, Datenbank & Server-Protokolle",
     content: (
       <>
         <p>
-          Diese Website wird bei ALL-INKL.COM – Neue Medien Münnich, Inhaber
-          René Münnich, Hauptstraße 68, 02742 Friedersdorf, gehostet.
+          Diese Website und das Partnerportal werden bei Cloudflare betrieben
+          (Cloudflare, Inc., 101 Townsend St., San Francisco, CA 94107, USA).
+          Cloudflare stellt die Seiten über sein weltweites Netz bereit und
+          speichert die Daten aus Formularen und dem Partnerportal in einer
+          Datenbank (Cloudflare D1).
         </p>
         <p>
-          Beim Abruf der Website verarbeitet der Hosting-Anbieter technische
-          Informationen, die Ihr Browser übermittelt. Dazu gehören IP-Adresse,
-          Browsertyp und -version, Betriebssystem, aufgerufene Adresse,
-          Referrer-URL sowie Zeitpunkt der Anfrage. Diese Daten dienen der
-          Bereitstellung, Stabilität, Sicherheit und Fehleranalyse der Website.
+          Beim Abruf der Website verarbeitet Cloudflare technische
+          Informationen, die Ihr Browser übermittelt, insbesondere IP-Adresse,
+          Browsertyp, Betriebssystem, aufgerufene Adresse, Referrer-URL sowie
+          Zeitpunkt der Anfrage. Diese Daten dienen der Bereitstellung,
+          Stabilität, Sicherheit und Abwehr von Angriffen. Rechtsgrundlage ist
+          unser berechtigtes Interesse an einem sicheren und zuverlässigen
+          Online-Angebot gemäß Art. 6 Abs. 1 lit. f DSGVO.
         </p>
         <p>
-          Die Verarbeitung erfolgt aufgrund unseres berechtigten Interesses an
-          einer sicheren und zuverlässigen Bereitstellung des Online-Angebots
-          gemäß Art. 6 Abs. 1 lit. f DSGVO.
+          Mit Cloudflare besteht ein Vertrag zur Auftragsverarbeitung nach Art.
+          28 DSGVO. Soweit Daten in die USA übermittelt werden, erfolgt dies auf
+          Grundlage des EU-US Data Privacy Framework, unter dem Cloudflare
+          zertifiziert ist, sowie ergänzend der EU-Standardvertragsklauseln.
         </p>
         <a
-          href="https://all-inkl.com/datenschutzinformationen"
+          href="https://www.cloudflare.com/de-de/privacypolicy/"
           target="_blank"
           rel="noreferrer"
         >
-          Datenschutzinformationen des Hosting-Anbieters{" "}
+          Datenschutzinformationen von Cloudflare{" "}
           <ArrowUpRight size={14} aria-hidden="true" />
         </a>
       </>
@@ -199,42 +207,119 @@ const privacySections: LegalSection[] = [
         <p>
           Nach dem Absenden eines Formulars werden Name, E-Mail-Adresse, Thema,
           Nachricht und freiwillige Angaben wie Unternehmen oder Telefonnummer
-          verschlüsselt an unseren Webserver übertragen und per E-Mail an
-          info@tayyipuenal.de weitergeleitet. Beim Angebots-Konfigurator gehören
-          dazu zusätzlich Ihre Auswahl zu Norm, Ausgangslage, Unternehmensgröße
-          und Zeitrahmen sowie eine optionale Anmerkung. Formularinhalte werden vom
-          Versand-Endpunkt nicht zusätzlich in einer Datenbank gespeichert.
+          verschlüsselt übertragen und in unserer Datenbank gespeichert. Beim
+          Angebots-Konfigurator gehören dazu zusätzlich Ihre Auswahl zu Norm,
+          Ausgangslage, Unternehmensgröße und Zeitrahmen sowie eine optionale
+          Anmerkung. Über eine neue Anfrage werden wir zusätzlich per E-Mail
+          benachrichtigt.
         </p>
         <p>
-          Zum Schutz vor Missbrauch und Doppelversand werden pseudonymisierte
-          IP-Kennungen, Anfragekennungen und Versandstatus bis zu einer Stunde
-          technisch berücksichtigt. Es erfolgt keine Nutzung für Werbung. Eine
-          Newsletter-Anmeldung wird nicht angeboten.
+          Zum Schutz vor Missbrauch und Doppelversand speichern wir eine aus
+          Ihrer IP-Adresse gebildete Kennung zusammen mit einem Zähler für
+          höchstens wenige Stunden. Ein unsichtbares Feld im Formular hilft,
+          automatisierte Einsendungen zu erkennen. Es erfolgt keine Nutzung für
+          Werbung. Eine Newsletter-Anmeldung wird nicht angeboten.
+        </p>
+      </>
+    ),
+  },
+  {
+    id: "partner",
+    title: "Partnerprogramm & Partnerseiten",
+    content: (
+      <>
+        <h3>Bewerbung und Partnerportal</h3>
+        <p>
+          Wenn Sie sich als Partner bewerben, verarbeiten wir Name,
+          E-Mail-Adresse, Unternehmen, Telefonnummer und Ihre Nachricht, um die
+          Bewerbung zu prüfen. Nach der Freigabe erhalten Sie einen Zugang zum
+          Partnerportal. Dafür speichern wir zusätzlich Ihr Passwort
+          ausschließlich als verschlüsselten Hash, Ihren Prozentsatz, den Text
+          Ihrer Partnerseite sowie die Ihnen zugeordneten Kunden, Provisionen
+          und Auszahlungen. Rechtsgrundlage ist die Anbahnung und Durchführung
+          der Partnerschaft gemäß Art. 6 Abs. 1 lit. b DSGVO.
+        </p>
+        <h3>Anfragen über eine Partnerseite</h3>
+        <p>
+          Partner haben eine eigene Seite unter tayyipuenal.de/partner/…. Wenn
+          Sie über eine solche Seite anfragen, wird Ihre Anfrage dem jeweiligen
+          Partner zugeordnet, damit seine Vermittlung nachvollzogen und eine
+          Provision abgerechnet werden kann. Der Partner sieht in seinem Portal
+          Ihren Namen bzw. Ihr Unternehmen, das angefragte Thema, den Stand der
+          Bearbeitung und gegebenenfalls den Auftragswert. Ihre Kontaktdaten sieht
+          er nur, soweit wir ihm dies freigegeben haben. Rechtsgrundlage ist
+          unser berechtigtes Interesse an einer fairen Abrechnung mit unseren
+          Partnern gemäß Art. 6 Abs. 1 lit. f DSGVO.
+        </p>
+        <p>
+          Hat ein Partner Sie an uns vermittelt, ordnen wir auch spätere
+          Angebote und Aufträge für Sie diesem Partner zu, damit dieser seine
+          Provision erhält. Für die Grundbetreuung in der Arbeitssicherheit wird
+          keine Provision gezahlt.
+        </p>
+        <h3>Speicherdauer</h3>
+        <p>
+          Partnerdaten speichern wir für die Dauer der Partnerschaft.
+          Unterlagen zu Provisionen und Auszahlungen bewahren wir anschließend
+          entsprechend den steuer- und handelsrechtlichen Fristen auf (in der
+          Regel bis zu zehn Jahre).
+        </p>
+      </>
+    ),
+  },
+  {
+    id: "email",
+    title: "E-Mail-Versand",
+    content: (
+      <>
+        <p>
+          Einladungen zum Partnerportal und unsere Benachrichtigungen über neue
+          Anfragen versenden wir über den Dienst Resend (Resend, Inc., 2261
+          Market Street #5039, San Francisco, CA 94114, USA). Dabei werden
+          Empfängeradresse, Betreff und Inhalt der jeweiligen E-Mail sowie
+          technische Zustelldaten verarbeitet. Rechtsgrundlage ist Art. 6 Abs. 1
+          lit. b DSGVO, für Benachrichtigungen an uns Art. 6 Abs. 1 lit. f DSGVO.
+          Die Übermittlung in die USA erfolgt auf Grundlage der
+          EU-Standardvertragsklauseln.
+        </p>
+        <p>
+          Unsere Postfächer werden bei Microsoft 365 (Microsoft Ireland
+          Operations Limited, One Microsoft Place, South County Business Park,
+          Leopardstown, Dublin 18, Irland) betrieben.
         </p>
       </>
     ),
   },
   {
     id: "cookies",
-    title: "Cookies, Schriften & externe Dienste",
+    title: "Cookies, Browserspeicher & externe Dienste",
     content: (
       <>
         <p>
-          Die Website selbst setzt keine Analyse- oder Marketing-Cookies ein und
-          verwendet keine Tracking-Pixel. Die Schrittanzeige des Schulungswegs
-          speichert keine Angaben in Cookies oder im dauerhaften
-          Browserspeicher.
+          Die Website setzt keine Analyse- oder Marketing-Cookies ein und
+          verwendet keine Tracking-Pixel.
         </p>
         <p>
-          Schriften, Bilder und das Prozessvideo werden vom eigenen Webserver
+          Wenn Sie sich im Partnerportal anmelden, setzen wir ein technisch
+          notwendiges Sitzungs-Cookie („tu_session“), damit Sie angemeldet
+          bleiben. Es enthält nur eine zufällige Kennung, ist für Skripte nicht
+          lesbar und läuft spätestens nach 14 Tagen oder beim Abmelden ab.
+          Rechtsgrundlage ist § 25 Abs. 2 Nr. 2 TDDDG.
+        </p>
+        <p>
+          Ihre Wahl zwischen heller und dunkler Darstellung speichern wir
+          ausschließlich in Ihrem Browser (Local Storage, Eintrag „tu-theme“).
+          Diese Angabe wird nicht an uns übertragen.
+        </p>
+        <p>
+          Schriften, Bilder und Videos werden von unserem eigenen Angebot
           geladen. Es erfolgt kein Abruf von Google Fonts beim Seitenbesuch.
         </p>
         <p>
-          LinkedIn, ProvenExpert und Google Maps sind als externe Links
-          eingebunden. Erst wenn Sie einen solchen Link öffnen, verbinden
+          WhatsApp, LinkedIn, ProvenExpert und Google Maps sind nur als externe
+          Links eingebunden. Erst wenn Sie einen solchen Link öffnen, verbinden
           Sie sich mit dem jeweiligen Anbieter; dort gelten dessen
-          Datenschutzinformationen. Social-Media-Feeds und Karten sind auf
-          dieser Website nicht eingebettet.
+          Datenschutzinformationen.
         </p>
       </>
     ),
@@ -253,9 +338,12 @@ const privacySections: LegalSection[] = [
         <p>
           Eine Weitergabe erfolgt nur, soweit sie zur Bearbeitung Ihrer Anfrage
           oder zur Leistungserbringung erforderlich ist, eine gesetzliche
-          Pflicht besteht oder Sie eingewilligt haben. Technische Dienstleister
-          können Daten im Rahmen der Bereitstellung von Hosting und
-          Kommunikation verarbeiten.
+          Pflicht besteht oder Sie eingewilligt haben. Empfänger sind die oben
+          genannten technischen Dienstleister (Cloudflare, Resend, Microsoft)
+          sowie, bei Vermittlung durch einen Partner, der jeweilige Partner im
+          beschriebenen Umfang. Bei der Durchführung von Audits, Zertifizierungen
+          und Schulungen arbeiten wir mit den jeweils beauftragten
+          Gesellschaften zusammen.
         </p>
       </>
     ),
@@ -302,7 +390,7 @@ const privacySections: LegalSection[] = [
     content: (
       <p>
         Diese Website verwendet HTTPS mit SSL-/TLS-Verschlüsselung, um die
-        Datenübertragung zwischen Ihrem Browser und unserem Webserver zu
+        Datenübertragung zwischen Ihrem Browser und unseren Servern zu
         schützen. Sie erkennen die verschlüsselte Verbindung an „https://“ in
         der Adresszeile Ihres Browsers.
       </p>
@@ -331,7 +419,7 @@ export function LegalPage({ kind }: { kind: "privacy" | "imprint" }) {
         </p>
         <span className="legal-version">
           {privacy ? (
-            "Stand: September 2026 · Informationen gemäß DSGVO und BDSG"
+            "Stand: Oktober 2026 · Informationen gemäß DSGVO und BDSG"
           ) : (
             <>
               Angaben gemäß{" "}

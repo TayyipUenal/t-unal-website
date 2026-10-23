@@ -62,6 +62,7 @@ export type PartnerLead = {
   deal_cents: number | null;
   category: string;
   customer_paid_at: string | null;
+  files?: FileInfo[];
   source: string;
   created_at: string;
   updated_at: string;
@@ -69,6 +70,8 @@ export type PartnerLead = {
   commission_rate: number | null;
   commission_status: "open" | "paid" | null;
 };
+
+export type FileInfo = { id: number; title: string; filename: string; size: number; created_at: string };
 
 export type LeadEvent = {
   kind: "status" | "note" | "paid";

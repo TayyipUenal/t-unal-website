@@ -1,5 +1,8 @@
 import { Check, Copy, LogOut, Plus, ShieldCheck } from "lucide-react";
 import qrcode from "qrcode-generator";
+import { DownloadsAdmin, FileLinks, OfferUpload, PartnerDownloads } from "./Files";
+import { Kpis } from "./Kpis";
+import { RequestForm } from "./RequestForm";
 import { Fragment, useCallback, useEffect, useState, type FormEvent } from "react";
 import {
   api,
@@ -17,6 +20,7 @@ import {
   type PartnerLead,
   type Perms,
   type StaffMember,
+  type FileInfo,
   type Summary,
   type User,
 } from "./api";
@@ -246,7 +250,7 @@ function LeadGroup({
         {can.seeStatus && leads.length > 0 && (
           <p className="pt-group-count">
             {leads.length} {leads.length === 1 ? "Kunde" : "Kunden"}
-            {offers > 0 && ` · ${offers} Angebot${offers === 1 ? "" : "e"} laufen`}
+            {offers > 0 && (offers === 1 ? " · 1 Angebot läuft" : ` · ${offers} Angebote laufen`)}
             {won > 0 && ` · ${won} beauftragt`}
           </p>
         )}
@@ -273,6 +277,7 @@ function LeadGroup({
                     <td>
                       <b>{lead.company || lead.contact_name}</b>
                       <small>{lead.company ? lead.contact_name : lead.email || lead.phone}</small>
+                      <FileLinks files={lead.files ?? []} />
                       <button type="button" className="text-link" onClick={() => onToggle(lead.id)}>
                         {openLead === lead.id ? "Verlauf schließen" : "Verlauf"}
                       </button>
@@ -308,12 +313,13 @@ function LeadGroup({
   );
 }
 
-type PartnerPreview = { summary: Summary; leads: PartnerLead[]; events: Record<number, LeadEvent[]> };
+type PartnerPreview = { summary: Summary; leads: PartnerLead[]; events: Record<number, LeadEvent[]>; downloads?: FileInfo[] };
 
 function PartnerDashboard({ user, preview, onExit }: { user: User; preview?: PartnerPreview; onExit?: () => void }) {
   const [summary, setSummary] = useState<Summary | null>(preview?.summary ?? null);
   const [leads, setLeads] = useState<PartnerLead[] | null>(preview?.leads ?? null);
   const [form, setForm] = useState(false);
+  const [request, setRequest] = useState(false);
   const [error, setError] = useState("");
   const [bio, setBio] = useState(user.bio);
   const [bioSaved, setBioSaved] = useState(false);
@@ -482,11 +488,18 @@ function PartnerDashboard({ user, preview, onExit }: { user: User; preview?: Par
         <div className="pt-table-head">
           <h2>Ihre Kunden</h2>
           {can.submitLeads && (
-            <button type="button" className="button button-primary" disabled={!!preview} onClick={() => setForm((open) => !open)}>
-              <Plus size={16} aria-hidden="true" /> Kontakt melden
-            </button>
+            <div className="pt-link-actions">
+              <button type="button" className="button button-primary" onClick={() => setRequest((open) => !open)}>
+                <Plus size={16} aria-hidden="true" /> Antrag ausfüllen
+              </button>
+              <button type="button" className="button button-light" disabled={!!preview} onClick={() => setForm((open) => !open)}>
+                Kontakt melden
+              </button>
+            </div>
           )}
         </div>
+
+        {request && can.submitLeads && <RequestForm disabled={!!preview} onDone={load} onCancel={() => setRequest(false)} />}
 
         {form && can.submitLeads && (
           <form className="pt-form" onSubmit={addLead}>
@@ -552,6 +565,8 @@ function PartnerDashboard({ user, preview, onExit }: { user: User; preview?: Par
         })
       )}
 
+      <PartnerDownloads preset={preview?.downloads} />
+
       {can.editProfile && (
       <section className="pt-card">
         <h2>Text auf Ihrer Partnerseite</h2>
@@ -568,8 +583,8 @@ function PartnerDashboard({ user, preview, onExit }: { user: User; preview?: Par
 
 /* ---------- admin dashboard ---------- */
 
-type Tab = "bewerbungen" | "partner" | "leads" | "provisionen" | "rechte";
-type AdminData = { isSuper: boolean; partnerOptions: { id: number; name: string }[]; permissions: Perms; partners: AdminPartner[]; staff: StaffMember[]; leads: AdminLead[] };
+type Tab = "bewerbungen" | "partner" | "leads" | "provisionen" | "kennzahlen" | "downloads" | "rechte";
+type AdminData = { downloads?: FileInfo[]; isSuper: boolean; partnerOptions: { id: number; name: string }[]; permissions: Perms; partners: AdminPartner[]; staff: StaffMember[]; leads: AdminLead[] };
 
 function AdminDashboard({ user }: { user: User }) {
   const [data, setData] = useState<AdminData | null>(null);
@@ -603,6 +618,8 @@ function AdminDashboard({ user }: { user: User }) {
   if (mine.managePartners) tabs.push(["bewerbungen", `Bewerbungen (${data?.partners.filter((p) => p.status === "pending").length ?? 0})`], ["partner", "Partner"]);
   if (mine.manageLeads) tabs.push(["leads", "Kunden und Leads"]);
   if (mine.managePayouts) tabs.push(["provisionen", "Provisionen"]);
+  if (mine.manageLeads) tabs.push(["kennzahlen", "Kennzahlen"]);
+  if (mine.managePartners) tabs.push(["downloads", "Downloads"]);
   if (user.role === "admin") tabs.push(["rechte", "Team und Rechte"]);
 
   const pending = data?.partners.filter((p) => p.status === "pending") ?? [];
@@ -698,6 +715,10 @@ function AdminDashboard({ user }: { user: User }) {
 
       {tab === "rechte" && user.role === "admin" && data && <RightsTab data={data} run={run} setInvite={setInvite} />}
 
+      {tab === "kennzahlen" && mine.manageLeads && data && <Kpis leads={data.leads} />}
+
+      {tab === "downloads" && mine.managePartners && data && <DownloadsAdmin files={data.downloads ?? []} onChange={load} />}
+
       {tab === "bewerbungen" && mine.managePartners && (
         <section className="pt-card pt-table-card">
           {pending.length === 0 ? (
@@ -737,7 +758,7 @@ function AdminDashboard({ user }: { user: User }) {
                     onRate={(rate) => run(() => api(`/api/admin/partners/${partner.id}/rate`, { ratePercent: rate }))}
                     onBlock={() => run(() => api(`/api/admin/partners/${partner.id}/block`, {}))}
                     onInvite={() => approve(partner, partner.rate_percent)}
-                    onPreview={() => run(async () => setViewAs(await api<{ user: User } & PartnerPreview>(`/api/admin/partners/${partner.id}/preview`)))}
+                    onPreview={() => run(async () => setViewAs({ ...(await api<{ user: User } & PartnerPreview>(`/api/admin/partners/${partner.id}/preview`)), downloads: data?.downloads ?? [] }))}
                   />
                 ))}
               </tbody>
@@ -765,7 +786,7 @@ function AdminDashboard({ user }: { user: User }) {
               </thead>
               <tbody>
                 {(data?.leads ?? []).map((lead) => (
-                  <LeadRow key={lead.id} lead={lead} partners={data?.partnerOptions ?? []} onSave={(changes) => run(() => api(`/api/admin/leads/${lead.id}`, changes))} />
+                  <LeadRow key={lead.id} lead={lead} partners={data?.partnerOptions ?? []} onChanged={load} onSave={(changes) => run(() => api(`/api/admin/leads/${lead.id}`, changes))} />
                 ))}
               </tbody>
             </table>
@@ -1156,10 +1177,12 @@ function LeadRow({
   lead,
   partners,
   onSave,
+  onChanged,
 }: {
   lead: AdminLead;
   partners: { id: number; name: string }[];
   onSave: (changes: LeadChanges) => void;
+  onChanged: () => void;
 }) {
   const dealText = (cents: number | null) => (cents === null ? "" : String(cents / 100));
   const [status, setStatus] = useState<LeadStatus>(lead.status);
@@ -1271,6 +1294,15 @@ function LeadRow({
         <tr>
           <td colSpan={7}>
             <Timeline created={lead.created_at} events={events} internalLabels />
+            <h4 className="pt-subhead">Angebote</h4>
+            <FileLinks
+              files={lead.files ?? []}
+              onDelete={(id) => {
+                if (window.confirm("Angebot wirklich löschen?")) api(`/api/admin/files/${id}/delete`, {}).then(onChanged, onChanged);
+              }}
+            />
+            <OfferUpload leadId={lead.id} onDone={() => { loadEvents(); onChanged(); }} />
+            <h4 className="pt-subhead">Notiz</h4>
             <form className="pt-note" onSubmit={addNote}>
               <input value={note} onChange={(event) => setNote(event.target.value)} placeholder="Notiz zum Kunden, zum Beispiel Telefonat, Angebot raus …" maxLength={1000} aria-label="Notiz" />
               <label className="pt-right">

@@ -44,6 +44,7 @@ CREATE TABLE IF NOT EXISTS leads (
   deal_cents INTEGER,                            -- net order value in cents
   category TEXT NOT NULL DEFAULT '',             -- 'zertifizierung' | 'personenzertifizierung' | ''
   customer_paid_at TEXT,                         -- set when the customer has paid the invoice
+  request_json TEXT,                             -- details of an application a partner filled in with the customer
   consent_at TEXT,
   request_id TEXT UNIQUE,                        -- makes retries of the site forms idempotent
   created_at TEXT NOT NULL,
@@ -82,3 +83,18 @@ CREATE TABLE IF NOT EXISTS lead_events (
   created_at TEXT NOT NULL
 );
 CREATE INDEX IF NOT EXISTS lead_events_lead ON lead_events(lead_id);
+
+-- Files: offers uploaded for a customer (kind 'offer', lead_id set) and downloads for all partners (kind 'download').
+-- Stored in the database until R2 is enabled; the API limits a file to about 1.8 MB.
+CREATE TABLE IF NOT EXISTS files (
+  id INTEGER PRIMARY KEY AUTOINCREMENT,
+  kind TEXT NOT NULL,                            -- 'offer' | 'download'
+  lead_id INTEGER REFERENCES leads(id) ON DELETE CASCADE,
+  title TEXT NOT NULL,
+  filename TEXT NOT NULL,
+  mime TEXT NOT NULL,
+  size INTEGER NOT NULL,
+  data BLOB NOT NULL,
+  created_at TEXT NOT NULL
+);
+CREATE INDEX IF NOT EXISTS files_lead ON files(lead_id);

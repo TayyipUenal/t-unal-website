@@ -449,6 +449,8 @@
 .pa-form select,
 .pt-field input,
 .pt-field select,
+.pt-field textarea,
+.pt-note input,
 .pt-bio,
 .pt-table input,
 .pt-table select,
@@ -465,6 +467,7 @@
 }
 
 .pa-form textarea,
+.pt-field textarea,
 .pt-bio {
   min-height: 0;
   resize: vertical;
@@ -475,6 +478,8 @@
 .pa-form select:focus,
 .pt-field input:focus,
 .pt-field select:focus,
+.pt-field textarea:focus,
+.pt-note input:focus,
 .pt-bio:focus,
 .pt-table input:focus,
 .pt-table select:focus {
@@ -1425,4 +1430,143 @@ button.text-link {
 .pt-table .pt-progress + small {
   display: block;
   margin-top: 0.35rem;
+}
+
+/* files, application, key figures */
+.pt-files {
+  list-style: none;
+  margin: 0.5rem 0;
+  padding: 0;
+  display: grid;
+  gap: 0.4rem;
+}
+.pt-files li {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 0.35rem 0.75rem;
+}
+.pt-files a {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.35rem;
+  color: var(--blue-600);
+  font-weight: 600;
+}
+.pt-files small {
+  opacity: 0.7;
+}
+.pt-subhead {
+  margin: 1.25rem 0 0.5rem;
+  font-size: 0.8rem;
+  letter-spacing: 0.12em;
+  text-transform: uppercase;
+  opacity: 0.75;
+}
+.pt-request {
+  display: grid;
+  gap: 1rem;
+  margin: 1rem 0 0.5rem;
+  padding: 1.5rem;
+  border: 1px solid var(--line);
+  border-radius: 10px;
+}
+.pt-request h3,
+.pt-request h4 {
+  margin: 0;
+}
+.pt-request h4 {
+  margin-top: 0.5rem;
+  font-size: 0.8rem;
+  letter-spacing: 0.12em;
+  text-transform: uppercase;
+  color: var(--blue-600);
+}
+.pt-field-wide {
+  grid-column: 1 / -1;
+}
+.pt-segment,
+.pt-checks {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.5rem;
+  margin: 0;
+  padding: 0;
+  border: 0;
+}
+.pt-segment legend,
+.pt-checks legend {
+  width: 100%;
+  margin-bottom: 0.5rem;
+  font-weight: 600;
+}
+.pt-segment label,
+.pt-checks label {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.45rem;
+  padding: 0.55rem 0.9rem;
+  border: 1px solid var(--line-strong);
+  border-radius: 999px;
+  cursor: pointer;
+}
+.pt-segment label.is-on {
+  border-color: var(--blue-600);
+  color: var(--blue-600);
+}
+.pt-segment input {
+  accent-color: var(--blue-600);
+}
+.pt-checks input {
+  accent-color: var(--blue-600);
+}
+.pt-request-done {
+  display: flex;
+  gap: 1rem;
+  align-items: flex-start;
+  margin: 1rem 0;
+  padding: 1.5rem;
+  border: 1px solid var(--blue-600);
+  border-radius: 10px;
+  color: var(--ink);
+}
+.pt-request-done svg {
+  color: var(--blue-600);
+  flex: none;
+}
+.pt-request-done h3 {
+  margin: 0 0 0.35rem;
+}
+.kpi-chart svg {
+  display: block;
+  width: 100%;
+  height: auto;
+}
+.kpi-bar {
+  fill: var(--blue-600);
+}
+.kpi-bar.is-hover {
+  fill: var(--blue-700);
+}
+.kpi-grid {
+  stroke: var(--line);
+  stroke-width: 1;
+}
+.kpi-axis {
+  fill: var(--muted);
+  font-size: 11px;
+}
+.kpi-tooltip {
+  min-height: 1.5em;
+  margin: 0.5rem 0 0;
+  font-size: 0.85rem;
+  color: var(--ink-soft);
+}
+.kpi-table-toggle {
+  margin-top: 0.75rem;
+  font-size: 0.85rem;
+}
+.kpi-table-toggle summary {
+  cursor: pointer;
+  color: var(--ink-soft);
 }

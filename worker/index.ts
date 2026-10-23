@@ -244,6 +244,18 @@ const publicPartner = (p: Partner) => ({
 const STATUSES = ["new", "contacted", "offer", "won", "lost"];
 /** The two areas partners refer customers to. Empty = not assigned yet. */
 const CATEGORIES = ["", "zertifizierung", "personenzertifizierung", "arbeitssicherheit"];
+const MAX_FILE_BYTES = 1_800_000;
+const ALLOWED_MIME = [
+  "application/pdf",
+  "image/png",
+  "image/jpeg",
+  "image/svg+xml",
+  "application/zip",
+  "application/msword",
+  "application/vnd.openxmlformats-officedocument.wordprocessingml.document",
+  "application/vnd.openxmlformats-officedocument.presentationml.presentation",
+  "application/vnd.openxmlformats-officedocument.spreadsheetml.sheet",
+];
 /** Areas without commission: customers are shown to the partner, but no commission is ever created. */
 const NO_COMMISSION = ["arbeitssicherheit"];
 
@@ -320,10 +332,17 @@ async function partnerLeads(env: Env, p: Partner) {
      WHERE l.partner_id = ? ORDER BY l.created_at DESC LIMIT 500`,
   )
     .bind(p.id)
-    .all<Record<string, unknown>>();
+    .all<Record<string, unknown> & { id: number }>();
   const can = permsOf(p);
+  const offers = await env.DB.prepare(
+    `SELECT f.id, f.lead_id, f.title, f.filename, f.size, f.created_at FROM files f JOIN leads l ON l.id = f.lead_id
+     WHERE f.kind = 'offer' AND l.partner_id = ? ORDER BY f.created_at`,
+  )
+    .bind(p.id)
+    .all<{ lead_id: number }>();
   return rows.results.map((row) => ({
     ...row,
+    files: offers.results.filter((file) => file.lead_id === row.id),
     status: can.seeStatus ? row.status : null,
     email: can.seeContact ? row.email : "",
     phone: can.seeContact ? row.phone : "",
@@ -557,7 +576,7 @@ async function handle(request: Request, env: Env): Promise<Response> {
       .run();
     const via = partnerId ? await env.DB.prepare("SELECT name FROM partners WHERE id = ?").bind(partnerId).first<{ name: string }>() : null;
     await notifyOwner(env, `Neue Anfrage${via ? ` über ${via.name}` : ""}: ${contactName}`, [
-      via && `Empfohlen von: ${via.name}`,
+      via ? `Empfohlen von: ${via.name}` : false,
       `Name: ${contactName}`,
       `Firma: ${clean(data.company, 160) || "–"}`,
       `E-Mail: ${email}`,
@@ -574,6 +593,106 @@ async function handle(request: Request, env: Env): Promise<Response> {
   if (!user) return fail("Bitte anmelden.", 401);
 
   if (path === "/api/me" && method === "GET") return json({ ok: true, user: publicPartner(user) });
+
+  /** Download a file. Partners get downloads and the offers of their own customers; staff need a matching right. */
+  const fileGet = path.match(/^\/api\/files\/(\d+)$/);
+  if (fileGet && method === "GET") {
+    const file = await env.DB.prepare(
+      "SELECT f.kind, f.filename, f.mime, f.data, l.partner_id FROM files f LEFT JOIN leads l ON l.id = f.lead_id WHERE f.id = ?",
+    )
+      .bind(Number(fileGet[1]))
+      .first<{ kind: string; filename: string; mime: string; data: ArrayBuffer | number[]; partner_id: number | null }>();
+    const p = permsOf(user);
+    const allowed =
+      file &&
+      (user.role === "admin" ||
+        (user.role === "staff" && (file.kind === "offer" ? p.manageLeads : p.managePartners)) ||
+        (user.role === "partner" && (file.kind === "download" || file.partner_id === user.id)));
+    if (!file || !allowed) return fail("Datei nicht gefunden.", 404);
+    const bytes = file.data instanceof ArrayBuffer ? new Uint8Array(file.data) : new Uint8Array(file.data);
+    return new Response(bytes, {
+      headers: {
+        "content-type": file.mime,
+        "content-disposition": `attachment; filename="${file.filename}"`,
+        "cache-control": "private, no-store",
+        "x-content-type-options": "nosniff",
+      },
+    });
+  }
+
+  if (path === "/api/partner/downloads" && method === "GET" && user.role === "partner") {
+    const rows = await env.DB.prepare("SELECT id, title, filename, size, created_at FROM files WHERE kind = 'download' ORDER BY created_at DESC").all();
+    return json({ ok: true, files: rows.results });
+  }
+
+  /** Application filled in by the partner together with the customer: becomes a new lead for an offer. */
+  if (path === "/api/partner/requests" && method === "POST" && user.role === "partner") {
+    if (!permsOf(user).submitLeads) return fail("Dafür fehlt die Berechtigung.", 403);
+    const data = await body();
+    const category = clean(data.category, 30);
+    if (!["zertifizierung", "personenzertifizierung", "arbeitssicherheit"].includes(category)) return fail("Bitte einen Bereich wählen.");
+    const company = clean(data.company, 160);
+    const contactName = clean(data.contactName, 120);
+    if (!company || !contactName) return fail("Bitte Firma und Ansprechpartner angeben.");
+    const email = clean(data.email, 200).toLowerCase();
+    if (email && !validEmail(email)) return fail("Die E-Mail-Adresse ist ungültig.");
+    if (!email && !clean(data.phone, 60)) return fail("Bitte E-Mail oder Telefonnummer angeben.");
+    if (data.consent !== true) return fail("Bitte bestätigen Sie, dass der Kunde mit der Weitergabe einverstanden ist.");
+    const fields: [string, string][] = [
+      ["Straße", clean(data.street, 160)],
+      ["PLZ und Ort", clean(data.city, 120)],
+      ["Mitarbeitende", clean(data.employees, 20)],
+      ["Standorte", clean(data.sites, 20)],
+      ["Normen", Array.isArray(data.standards) ? data.standards.map((s) => clean(s, 40)).filter(Boolean).join(", ") : ""],
+      ["Verfahren", clean(data.procedure, 60)],
+      ["Geltungsbereich / Tätigkeit", clean(data.scope, 600)],
+      ["Vorhandenes Managementsystem", clean(data.existingSystem, 60)],
+      ["Schulung / Zertifikat", clean(data.course, 120)],
+      ["Teilnehmende", clean(data.participants, 20)],
+      ["Wunschtermin", clean(data.desiredDate, 40)],
+      ["Anmerkungen", clean(data.notes, 2000)],
+    ];
+    const filled = fields.filter(([, value]) => value);
+    const topic =
+      category === "zertifizierung"
+        ? `Antrag Zertifizierung ${fields[4][1] || ""}`.trim()
+        : category === "personenzertifizierung"
+          ? `Antrag Personenzertifizierung ${fields[8][1] || ""}`.trim()
+          : "Antrag Arbeitssicherheit Grundbetreuung";
+    const result = await env.DB.prepare(
+      `INSERT INTO leads (partner_id, source, contact_name, company, email, phone, topic, message, status, category, request_json, consent_at, created_at, updated_at)
+       VALUES (?, 'antrag', ?, ?, ?, ?, ?, ?, 'new', ?, ?, ?, ?, ?)`,
+    )
+      .bind(
+        user.id,
+        contactName,
+        company,
+        email,
+        clean(data.phone, 60),
+        topic.slice(0, 80),
+        filled.map(([label, value]) => `${label}: ${value}`).join("\n").slice(0, 2000),
+        category,
+        JSON.stringify(Object.fromEntries(filled)),
+        now(),
+        now(),
+        now(),
+      )
+      .run();
+    await env.DB.prepare("INSERT INTO lead_events (lead_id, kind, note, visible, created_at) VALUES (?, 'note', ?, 1, ?)")
+      .bind(Number(result.meta.last_row_id), "Antrag eingegangen. Wir holen das beste Angebot ein und laden es hier hoch.", now())
+      .run();
+    await notifyOwner(env, `Neuer Antrag von ${user.name}: ${company}`, [
+      `Partner: ${user.name}`,
+      `Bereich: ${category}`,
+      `Firma: ${company}`,
+      `Ansprechpartner: ${contactName}`,
+      `E-Mail: ${email || "–"}`,
+      `Telefon: ${clean(data.phone, 60) || "–"}`,
+      "",
+      ...filled.map(([label, value]) => `${label}: ${value}`),
+    ]);
+    return json({ ok: true });
+  }
 
   /* --- partner --- */
   if (path === "/api/partner/summary" && method === "GET" && user.role === "partner") {
@@ -698,7 +817,14 @@ async function handle(request: Request, env: Env): Promise<Response> {
       `SELECT l.*, p.name AS partner_name, c.id AS commission_id, c.amount_cents AS commission_cents, c.status AS commission_status
        FROM leads l LEFT JOIN partners p ON p.id = l.partner_id LEFT JOIN commissions c ON c.lead_id = l.id
        ORDER BY l.created_at DESC LIMIT 500`,
-    ).all();
+    ).all<{ id: number }>();
+    const fileRows = (
+      await env.DB.prepare("SELECT id, kind, lead_id, title, filename, size, created_at FROM files ORDER BY created_at DESC").all<{
+        kind: string;
+        lead_id: number | null;
+      }>()
+    ).results;
+    const leadsWithFiles = leads.results.map((lead) => ({ ...lead, files: fileRows.filter((f) => f.kind === "offer" && f.lead_id === lead.id) }));
     const withPerms = <T extends { permissions?: string }>(rows: T[], role: string) =>
       rows.map(({ permissions, ...rest }) => ({ ...rest, perms: permsOf({ role, permissions }) }));
     const partnerOptions = wantsLeads
@@ -711,8 +837,68 @@ async function handle(request: Request, env: Env): Promise<Response> {
       partnerOptions,
       partners: withPerms(partners.results as (Partner & { permissions: string })[], "partner"),
       staff: staff ? withPerms(staff.results as (Partner & { permissions: string })[], "staff") : [],
-      leads: leads.results,
+      leads: leadsWithFiles,
+      downloads: fileRows.filter((f) => f.kind === "download"),
     });
+  }
+
+  /** Upload a file: an offer for one customer, or a download for all partners. Sent as JSON with base64 data. */
+  if (path === "/api/admin/files" && method === "POST") {
+    const data = await body();
+    const kind = clean(data.kind, 20);
+    if (kind !== "offer" && kind !== "download") return fail("Ungültige Dateiart.");
+    if (kind === "offer" ? !can.manageLeads : !(isSuper || can.managePartners)) return denied();
+    const filename = clean(data.filename, 160).replace(/[\\/"\r\n]/g, "_");
+    const mime = clean(data.mime, 100) || "application/octet-stream";
+    if (!filename || !ALLOWED_MIME.includes(mime)) return fail("Bitte PDF, Bild, Word, PowerPoint, Excel oder ZIP hochladen.");
+    let bytes: Uint8Array;
+    try {
+      bytes = Uint8Array.from(atob(clean(data.data, 3_000_000)), (char) => char.charCodeAt(0));
+    } catch {
+      return fail("Die Datei konnte nicht gelesen werden.");
+    }
+    if (!bytes.length || bytes.length > MAX_FILE_BYTES) return fail("Die Datei darf höchstens 1,8 MB groß sein.");
+    let leadId: number | null = null;
+    let lead: { id: number; company: string; contact_name: string; status: string; partner_id: number | null } | null = null;
+    if (kind === "offer") {
+      leadId = Number(data.leadId);
+      lead = await env.DB.prepare("SELECT id, company, contact_name, status, partner_id FROM leads WHERE id = ?").bind(leadId).first();
+      if (!lead) return fail("Kunde nicht gefunden.", 404);
+    }
+    const title = clean(data.title, 120) || filename;
+    await env.DB.prepare("INSERT INTO files (kind, lead_id, title, filename, mime, size, data, created_at) VALUES (?, ?, ?, ?, ?, ?, ?, ?)")
+      .bind(kind, leadId, title, filename, mime, bytes.length, bytes, now())
+      .run();
+    if (lead) {
+      await env.DB.prepare("INSERT INTO lead_events (lead_id, kind, note, visible, created_at) VALUES (?, 'note', ?, 1, ?)")
+        .bind(lead.id, `Angebot hochgeladen: ${title}`, now())
+        .run();
+      if (lead.status === "new" || lead.status === "contacted") {
+        await env.DB.prepare("UPDATE leads SET status = 'offer', updated_at = ? WHERE id = ?").bind(now(), lead.id).run();
+        await env.DB.prepare("INSERT INTO lead_events (lead_id, kind, status, visible, created_at) VALUES (?, 'status', 'offer', 1, ?)").bind(lead.id, now()).run();
+      }
+      const partner = lead.partner_id
+        ? await env.DB.prepare("SELECT name, email FROM partners WHERE id = ? AND status = 'active'").bind(lead.partner_id).first<{ name: string; email: string }>()
+        : null;
+      if (partner) {
+        await sendMail(
+          env,
+          partner.email,
+          `Angebot für ${lead.company || lead.contact_name} liegt bereit`,
+          `Guten Tag ${partner.name},\n\nfür Ihren Kunden ${lead.company || lead.contact_name} liegt jetzt das Angebot im Partnerportal bereit:\n\nhttps://www.tayyipuenal.de/portal\n\nBeste Grüße\nTayyip Ünal`,
+        );
+      }
+    }
+    return json({ ok: true });
+  }
+
+  const fileDelete = path.match(/^\/api\/admin\/files\/(\d+)\/delete$/);
+  if (fileDelete && method === "POST") {
+    const file = await env.DB.prepare("SELECT kind FROM files WHERE id = ?").bind(Number(fileDelete[1])).first<{ kind: string }>();
+    if (!file) return fail("Datei nicht gefunden.", 404);
+    if (file.kind === "offer" ? !can.manageLeads : !(isSuper || can.managePartners)) return denied();
+    await env.DB.prepare("DELETE FROM files WHERE id = ?").bind(Number(fileDelete[1])).run();
+    return json({ ok: true });
   }
 
   /** Admin creates a partner directly, including the text of the partner page. */
@@ -746,7 +932,7 @@ async function handle(request: Request, env: Env): Promise<Response> {
     if (!target) return fail("Partner nicht gefunden.", 404);
     const leads = await partnerLeads(env, target);
     const events: Record<number, unknown> = {};
-    for (const lead of leads) events[lead.id as number] = (await partnerLeadEvents(env, target, lead.id as number)) ?? [];
+    for (const lead of leads) events[lead.id] = (await partnerLeadEvents(env, target, lead.id)) ?? [];
     return json({ ok: true, user: publicPartner(target), summary: await partnerSummary(env, target), leads, events });
   }
 

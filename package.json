@@ -35,6 +35,7 @@
     "eslint": "latest",
     "eslint-plugin-react-hooks": "latest",
     "eslint-plugin-react-refresh": "latest",
+    "gifenc": "^1.0.3",
     "globals": "latest",
     "tsx": "^4.23.13",
     "typescript": "latest",

@@ -70,7 +70,7 @@ function promoHtml(gold: string) {
           <div style="margin-top:10px;color:#f5f2ec;font-size:22px;line-height:1.3;font-weight:800">Ein Ansprechpartner für alles, bundesweit.</div>
           <div style="margin-top:8px;color:#bdb7ab;font-size:14px;line-height:1.6">Empfehlen Sie uns für jedes dieser Themen. Wir kümmern uns um das Angebot und halten Sie im Portal auf dem Laufenden.</div>
         </td></tr>
-        <tr><td style="padding:8px 0 0;line-height:0;font-size:0"><a href="${SITE}"><img src="${SITE}/mail/services.gif?v=2" width="598" height="329" alt="Zertifizierung, Personenzertifizierung, Schulungen, Arbeitsschutz, Arbeitssicherheit, IT-Sicherheit, Factoring, Webseiten" style="display:block;width:100%;max-width:598px;height:auto;border:0;color:#bdb7ab;font-size:14px"></a></td></tr>
+        <tr><td style="padding:8px 0 0;line-height:0;font-size:0"><a href="${SITE}"><img src="${SITE}/mail/services.gif?v=3" width="598" height="329" alt="Zertifizierung, Personenzertifizierung, Schulungen, Arbeitsschutz, Arbeitssicherheit, IT-Sicherheit, Factoring, Webseiten" style="display:block;width:100%;max-width:598px;height:auto;border:0;color:#bdb7ab;font-size:14px"></a></td></tr>
         <tr><td align="center" style="padding:8px 24px 28px"><table role="presentation" cellpadding="0" cellspacing="0">${lines}</table></td></tr>
       </table>
     </td></tr>`;

@@ -536,7 +536,7 @@ function PartnerDashboard({ user, preview, onExit }: { user: User; preview?: Par
       ) : (
         (["zertifizierung", "personenzertifizierung", "arbeitssicherheit", ""] as const).map((category) => {
           const rows = leads.filter((lead) => (lead.category ?? "") === category);
-          if (category === "" && rows.length === 0) return null;
+          if ((category === "" || category === "arbeitssicherheit") && rows.length === 0) return null;
           return (
             <LeadGroup
               key={category || "other"}

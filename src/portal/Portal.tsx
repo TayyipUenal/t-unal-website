@@ -162,6 +162,149 @@ function QrCode({ value }: { value: string }) {
 
 /* ---------- partner dashboard ---------- */
 
+const CATEGORY_LABEL: Record<string, string> = {
+  zertifizierung: "Zertifizierung",
+  personenzertifizierung: "Personenzertifizierung",
+  "": "Weitere Kunden",
+};
+const CATEGORY_HINT: Record<string, string> = {
+  zertifizierung: "Was wir Ihren Kunden an Zertifizierung angeboten haben und wie weit es ist.",
+  personenzertifizierung: "Was wir Ihren Kunden an Personenzertifizierung angeboten haben und wie weit es ist.",
+  "": "",
+};
+const pct = (value: number) => String(value).replace(".", ",");
+
+/** Provision of one customer: expected while open, then waiting for the customer's payment, due, paid out. */
+function ProvisionCell({ lead, rate }: { lead: PartnerLead; rate: number | null }) {
+  const used = lead.commission_rate ?? rate;
+  if (lead.commission_cents !== null) {
+    const state = lead.commission_status === "paid" ? "ausgezahlt" : lead.customer_paid_at ? "fällig, wird ausgezahlt" : "wartet auf Zahlung des Kunden";
+    return (
+      <>
+        <b>{euro(lead.commission_cents)}</b>
+        <small>
+          {used !== null && `${pct(used)} % vom Nettobetrag · `}
+          {state}
+        </small>
+      </>
+    );
+  }
+  if (lead.status === "lost" || used === null) return <small>–</small>;
+  if (lead.deal_cents) return <small>voraussichtlich {euro(Math.round((lead.deal_cents * used) / 100))} ({pct(used)} %), sobald der Auftrag erteilt ist</small>;
+  return <small>{pct(used)} % vom Nettobetrag bei Auftrag</small>;
+}
+
+function StatusCell({ lead, showPayment }: { lead: PartnerLead; showPayment: boolean }) {
+  if (!lead.status) return null;
+  const note =
+    lead.status === "offer"
+      ? "Angebot liegt vor, noch nicht unterschrieben"
+      : lead.status === "won" && showPayment
+        ? lead.customer_paid_at
+          ? "Kunde hat bezahlt"
+          : "Auftrag erteilt, Rechnung noch offen"
+        : "";
+  return (
+    <>
+      <StatusPill status={lead.status} />
+      <Progress status={lead.status} />
+      {note && <small>{note}</small>}
+    </>
+  );
+}
+
+/** One area (Zertifizierung / Personenzertifizierung) with its customers. */
+function LeadGroup({
+  category,
+  leads,
+  can,
+  rate,
+  openLead,
+  onToggle,
+  events,
+}: {
+  category: string;
+  leads: PartnerLead[];
+  can: Perms;
+  rate: number | null;
+  openLead: number | null;
+  onToggle: (id: number) => void;
+  events: Record<number, LeadEvent[]>;
+}) {
+  const offers = leads.filter((l) => l.status === "offer").length;
+  const won = leads.filter((l) => l.status === "won").length;
+  return (
+    <section className="pt-card pt-table-card pt-group">
+      <div className="pt-table-head">
+        <div>
+          <h2>{CATEGORY_LABEL[category]}</h2>
+          {CATEGORY_HINT[category] && <p className="pt-hint">{CATEGORY_HINT[category]}</p>}
+        </div>
+        {can.seeStatus && leads.length > 0 && (
+          <p className="pt-group-count">
+            {leads.length} {leads.length === 1 ? "Kunde" : "Kunden"}
+            {offers > 0 && ` · ${offers} Angebot${offers === 1 ? "" : "e"} laufen`}
+            {won > 0 && ` · ${won} beauftragt`}
+          </p>
+        )}
+      </div>
+      {leads.length === 0 ? (
+        <p className="pt-empty">Noch keine Kunden in diesem Bereich.</p>
+      ) : (
+        <div className="pt-scroll">
+          <table className="pt-table">
+            <thead>
+              <tr>
+                <th>Kunde</th>
+                <th>Angebotene Leistung</th>
+                {can.seeStatus && <th>Stand</th>}
+                {can.seeAmounts && <th>Wert (netto)</th>}
+                {(can.seeAmounts || can.seeRate) && <th>Ihre Provision</th>}
+                <th>Seit</th>
+              </tr>
+            </thead>
+            <tbody>
+              {leads.map((lead) => (
+                <Fragment key={lead.id}>
+                  <tr>
+                    <td>
+                      <b>{lead.company || lead.contact_name}</b>
+                      <small>{lead.company ? lead.contact_name : lead.email || lead.phone}</small>
+                      <button type="button" className="text-link" onClick={() => onToggle(lead.id)}>
+                        {openLead === lead.id ? "Verlauf schließen" : "Verlauf"}
+                      </button>
+                    </td>
+                    <td>{lead.topic || "–"}</td>
+                    {can.seeStatus && (
+                      <td>
+                        <StatusCell lead={lead} showPayment={can.seeAmounts} />
+                      </td>
+                    )}
+                    {can.seeAmounts && <td>{euro(lead.deal_cents)}</td>}
+                    {(can.seeAmounts || can.seeRate) && (
+                      <td>
+                        <ProvisionCell lead={lead} rate={rate} />
+                      </td>
+                    )}
+                    <td>{dateDe(lead.created_at)}</td>
+                  </tr>
+                  {openLead === lead.id && (
+                    <tr>
+                      <td colSpan={6}>
+                        <Timeline created={lead.created_at} events={events[lead.id] ?? null} />
+                      </td>
+                    </tr>
+                  )}
+                </Fragment>
+              ))}
+            </tbody>
+          </table>
+        </div>
+      )}
+    </section>
+  );
+}
+
 type PartnerPreview = { summary: Summary; leads: PartnerLead[]; events: Record<number, LeadEvent[]> };
 
 function PartnerDashboard({ user, preview, onExit }: { user: User; preview?: PartnerPreview; onExit?: () => void }) {
@@ -334,7 +477,7 @@ function PartnerDashboard({ user, preview, onExit }: { user: User; preview?: Par
 
       <section className="pt-card pt-table-card">
         <div className="pt-table-head">
-          <h2>{can.seeStatus ? "Ihre Kunden und ihr Stand" : "Ihre Kunden"}</h2>
+          <h2>Ihre Kunden</h2>
           {can.submitLeads && (
             <button type="button" className="button button-primary" disabled={!!preview} onClick={() => setForm((open) => !open)}>
               <Plus size={16} aria-hidden="true" /> Kontakt melden
@@ -381,75 +524,30 @@ function PartnerDashboard({ user, preview, onExit }: { user: User; preview?: Par
           </p>
         )}
 
-        {leads === null ? (
-          <p className="pt-empty">Wird geladen …</p>
-        ) : leads.length === 0 ? (
-          <p className="pt-empty">Noch keine Kunden. Melden Sie einen Kontakt oder teilen Sie Ihre Partnerseite.</p>
-        ) : (
-          <div className="pt-scroll">
-            <table className="pt-table">
-              <thead>
-                <tr>
-                  <th>Kunde</th>
-                  <th>Thema</th>
-                  {can.seeStatus && <th>Stand</th>}
-                  {can.seeAmounts && <th>Auftragswert</th>}
-                  {(can.seeAmounts || can.seeRate) && <th>Ihre Provision</th>}
-                  <th>Seit</th>
-                </tr>
-              </thead>
-              <tbody>
-                {leads.map((lead) => (
-                  <Fragment key={lead.id}>
-                  <tr>
-                    <td>
-                      <b>{lead.company || lead.contact_name}</b>
-                      <small>{lead.company ? lead.contact_name : lead.email || lead.phone}</small>
-                      <button type="button" className="text-link" onClick={() => toggleLead(lead.id)}>
-                        {openLead === lead.id ? "Verlauf schließen" : "Verlauf"}
-                      </button>
-                    </td>
-                    <td>{lead.topic || "–"}</td>
-                    {can.seeStatus && (
-                      <td>
-                        {lead.status && <StatusPill status={lead.status} />}
-                        {lead.status && <Progress status={lead.status} />}
-                      </td>
-                    )}
-                    {can.seeAmounts && <td>{euro(lead.deal_cents)}</td>}
-                    {(can.seeAmounts || can.seeRate) && (
-                      <td>
-                        {lead.commission_cents !== null ? (
-                          <>
-                            <b>{euro(lead.commission_cents)}</b>
-                            <small>
-                              {lead.commission_rate !== null && `${String(lead.commission_rate).replace(".", ",")} % · `}
-                              {lead.commission_status === "paid" ? "ausgezahlt" : "offen"}
-                            </small>
-                          </>
-                        ) : summary && summary.ratePercent !== null ? (
-                          <small>{`${String(summary.ratePercent).replace(".", ",")} % bei Auftrag`}</small>
-                        ) : (
-                          <small>–</small>
-                        )}
-                      </td>
-                    )}
-                    <td>{dateDe(lead.created_at)}</td>
-                  </tr>
-                  {openLead === lead.id && (
-                    <tr>
-                      <td colSpan={6}>
-                        <Timeline created={lead.created_at} events={leadEvents[lead.id] ?? null} />
-                      </td>
-                    </tr>
-                  )}
-                  </Fragment>
-                ))}
-              </tbody>
-            </table>
-          </div>
-        )}
       </section>
+
+      {leads === null ? (
+        <p className="pt-empty">Wird geladen …</p>
+      ) : leads.length === 0 ? (
+        <p className="pt-empty">Noch keine Kunden. Melden Sie einen Kontakt oder teilen Sie Ihre Partnerseite.</p>
+      ) : (
+        (["zertifizierung", "personenzertifizierung", ""] as const).map((category) => {
+          const rows = leads.filter((lead) => (lead.category ?? "") === category);
+          if (category === "" && rows.length === 0) return null;
+          return (
+            <LeadGroup
+              key={category || "other"}
+              category={category}
+              leads={rows}
+              can={can}
+              rate={summary?.ratePercent ?? null}
+              openLead={openLead}
+              onToggle={toggleLead}
+              events={leadEvents}
+            />
+          );
+        })
+      )}
 
       {can.editProfile && (
       <section className="pt-card">
@@ -468,7 +566,7 @@ function PartnerDashboard({ user, preview, onExit }: { user: User; preview?: Par
 /* ---------- admin dashboard ---------- */
 
 type Tab = "bewerbungen" | "partner" | "leads" | "provisionen" | "rechte";
-type AdminData = { isSuper: boolean; permissions: Perms; partners: AdminPartner[]; staff: StaffMember[]; leads: AdminLead[] };
+type AdminData = { isSuper: boolean; partnerOptions: { id: number; name: string }[]; permissions: Perms; partners: AdminPartner[]; staff: StaffMember[]; leads: AdminLead[] };
 
 function AdminDashboard({ user }: { user: User }) {
   const [data, setData] = useState<AdminData | null>(null);
@@ -648,21 +746,23 @@ function AdminDashboard({ user }: { user: User }) {
 
       {tab === "leads" && mine.manageLeads && (
         <section className="pt-card pt-table-card">
+          <CreateLead partners={data?.partnerOptions ?? []} onCreated={load} />
           <div className="pt-scroll">
             <table className="pt-table">
               <thead>
                 <tr>
                   <th>Kunde</th>
                   <th>Partner</th>
-                  <th>Thema</th>
+                  <th>Bereich und Leistung</th>
                   <th>Stand</th>
-                  <th>Auftragswert (€)</th>
+                  <th>Wert netto (€)</th>
+                  <th>Zahlung</th>
                   <th />
                 </tr>
               </thead>
               <tbody>
                 {(data?.leads ?? []).map((lead) => (
-                  <LeadRow key={lead.id} lead={lead} onSave={(status, dealEuro) => run(() => api(`/api/admin/leads/${lead.id}`, { status, dealEuro }))} />
+                  <LeadRow key={lead.id} lead={lead} partners={data?.partnerOptions ?? []} onSave={(changes) => run(() => api(`/api/admin/leads/${lead.id}`, changes))} />
                 ))}
               </tbody>
             </table>
@@ -1034,16 +1134,47 @@ function PartnerRow({
   );
 }
 
-function LeadRow({ lead, onSave }: { lead: AdminLead; onSave: (status: LeadStatus, dealEuro: number | null) => void }) {
+type LeadChanges = {
+  status: LeadStatus;
+  dealEuro: number | null;
+  category: string;
+  partnerId: number | null;
+  customerPaid: boolean;
+};
+
+const CATEGORY_OPTIONS: [string, string][] = [
+  ["", "Noch nicht zugeordnet"],
+  ["zertifizierung", "Zertifizierung"],
+  ["personenzertifizierung", "Personenzertifizierung"],
+];
+
+function LeadRow({
+  lead,
+  partners,
+  onSave,
+}: {
+  lead: AdminLead;
+  partners: { id: number; name: string }[];
+  onSave: (changes: LeadChanges) => void;
+}) {
+  const dealText = (cents: number | null) => (cents === null ? "" : String(cents / 100));
   const [status, setStatus] = useState<LeadStatus>(lead.status);
-  const [deal, setDeal] = useState(lead.deal_cents === null ? "" : String(lead.deal_cents / 100));
+  const [deal, setDeal] = useState(dealText(lead.deal_cents));
+  const [category, setCategory] = useState(lead.category ?? "");
+  const [partnerId, setPartnerId] = useState<number | null>(lead.partner_id);
+  const [paid, setPaid] = useState(!!lead.customer_paid_at);
   const [open, setOpen] = useState(false);
   const [events, setEvents] = useState<LeadEvent[] | null>(null);
   const [note, setNote] = useState("");
   const [shared, setShared] = useState(false);
   const [error, setError] = useState("");
   const locked = lead.commission_status === "paid";
-  const changed = status !== lead.status || deal !== (lead.deal_cents === null ? "" : String(lead.deal_cents / 100));
+  const changed =
+    status !== lead.status ||
+    deal !== dealText(lead.deal_cents) ||
+    category !== (lead.category ?? "") ||
+    partnerId !== lead.partner_id ||
+    paid !== !!lead.customer_paid_at;
 
   const loadEvents = useCallback(() => {
     api<{ events: LeadEvent[] }>(`/api/admin/leads/${lead.id}/events`)
@@ -1052,7 +1183,7 @@ function LeadRow({ lead, onSave }: { lead: AdminLead; onSave: (status: LeadStatu
   }, [lead.id]);
   useEffect(() => {
     if (open) loadEvents();
-  }, [open, loadEvents, lead.status]);
+  }, [open, loadEvents, lead.status, lead.customer_paid_at]);
 
   async function addNote(event: FormEvent<HTMLFormElement>) {
     event.preventDefault();
@@ -1080,8 +1211,26 @@ function LeadRow({ lead, onSave }: { lead: AdminLead; onSave: (status: LeadStatu
             {open ? "Verlauf schließen" : "Verlauf und Notizen"}
           </button>
         </td>
-        <td>{lead.partner_name ?? <small>Direkt über die Seite</small>}</td>
-        <td>{lead.topic || "–"}</td>
+        <td>
+          <select value={partnerId ?? ""} onChange={(event) => setPartnerId(event.target.value === "" ? null : Number(event.target.value))} disabled={locked} aria-label="Partner">
+            <option value="">Direkt über die Seite</option>
+            {partners.map((partner) => (
+              <option key={partner.id} value={partner.id}>
+                {partner.name}
+              </option>
+            ))}
+          </select>
+        </td>
+        <td>
+          <select value={category} onChange={(event) => setCategory(event.target.value)} disabled={locked} aria-label="Bereich">
+            {CATEGORY_OPTIONS.map(([value, label]) => (
+              <option key={value} value={value}>
+                {label}
+              </option>
+            ))}
+          </select>
+          <small>{lead.topic || "–"}</small>
+        </td>
         <td>
           <select value={status} onChange={(event) => setStatus(event.target.value as LeadStatus)} disabled={locked} aria-label="Stand">
             {STATUS_ORDER.map((key) => (
@@ -1092,11 +1241,22 @@ function LeadRow({ lead, onSave }: { lead: AdminLead; onSave: (status: LeadStatu
           </select>
         </td>
         <td>
-          <input type="number" min={0} step={50} value={deal} onChange={(event) => setDeal(event.target.value)} disabled={locked} aria-label="Auftragswert in Euro" />
+          <input type="number" min={0} step={50} value={deal} onChange={(event) => setDeal(event.target.value)} disabled={locked} aria-label="Wert netto in Euro" />
+        </td>
+        <td>
+          <label className="pt-right">
+            <input type="checkbox" checked={paid} onChange={(event) => setPaid(event.target.checked)} disabled={status !== "won"} />
+            <span>
+              <b>bezahlt</b>
+            </span>
+          </label>
         </td>
         <td>
           {changed && !locked && (
-            <button className="button button-primary pt-small" onClick={() => onSave(status, deal === "" ? null : Number(deal))}>
+            <button
+              className="button button-primary pt-small"
+              onClick={() => onSave({ status, dealEuro: deal === "" ? null : Number(deal), category, partnerId, customerPaid: status === "won" && paid })}
+            >
               Speichern
             </button>
           )}
@@ -1105,7 +1265,7 @@ function LeadRow({ lead, onSave }: { lead: AdminLead; onSave: (status: LeadStatu
       </tr>
       {open && (
         <tr>
-          <td colSpan={6}>
+          <td colSpan={7}>
             <Timeline created={lead.created_at} events={events} internalLabels />
             <form className="pt-note" onSubmit={addNote}>
               <input value={note} onChange={(event) => setNote(event.target.value)} placeholder="Notiz zum Kunden, zum Beispiel Telefonat, Angebot raus …" maxLength={1000} aria-label="Notiz" />
@@ -1128,6 +1288,92 @@ function LeadRow({ lead, onSave }: { lead: AdminLead; onSave: (status: LeadStatu
         </tr>
       )}
     </>
+  );
+}
+
+/** The admin enters a customer by hand: which partner, which area, how far, net value. */
+function CreateLead({ partners, onCreated }: { partners: { id: number; name: string }[]; onCreated: () => void }) {
+  const [open, setOpen] = useState(false);
+  const [error, setError] = useState("");
+  async function submit(event: FormEvent<HTMLFormElement>) {
+    event.preventDefault();
+    const formEl = event.currentTarget;
+    const data = Object.fromEntries(new FormData(formEl).entries());
+    setError("");
+    try {
+      await api("/api/admin/leads/create", { ...data, partnerId: data.partnerId === "" ? null : Number(data.partnerId) });
+      formEl.reset();
+      setOpen(false);
+      onCreated();
+    } catch (cause) {
+      setError(cause instanceof Error ? cause.message : "Anlegen nicht möglich.");
+    }
+  }
+  return (
+    <div className="pt-create">
+      <button type="button" className="button button-primary" onClick={() => setOpen((value) => !value)}>
+        <Plus size={16} aria-hidden="true" /> Kunde anlegen
+      </button>
+      {open && (
+        <form className="pt-form" onSubmit={submit}>
+          <Field label="Firma *">
+            <input name="company" required maxLength={160} />
+          </Field>
+          <Field label="Ansprechpartner">
+            <input name="name" maxLength={120} />
+          </Field>
+          <Field label="E-Mail">
+            <input name="email" type="email" maxLength={200} />
+          </Field>
+          <Field label="Telefon">
+            <input name="phone" type="tel" maxLength={60} />
+          </Field>
+          <Field label="Partner">
+            <select name="partnerId" defaultValue="">
+              <option value="">Kein Partner</option>
+              {partners.map((partner) => (
+                <option key={partner.id} value={partner.id}>
+                  {partner.name}
+                </option>
+              ))}
+            </select>
+          </Field>
+          <Field label="Bereich">
+            <select name="category" defaultValue="zertifizierung">
+              {CATEGORY_OPTIONS.map(([value, label]) => (
+                <option key={value} value={value}>
+                  {label}
+                </option>
+              ))}
+            </select>
+          </Field>
+          <Field label="Angebotene Leistung">
+            <input name="topic" maxLength={80} placeholder="zum Beispiel ISO 9001 Zertifizierung" />
+          </Field>
+          <Field label="Stand">
+            <select name="status" defaultValue="offer">
+              {STATUS_ORDER.map((key) => (
+                <option key={key} value={key}>
+                  {STATUS_LABEL[key]}
+                </option>
+              ))}
+            </select>
+          </Field>
+          <Field label="Wert netto in €">
+            <input name="dealEuro" type="number" min={0} step={50} />
+          </Field>
+          <Field label="Notiz">
+            <input name="message" maxLength={2000} />
+          </Field>
+          {error && (
+            <p className="pa-error" role="alert">
+              {error}
+            </p>
+          )}
+          <button className="button button-primary">Kunde speichern</button>
+        </form>
+      )}
+    </div>
   );
 }
 

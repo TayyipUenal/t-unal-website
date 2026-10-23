@@ -41,7 +41,9 @@ CREATE TABLE IF NOT EXISTS leads (
   topic TEXT NOT NULL DEFAULT '',
   message TEXT NOT NULL DEFAULT '',
   status TEXT NOT NULL DEFAULT 'new',            -- 'new' | 'contacted' | 'offer' | 'won' | 'lost'
-  deal_cents INTEGER,
+  deal_cents INTEGER,                            -- net order value in cents
+  category TEXT NOT NULL DEFAULT '',             -- 'zertifizierung' | 'personenzertifizierung' | ''
+  customer_paid_at TEXT,                         -- set when the customer has paid the invoice
   consent_at TEXT,
   request_id TEXT UNIQUE,                        -- makes retries of the site forms idempotent
   created_at TEXT NOT NULL,

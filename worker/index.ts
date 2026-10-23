@@ -240,6 +240,8 @@ const publicPartner = (p: Partner) => ({
 });
 
 const STATUSES = ["new", "contacted", "offer", "won", "lost"];
+/** The two areas partners refer customers to. Empty = not assigned yet. */
+const CATEGORIES = ["", "zertifizierung", "personenzertifizierung"];
 
 /** Commission follows the lead: created when it is won, removed when it is not (unless already paid). */
 async function syncCommission(env: Env, leadId: number) {
@@ -304,7 +306,7 @@ async function partnerSummary(env: Env, p: Partner) {
 async function partnerLeads(env: Env, p: Partner) {
   const rows = await env.DB.prepare(
     `SELECT l.id, l.contact_name, l.company, l.email, l.phone, l.topic, l.message, l.status, l.deal_cents, l.source,
-            l.created_at, l.updated_at, c.amount_cents AS commission_cents, c.rate_percent AS commission_rate, c.status AS commission_status
+            l.category, l.customer_paid_at, l.created_at, l.updated_at, c.amount_cents AS commission_cents, c.rate_percent AS commission_rate, c.status AS commission_status
      FROM leads l LEFT JOIN commissions c ON c.lead_id = l.id
      WHERE l.partner_id = ? ORDER BY l.created_at DESC LIMIT 500`,
   )
@@ -317,6 +319,7 @@ async function partnerLeads(env: Env, p: Partner) {
     email: can.seeContact ? row.email : "",
     phone: can.seeContact ? row.phone : "",
     deal_cents: can.seeAmounts ? row.deal_cents : null,
+    customer_paid_at: can.seeAmounts ? row.customer_paid_at : null,
     commission_cents: can.seeAmounts ? row.commission_cents : null,
     commission_rate: can.seeRate ? row.commission_rate : null,
     commission_status: can.seeAmounts ? row.commission_status : null,
@@ -332,7 +335,7 @@ async function partnerLeadEvents(env: Env, p: Partner, leadId: number) {
   )
     .bind(leadId)
     .all<{ kind: string }>();
-  return rows.results.filter((e) => e.kind !== "status" || can.seeStatus);
+  return rows.results.filter((e) => (e.kind === "status" ? can.seeStatus : e.kind === "paid" ? can.seeAmounts : true));
 }
 
 /* ---------- routes ---------- */
@@ -689,10 +692,14 @@ async function handle(request: Request, env: Env): Promise<Response> {
     ).all();
     const withPerms = <T extends { permissions?: string }>(rows: T[], role: string) =>
       rows.map(({ permissions, ...rest }) => ({ ...rest, perms: permsOf({ role, permissions }) }));
+    const partnerOptions = wantsLeads
+      ? (await env.DB.prepare("SELECT id, name FROM partners WHERE role = 'partner' AND status IN ('approved', 'active') ORDER BY name").all()).results
+      : [];
     return json({
       ok: true,
       isSuper,
       permissions: can,
+      partnerOptions,
       partners: withPerms(partners.results as (Partner & { permissions: string })[], "partner"),
       staff: staff ? withPerms(staff.results as (Partner & { permissions: string })[], "staff") : [],
       leads: leads.results,
@@ -785,18 +792,83 @@ async function handle(request: Request, env: Env): Promise<Response> {
     if (status === "won" && (!euro || euro <= 0)) return fail("Für einen gewonnenen Auftrag bitte den Auftragswert angeben.");
     const paid = await env.DB.prepare("SELECT id FROM commissions WHERE lead_id = ? AND status = 'paid'").bind(id).first();
     if (paid) return fail("Die Provision ist bereits ausgezahlt. Der Lead lässt sich nicht mehr ändern.", 409);
-    const before = await env.DB.prepare("SELECT status FROM leads WHERE id = ?").bind(id).first<{ status: string }>();
+    const before = await env.DB.prepare("SELECT status, partner_id, category, customer_paid_at FROM leads WHERE id = ?")
+      .bind(id)
+      .first<{ status: string; partner_id: number | null; category: string; customer_paid_at: string | null }>();
     if (!before) return fail("Lead nicht gefunden.", 404);
-    await env.DB.prepare("UPDATE leads SET status = ?, deal_cents = ?, updated_at = ? WHERE id = ?")
-      .bind(status, euro === null ? null : Math.round(euro * 100), now(), id)
+    // optional fields: keep the current value when the field is not sent
+    const category = data.category === undefined ? before.category : clean(data.category, 30);
+    if (!CATEGORIES.includes(category)) return fail("Ungültiger Bereich.");
+    let partnerId = before.partner_id;
+    if (data.partnerId !== undefined) {
+      partnerId = data.partnerId === null || data.partnerId === "" ? null : Number(data.partnerId);
+      if (partnerId !== null && !(await env.DB.prepare("SELECT id FROM partners WHERE id = ? AND role = 'partner'").bind(partnerId).first())) {
+        return fail("Partner nicht gefunden.");
+      }
+    }
+    const nowPaid = data.customerPaid === undefined ? !!before.customer_paid_at : data.customerPaid === true;
+    const paidAt = nowPaid ? before.customer_paid_at ?? now() : null;
+    await env.DB.prepare("UPDATE leads SET status = ?, deal_cents = ?, category = ?, partner_id = ?, customer_paid_at = ?, updated_at = ? WHERE id = ?")
+      .bind(status, euro === null ? null : Math.round(euro * 100), category, partnerId, paidAt, now(), id)
       .run();
     if (before.status !== status) {
       await env.DB.prepare("INSERT INTO lead_events (lead_id, kind, status, visible, created_at) VALUES (?, 'status', ?, 1, ?)")
         .bind(id, status, now())
         .run();
     }
+    if (nowPaid !== !!before.customer_paid_at) {
+      await env.DB.prepare("INSERT INTO lead_events (lead_id, kind, note, visible, created_at) VALUES (?, 'paid', ?, 1, ?)")
+        .bind(id, nowPaid ? "Kunde hat bezahlt" : "Zahlung zurückgenommen", now())
+        .run();
+    }
     await syncCommission(env, id);
     return json({ ok: true });
+  }
+
+  /** The admin enters a customer by hand and assigns it to a partner and an area. */
+  if (path === "/api/admin/leads/create" && method === "POST") {
+    if (!can.manageLeads) return denied();
+    const data = await body();
+    const contactName = clean(data.name, 120);
+    const company = clean(data.company, 160);
+    if (!contactName && !company) return fail("Bitte Firma oder Ansprechpartner angeben.");
+    const category = clean(data.category, 30);
+    if (!CATEGORIES.includes(category)) return fail("Ungültiger Bereich.");
+    const status = clean(data.status, 20) || "new";
+    if (!STATUSES.includes(status)) return fail("Ungültiger Status.");
+    const euro = data.dealEuro === null || data.dealEuro === undefined || data.dealEuro === "" ? null : Number(data.dealEuro);
+    if (euro !== null && (!Number.isFinite(euro) || euro < 0 || euro > 10000000)) return fail("Ungültiger Auftragswert.");
+    if (status === "won" && (!euro || euro <= 0)) return fail("Für einen erhaltenen Auftrag bitte den Auftragswert angeben.");
+    let partnerId: number | null = null;
+    if (data.partnerId !== null && data.partnerId !== undefined && data.partnerId !== "") {
+      partnerId = Number(data.partnerId);
+      if (!(await env.DB.prepare("SELECT id FROM partners WHERE id = ? AND role = 'partner'").bind(partnerId).first())) return fail("Partner nicht gefunden.");
+    }
+    const result = await env.DB.prepare(
+      `INSERT INTO leads (partner_id, source, contact_name, company, email, phone, topic, message, status, deal_cents, category, created_at, updated_at)
+       VALUES (?, 'admin', ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)`,
+    )
+      .bind(
+        partnerId,
+        contactName || company,
+        company,
+        clean(data.email, 200).toLowerCase(),
+        clean(data.phone, 60),
+        clean(data.topic, 80),
+        clean(data.message, 2000),
+        status,
+        euro === null ? null : Math.round(euro * 100),
+        category,
+        now(),
+        now(),
+      )
+      .run();
+    const id = Number(result.meta.last_row_id);
+    if (status !== "new") {
+      await env.DB.prepare("INSERT INTO lead_events (lead_id, kind, status, visible, created_at) VALUES (?, 'status', ?, 1, ?)").bind(id, status, now()).run();
+    }
+    await syncCommission(env, id);
+    return json({ ok: true, id });
   }
 
   /** Timeline of one lead, including internal notes. */

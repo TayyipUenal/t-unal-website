@@ -60,6 +60,8 @@ export type PartnerLead = {
   message: string;
   status: LeadStatus | null;
   deal_cents: number | null;
+  category: string;
+  customer_paid_at: string | null;
   source: string;
   created_at: string;
   updated_at: string;
@@ -69,7 +71,7 @@ export type PartnerLead = {
 };
 
 export type LeadEvent = {
-  kind: "status" | "note";
+  kind: "status" | "note" | "paid";
   status: LeadStatus | null;
   note: string | null;
   visible?: number;

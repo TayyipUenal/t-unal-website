@@ -1411,3 +1411,18 @@ button.text-link {
     display: none;
   }
 }
+
+/* areas */
+.pt-group .pt-table-head {
+  align-items: flex-start;
+}
+.pt-group-count {
+  margin: 0;
+  font-size: 0.8rem;
+  opacity: 0.8;
+}
+.pt-table td small + .pt-progress,
+.pt-table .pt-progress + small {
+  display: block;
+  margin-top: 0.35rem;
+}

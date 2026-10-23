@@ -49,6 +49,15 @@ const SAFETY_SERVICES = [
   "Aufbau Managementsystem",
 ];
 
+const IT_SERVICES = [
+  "ISO 27001 Vorbereitung",
+  "NIS2-Check",
+  "Datenschutz (DSGVO)",
+  "Penetrationstest",
+  "Awareness-Schulung",
+  "IT-Notfallplan / Backup",
+];
+
 const INDUSTRIES = [
   "Bauhauptgewerbe (Hoch- und Tiefbau)",
   "Ausbau und Handwerk (Maler, Trockenbau, Dach …)",
@@ -219,6 +228,62 @@ function AreaFields({ area }: { area: AreaKey }) {
           <p className="pt-hint">Für die Grundbetreuung in der Arbeitssicherheit gibt es keine Provision.</p>
         </>
       );
+    case "it-sicherheit":
+      return (
+        <>
+          <Checks legend="Leistungen" name="services" options={IT_SERVICES} />
+          <div className="pt-form">
+            <Field label="Arbeitsplätze / Geräte">
+              <input name="devices" type="number" min={1} max={100000} inputMode="numeric" />
+            </Field>
+            <Field label="Externer IT-Dienstleister vorhanden?">
+              <select name="itProvider" defaultValue="Ja">
+                <option>Ja</option>
+                <option>Nein</option>
+              </select>
+            </Field>
+            <Field label="Anlass" wide>
+              <textarea name="scope" rows={3} maxLength={600} placeholder="Zum Beispiel Kundenanforderung, Versicherung, Vorfall, NIS2" />
+            </Field>
+          </div>
+        </>
+      );
+    case "factoring":
+      return (
+        <div className="pt-form">
+          <Field label="Jahresumsatz (ca.)">
+            <input name="revenue" maxLength={40} placeholder="zum Beispiel 1,2 Mio. €" />
+          </Field>
+          <Field label="Anzahl Kunden (Debitoren)">
+            <input name="debtors" type="number" min={1} max={100000} inputMode="numeric" />
+          </Field>
+          <Field label="Durchschnittliche Rechnungshöhe">
+            <input name="invoiceSize" maxLength={40} placeholder="zum Beispiel 3.000 €" />
+          </Field>
+          <Field label="Übliches Zahlungsziel">
+            <select name="paymentTerms" defaultValue="30 Tage">
+              <option>14 Tage</option>
+              <option>30 Tage</option>
+              <option>60 Tage</option>
+              <option>90 Tage oder mehr</option>
+            </select>
+          </Field>
+          <Field label="Kunden überwiegend">
+            <select name="customerType" defaultValue="Firmen (B2B)">
+              <option>Firmen (B2B)</option>
+              <option>Öffentliche Auftraggeber</option>
+              <option>Privatkunden</option>
+              <option>Gemischt</option>
+            </select>
+          </Field>
+          <Field label="Bereits Factoring?">
+            <select name="currentFactoring" defaultValue="Nein">
+              <option>Nein</option>
+              <option>Ja, Wechsel gewünscht</option>
+            </select>
+          </Field>
+        </div>
+      );
     case "webseiten":
       return (
         <>
@@ -272,6 +337,7 @@ const LABELS: [string, string][] = [
   ["invoiceSize", "Durchschnittliche Rechnungshöhe"],
   ["paymentTerms", "Zahlungsziel"],
   ["customerType", "Kunden überwiegend"],
+  ["currentFactoring", "Bereits Factoring"],
   ["webType", "Art des Projekts"],
   ["currentSite", "Bestehende Website"],
   ["pages", "Seitenzahl"],
@@ -311,7 +377,7 @@ function subject(area: AreaKey, form: FormData) {
       ? [...list("standards"), String(form.get("otherStandard") ?? "")]
       : area === "personenzertifizierung"
         ? [...list("courses"), String(form.get("otherCourse") ?? "")]
-        : area === "arbeitsschutz"
+        : area === "arbeitsschutz" || area === "it-sicherheit"
           ? list("services")
           : area === "webseiten"
             ? [String(form.get("webType") ?? "")]

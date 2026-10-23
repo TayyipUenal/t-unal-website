@@ -7,6 +7,8 @@ export type AreaKey =
   | "personenzertifizierung"
   | "arbeitsschutz"
   | "arbeitssicherheit"
+  | "it-sicherheit"
+  | "factoring"
   | "webseiten";
 
 export type Area = { key: AreaKey; label: string; short: string; hint: string; noCommission?: boolean };
@@ -36,6 +38,18 @@ export const AREAS: Area[] = [
     short: "Sicherheitstechnische Grundbetreuung, ohne Provision",
     hint: "Für die Grundbetreuung in der Arbeitssicherheit gibt es keine Provision. Ihre vermittelten Kunden sehen Sie hier trotzdem.",
     noCommission: true,
+  },
+  {
+    key: "it-sicherheit",
+    label: "IT-Sicherheit",
+    short: "ISO 27001, NIS2, Datenschutz, Awareness",
+    hint: "Informationssicherheit, Datenschutz und IT-Schutz für Ihre Kunden.",
+  },
+  {
+    key: "factoring",
+    label: "Factoring",
+    short: "Liquidität durch Forderungsverkauf",
+    hint: "Factoring-Anfragen Ihrer Kunden und wie weit sie sind.",
   },
   {
     key: "webseiten",

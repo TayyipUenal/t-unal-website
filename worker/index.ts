@@ -243,7 +243,7 @@ const publicPartner = (p: Partner) => ({
 
 const STATUSES = ["new", "contacted", "offer", "won", "lost"];
 /** The two areas partners refer customers to. Empty = not assigned yet. */
-const CATEGORIES = ["", "zertifizierung", "personenzertifizierung", "arbeitsschutz", "arbeitssicherheit", "webseiten"];
+const CATEGORIES = ["", "zertifizierung", "personenzertifizierung", "arbeitsschutz", "arbeitssicherheit", "it-sicherheit", "factoring", "webseiten"];
 const MAX_FILE_BYTES = 1_800_000;
 const ALLOWED_MIME = [
   "application/pdf",

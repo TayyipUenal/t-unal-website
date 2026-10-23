@@ -234,7 +234,7 @@ const privacySections: LegalSection[] = [
           E-Mail-Adresse, Unternehmen, Telefonnummer und Ihre Nachricht, um die
           Bewerbung zu prüfen. Nach der Freigabe erhalten Sie einen Zugang zum
           Partnerportal. Dafür speichern wir zusätzlich Ihr Passwort
-          ausschließlich als verschlüsselten Hash, Ihren Prozentsatz, den Text
+          ausschließlich als verschlüsselten Hash, Ihren Prozentsatz sowie
           die Ihnen zugeordneten Kunden, Provisionen
           und Auszahlungen. Rechtsgrundlage ist die Anbahnung und Durchführung
           der Partnerschaft gemäß Art. 6 Abs. 1 lit. b DSGVO.

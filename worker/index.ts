@@ -31,7 +31,9 @@ export interface Env {
   RESEND_API_KEY?: string;
 }
 
-const MAIL_FROM = "Tayyip Ünal <t.uenal@united-certification.de>";
+const MAIL_FROM = "Tayyip Ünal <info@tayyipuenal.de>";
+/** Partner replies go to info@ (forwarded to t.uenal@united-certification.de); notifications go straight to the owner. */
+const MAIL_REPLY_TO = "info@tayyipuenal.de";
 const MAIL_OWNER = "t.uenal@united-certification.de";
 
 /** Sends a plain-text mail through Resend. Without a key (or on any error) it returns false and the caller falls back to the visible link. */
@@ -41,7 +43,7 @@ async function sendMail(env: Env, to: string, subject: string, text: string): Pr
     const response = await fetch("https://api.resend.com/emails", {
       method: "POST",
       headers: { authorization: `Bearer ${env.RESEND_API_KEY}`, "content-type": "application/json" },
-      body: JSON.stringify({ from: MAIL_FROM, to: [to], reply_to: MAIL_OWNER, subject, text }),
+      body: JSON.stringify({ from: MAIL_FROM, to: [to], reply_to: MAIL_REPLY_TO, subject, text }),
     });
     if (!response.ok) console.error("mail failed", response.status, await response.text());
     return response.ok;

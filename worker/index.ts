@@ -60,7 +60,7 @@ function mailHtml(content: MailContent) {
   const gold = "#c9a45e";
   const rows = (content.rows ?? [])
     .map(
-      ([label, value]) => `<tr>
+      ([label, value]) => `<tr class="tu-row">
         <td style="padding:10px 0;border-bottom:1px solid #2a2a2a;color:#8d877b;font-size:12px;letter-spacing:.08em;text-transform:uppercase;vertical-align:top;width:38%">${escapeHtml(label)}</td>
         <td style="padding:10px 0;border-bottom:1px solid #2a2a2a;color:#f5f2ec;font-size:15px;line-height:1.5;vertical-align:top">${
           /^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(value)
@@ -71,30 +71,22 @@ function mailHtml(content: MailContent) {
     )
     .join("");
   return `<!doctype html>
-<html lang="de"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1"><meta name="color-scheme" content="dark light"><meta name="format-detection" content="telephone=no,email=no,address=no,date=no"><style>a[x-apple-data-detectors],u + #body a,#MessageViewBody a{color:inherit!important;text-decoration:none!important}</style><title>${escapeHtml(content.title)}</title></head>
+<html lang="de"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1"><meta name="color-scheme" content="dark light"><meta name="format-detection" content="telephone=no,email=no,address=no,date=no"><style>a[x-apple-data-detectors],u + #body a,#MessageViewBody a{color:inherit!important;text-decoration:none!important}@keyframes tu-rise{from{opacity:0;transform:translateY(14px)}to{opacity:1;transform:none}}@keyframes tu-glow{0%,100%{box-shadow:0 0 0 rgba(201,164,94,0)}50%{box-shadow:0 0 22px rgba(201,164,94,.55)}}.tu-card{animation:tu-rise .9s ease both}.tu-row{animation:tu-rise .7s ease both}.tu-cta{animation:tu-glow 2.6s ease-in-out 1s infinite}@media (prefers-reduced-motion:reduce){.tu-card,.tu-row,.tu-cta{animation:none!important}}</style><title>${escapeHtml(content.title)}</title></head>
 <body id="body" style="margin:0;padding:0;background:#0e0e0e;font-family:Segoe UI,Helvetica,Arial,sans-serif">
 <table role="presentation" width="100%" cellpadding="0" cellspacing="0" bgcolor="#0e0e0e" style="background:#0e0e0e"><tr><td align="center" style="padding:32px 16px">
   <table role="presentation" width="600" cellpadding="0" cellspacing="0" style="width:100%;max-width:600px">
-    <tr><td style="padding:0 0 24px">
-      <table role="presentation" cellpadding="0" cellspacing="0"><tr>
-        <td style="width:44px;height:44px;border:1px solid ${gold};border-radius:22px;text-align:center;vertical-align:middle;color:${gold};font-weight:700;font-size:15px">TÜ</td>
-        <td style="padding-left:14px">
-          <div style="color:${gold};font-size:16px;font-weight:700;letter-spacing:.18em">TAYYİP ÜNAL</div>
-          <div style="color:#8d877b;font-size:10px;letter-spacing:.2em">AUDIT · ZERTIFIZIERUNG · SCHULUNG</div>
-        </td>
-      </tr></table>
-    </td></tr>
+    <tr><td style="padding:0 0 18px;line-height:0;font-size:0"><img src="${SITE}/mail/header.gif" width="600" height="100" alt="Tayyip Ünal · Audit · Zertifizierung · Schulung" style="display:block;width:100%;max-width:600px;height:auto;border:0;color:#c9a45e;font-size:16px"></td></tr>
     <tr><td style="line-height:0;font-size:0"><img src="${SITE}/mail/gold-line.gif" width="600" height="8" alt="" style="display:block;width:100%;max-width:600px;height:8px;border:0"></td></tr>
-    <tr><td bgcolor="#181818" style="background:#181818;border:1px solid #2a2a2a;border-top:0;padding:36px 32px">
+    <tr><td class="tu-card" bgcolor="#181818" style="background:#181818;border:1px solid #2a2a2a;border-top:0;padding:36px 32px">
       <div style="color:${gold};font-size:11px;font-weight:700;letter-spacing:.22em;text-transform:uppercase">${escapeHtml(content.eyebrow)}</div>
       <h1 style="margin:12px 0 0;color:#f5f2ec;font-size:28px;line-height:1.2;font-weight:800;letter-spacing:-.01em">${escapeHtml(content.title)}</h1>
       ${content.intro ? `<p style="margin:16px 0 0;color:#bdb7ab;font-size:15px;line-height:1.6">${escapeHtml(content.intro).replace(/\n/g, "<br>")}</p>` : ""}
       ${rows ? `<table role="presentation" width="100%" cellpadding="0" cellspacing="0" style="margin-top:24px;border-top:1px solid #2a2a2a">${rows}</table>` : ""}
-      ${content.body ? `<table role="presentation" width="100%" cellpadding="0" cellspacing="0" style="margin-top:24px"><tr><td bgcolor="#121212" style="background:#121212;border-left:3px solid ${gold};padding:16px 18px;color:#f5f2ec;font-size:15px;line-height:1.6">${escapeHtml(content.body).replace(/\n/g, "<br>")}</td></tr></table>` : ""}
+      ${content.body ? `<table role="presentation" width="100%" cellpadding="0" cellspacing="0" style="margin-top:24px"><tr><td bgcolor="#121212" style="background:#121212;border-radius:8px;padding:16px 18px;color:#f5f2ec;font-size:15px;line-height:1.6">${escapeHtml(content.body).replace(/\n/g, "<br>")}</td></tr></table>` : ""}
       ${
         content.cta
-          ? `<table role="presentation" cellpadding="0" cellspacing="0" style="margin-top:28px"><tr><td bgcolor="${gold}" style="background:${gold};border-radius:6px;padding:14px 26px">
-          <a href="${escapeHtml(content.cta.url)}" style="color:#17140f;font-size:15px;font-weight:700;text-decoration:none">${escapeHtml(content.cta.label)} &rarr;</a>
+          ? `<table role="presentation" cellpadding="0" cellspacing="0" style="margin-top:28px"><tr><td bgcolor="${gold}" style="background:${gold};border-radius:6px">
+          <a class="tu-cta" href="${escapeHtml(content.cta.url)}" style="display:inline-block;border:solid ${gold};border-width:14px 28px;border-radius:6px;background:${gold};color:#17140f;font-size:15px;font-weight:700;line-height:18px;text-decoration:none">${escapeHtml(content.cta.label)} &rarr;</a>
         </td></tr></table>`
           : ""
       }

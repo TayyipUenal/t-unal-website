@@ -38,7 +38,10 @@ const MAIL_OWNER = "t.uenal@united-certification.de";
 
 /** Sends a plain-text mail through Resend. Without a key (or on any error) it returns false and the caller falls back to the visible link. */
 async function sendMail(env: Env, to: string, subject: string, text: string): Promise<boolean> {
-  if (!env.RESEND_API_KEY) return false;
+  if (!env.RESEND_API_KEY) {
+    console.warn("mail skipped: RESEND_API_KEY missing");
+    return false;
+  }
   try {
     const response = await fetch("https://api.resend.com/emails", {
       method: "POST",
@@ -46,6 +49,7 @@ async function sendMail(env: Env, to: string, subject: string, text: string): Pr
       body: JSON.stringify({ from: MAIL_FROM, to: [to], reply_to: MAIL_REPLY_TO, subject, text }),
     });
     if (!response.ok) console.error("mail failed", response.status, await response.text());
+    else console.log("mail sent", response.status);
     return response.ok;
   } catch (error) {
     console.error("mail error", error);

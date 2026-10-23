@@ -899,9 +899,23 @@ function RightsTab({
         <p className="pt-hint">
           Als Superadmin haben nur Sie alle Rechte. Hier legen Sie fest, was Mitarbeiter bearbeiten dürfen und was jeder Partner im Portal sehen und tun darf.
         </p>
-        <button type="button" className="button button-primary" onClick={() => setCreating((value) => !value)}>
-          <Plus size={16} aria-hidden="true" /> Mitarbeiter anlegen
-        </button>
+<div className="pt-link-actions">
+          <button type="button" className="button button-primary" onClick={() => setCreating((value) => !value)}>
+            <Plus size={16} aria-hidden="true" /> Mitarbeiter anlegen
+          </button>
+          <button
+            type="button"
+            className="button button-light"
+            onClick={() =>
+              run(async () => {
+                await api("/api/admin/mail-preview", {});
+                window.alert("Zwei Beispiel-Mails (Einladung und Angebot bereit) sind an Ihre Adresse unterwegs.");
+              })
+            }
+          >
+            Beispiel-Mails an mich senden
+          </button>
+        </div>
         {creating && (
           <form className="pt-form" onSubmit={createStaff}>
             <Field label="Name *">

@@ -866,6 +866,25 @@ async function handle(request: Request, env: Env): Promise<Response> {
     return json({ ok: true, inviteUrl: link, mailed: await inviteMail(env, email, name, link, "Mitarbeiter-Zugang") });
   }
 
+  /** Sends one sample of every mail a partner can receive to the superadmin, to check the look. */
+  if (path === "/api/admin/mail-preview" && method === "POST") {
+    if (!isSuper) return denied();
+    const results = await Promise.all([
+      inviteMail(env, user.email, "Max Mustermann", `${PORTAL_URL}/aktivieren?token=beispiel`, "Partnerportal"),
+      sendMail(env, user.email, "Angebot für Muster GmbH liegt bereit", {
+        eyebrow: "Neues Angebot",
+        title: "Ihr Angebot liegt bereit",
+        intro: "Guten Tag Max Mustermann, für Ihren Kunden liegt jetzt das Angebot im Partnerportal. Sie können es dort ansehen und an den Kunden weitergeben.",
+        rows: [
+          ["Kunde", "Muster GmbH"],
+          ["Angebot", "Angebot ISO 9001 Erstzertifizierung"],
+        ],
+        cta: { label: "Angebot im Portal öffnen", url: PORTAL_URL },
+      }),
+    ]);
+    return results.every(Boolean) ? json({ ok: true }) : fail("Die Beispiel-Mails konnten nicht versendet werden.", 502);
+  }
+
   const userAction = path.match(/^\/api\/admin\/users\/(\d+)\/(permissions|invite|block)$/);
   if (userAction && method === "POST") {
     if (!isSuper) return denied();

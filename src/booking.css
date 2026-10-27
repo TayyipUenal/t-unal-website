@@ -1,0 +1,404 @@
+/* ---------- Appointment calendar in the hero ---------- */
+.hb {
+  position: relative;
+  z-index: 1;
+  display: grid;
+  width: 100%;
+  max-width: 500px;
+  margin-left: auto;
+  padding: clamp(20px, 2.4vw, 30px);
+  gap: 20px;
+  border: 1px solid var(--line);
+  border-radius: 18px;
+  background: var(--surface);
+  box-shadow: var(--shadow-lift);
+}
+
+.hb::before {
+  content: "";
+  position: absolute;
+  inset: 0;
+  z-index: -1;
+  border-radius: inherit;
+  padding: 1px;
+  background: linear-gradient(140deg, color-mix(in srgb, var(--gold) 70%, transparent), transparent 42%, transparent 70%, color-mix(in srgb, var(--gold) 40%, transparent));
+  -webkit-mask: linear-gradient(#000 0 0) content-box, linear-gradient(#000 0 0);
+  -webkit-mask-composite: xor;
+  mask-composite: exclude;
+  pointer-events: none;
+}
+
+.hb-head {
+  display: grid;
+  grid-template-columns: auto 1fr auto;
+  align-items: center;
+  gap: 14px;
+}
+
+.hb-icon {
+  display: grid;
+  width: 44px;
+  height: 44px;
+  place-items: center;
+  border-radius: 12px;
+  background: color-mix(in srgb, var(--gold) 14%, transparent);
+  color: var(--gold);
+}
+
+.hb-kicker {
+  margin: 0 0 2px;
+  color: var(--gold);
+  font-size: 0.72rem;
+  font-weight: 700;
+  letter-spacing: 0.18em;
+  text-transform: uppercase;
+}
+
+.hb h2 {
+  margin: 0;
+  color: var(--ink);
+  font-family: var(--font-display);
+  font-size: clamp(1.15rem, 1.5vw, 1.35rem);
+  font-weight: 700;
+  letter-spacing: -0.01em;
+}
+
+.hb-duration {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  padding: 6px 10px;
+  border: 1px solid var(--line);
+  border-radius: 999px;
+  color: var(--ink-soft);
+  font-size: 0.8rem;
+  white-space: nowrap;
+}
+
+.hb-body {
+  display: grid;
+  gap: 14px;
+}
+
+.hb-month {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  color: var(--ink);
+  font-weight: 600;
+}
+
+.hb-month button {
+  display: grid;
+  width: 34px;
+  height: 34px;
+  place-items: center;
+  border: 1px solid var(--line);
+  border-radius: 50%;
+  background: transparent;
+  color: var(--ink);
+  cursor: pointer;
+  transition: border-color 0.2s, color 0.2s;
+}
+
+.hb-month button:hover:not(:disabled) {
+  border-color: var(--gold);
+  color: var(--gold);
+}
+
+.hb-month button:disabled {
+  opacity: 0.3;
+  cursor: default;
+}
+
+.hb-days {
+  display: grid;
+  grid-template-columns: repeat(5, 1fr);
+  gap: 8px;
+}
+
+.hb-days button {
+  display: grid;
+  padding: 10px 4px 8px;
+  justify-items: center;
+  gap: 2px;
+  border: 1px solid var(--line);
+  border-radius: 12px;
+  background: transparent;
+  color: var(--ink);
+  cursor: pointer;
+  transition: border-color 0.2s, background 0.2s, transform 0.2s, color 0.2s;
+}
+
+.hb-days small {
+  color: var(--muted);
+  font-size: 0.72rem;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+}
+
+.hb-days strong {
+  font-family: var(--font-display);
+  font-size: 1.25rem;
+  font-weight: 700;
+}
+
+.hb-days i {
+  display: flex;
+  height: 5px;
+  gap: 3px;
+}
+
+.hb-days b {
+  width: 5px;
+  height: 5px;
+  border-radius: 50%;
+  background: var(--gold);
+}
+
+.hb-days button:hover:not(:disabled) {
+  border-color: var(--gold);
+  transform: translateY(-2px);
+}
+
+.hb-days button.is-active {
+  border-color: var(--gold);
+  background: var(--gold);
+  color: #17140f;
+}
+
+.hb-days button.is-active small {
+  color: #17140f;
+  opacity: 0.7;
+}
+
+.hb-days button.is-active b {
+  background: #17140f;
+}
+
+.hb-days button:disabled {
+  opacity: 0.35;
+  cursor: default;
+}
+
+.hb-label {
+  margin: 4px 0 0;
+  color: var(--ink-soft);
+  font-size: 0.85rem;
+}
+
+.hb-times {
+  display: grid;
+  min-height: 92px;
+  grid-template-columns: repeat(4, 1fr);
+  align-content: start;
+  gap: 8px;
+}
+
+.hb-times button {
+  padding: 9px 0;
+  border: 1px solid color-mix(in srgb, var(--gold) 45%, var(--line));
+  border-radius: 10px;
+  background: transparent;
+  color: var(--ink);
+  font-weight: 600;
+  font-variant-numeric: tabular-nums;
+  cursor: pointer;
+  transition: background 0.2s, color 0.2s, border-color 0.2s;
+}
+
+.hb-times button:hover,
+.hb-times button:focus-visible {
+  border-color: var(--gold);
+  background: var(--gold);
+  color: #17140f;
+}
+
+.hb-back {
+  display: inline-flex;
+  align-items: center;
+  justify-self: start;
+  gap: 8px;
+  padding: 0;
+  border: 0;
+  background: none;
+  color: var(--gold);
+  font-weight: 600;
+  cursor: pointer;
+}
+
+.hb-formats {
+  display: grid;
+  grid-template-columns: repeat(3, 1fr);
+  gap: 8px;
+}
+
+.hb-formats button {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 6px;
+  padding: 9px 6px;
+  border: 1px solid var(--line);
+  border-radius: 10px;
+  background: transparent;
+  color: var(--ink-soft);
+  font-size: 0.86rem;
+  font-weight: 600;
+  cursor: pointer;
+  transition: border-color 0.2s, color 0.2s, background 0.2s;
+}
+
+.hb-formats button.is-active {
+  border-color: var(--gold);
+  background: color-mix(in srgb, var(--gold) 12%, transparent);
+  color: var(--ink);
+}
+
+.hb-grid {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 8px;
+}
+
+.hb-grid input,
+.hb-grid select {
+  width: 100%;
+  min-width: 0;
+  padding: 11px 12px;
+  border: 1px solid var(--line);
+  border-radius: 10px;
+  background: var(--white);
+  color: var(--ink);
+  font: inherit;
+  font-size: 0.92rem;
+}
+
+.hb-grid input:focus,
+.hb-grid select:focus {
+  border-color: var(--gold);
+  outline: none;
+}
+
+.hb-trap {
+  position: absolute;
+  left: -9999px;
+}
+
+.hb-consent {
+  display: flex;
+  gap: 10px;
+  color: var(--ink-soft);
+  font-size: 0.8rem;
+  line-height: 1.45;
+}
+
+.hb-consent input {
+  margin-top: 2px;
+  accent-color: var(--gold);
+}
+
+.hb-consent a {
+  color: var(--gold);
+}
+
+.hb-error {
+  margin: 0;
+  color: #c0392b;
+  font-size: 0.86rem;
+}
+
+.hb-submit {
+  justify-content: center;
+  width: 100%;
+}
+
+.hb-done {
+  justify-items: center;
+  padding: 18px 0 6px;
+  text-align: center;
+}
+
+.hb-done svg {
+  width: 64px;
+  height: 64px;
+  fill: none;
+  stroke: var(--gold);
+  stroke-width: 2.5;
+  stroke-linecap: round;
+  stroke-linejoin: round;
+}
+
+.hb-done circle {
+  stroke-dasharray: 151;
+  stroke-dashoffset: 151;
+  animation: hb-draw 0.7s ease forwards;
+}
+
+.hb-done path {
+  stroke-dasharray: 36;
+  stroke-dashoffset: 36;
+  animation: hb-draw 0.45s 0.55s ease forwards;
+}
+
+@keyframes hb-draw {
+  to {
+    stroke-dashoffset: 0;
+  }
+}
+
+.hb-done h3 {
+  margin: 4px 0 0;
+  color: var(--ink);
+  font-family: var(--font-display);
+  font-size: 1.4rem;
+}
+
+.hb-done p {
+  margin: 0;
+  color: var(--ink);
+  font-weight: 600;
+}
+
+.hb-done .hb-hint {
+  color: var(--ink-soft);
+  font-weight: 400;
+  font-size: 0.88rem;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .hb-done circle,
+  .hb-done path {
+    animation: none;
+    stroke-dashoffset: 0;
+  }
+}
+
+@media (max-width: 980px) {
+  .hb {
+    max-width: none;
+    margin: 0;
+  }
+}
+
+@media (max-width: 480px) {
+  .hb-times {
+    grid-template-columns: repeat(3, 1fr);
+  }
+
+  .hb-grid {
+    grid-template-columns: 1fr;
+  }
+
+  .hb-days {
+    gap: 5px;
+  }
+
+  .hb-duration {
+    display: none;
+  }
+
+  .hb-head {
+    grid-template-columns: auto 1fr;
+  }
+}

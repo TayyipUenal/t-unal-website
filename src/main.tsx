@@ -28,6 +28,7 @@ import "./norm-check.css";
 import "./brand.css";
 import "./studio.css";
 import "./whatsapp.css";
+import "./booking.css";
 import "./nationwide.css";
 import "./portal/portal.css";
 

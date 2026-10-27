@@ -1,14 +1,13 @@
 import { ArrowDown, ArrowUpRight, Award, BadgeCheck, GraduationCap, HardHat } from "lucide-react";
 import { useEffect, useState } from "react";
 import { contact } from "../content";
-import { HeroScene } from "./HeroScene";
+import { HeroBooking } from "./HeroBooking";
 import { LinkedInIcon } from "./LinkedInIcon";
 import { WhatsAppIcon } from "./WhatsAppIcon";
 
 /**
- * Opening: a large statement on the left, the 3D monoliths on the right
- * (drawn by HeroScene on its own stage), the main action, social links and the
- * qualifications. Below, a photo band shows /photos/hero.jpg once that file
+ * Opening: a large statement on the left, the appointment calendar on the right,
+ * the main action, social links and the qualifications. Below, a photo band shows /photos/hero.jpg once that file
  * exists; until then a quiet index of the three standards takes its place.
  */
 export function Hero({ onConsultation }: { onConsultation: () => void }) {
@@ -57,9 +56,7 @@ export function Hero({ onConsultation }: { onConsultation: () => void }) {
           </div>
         </div>
 
-        <div className="hero-stage" aria-hidden="true">
-          <HeroScene />
-        </div>
+        <HeroBooking />
       </div>
 
       <div className="hero-meta">

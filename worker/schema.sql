@@ -98,3 +98,21 @@ CREATE TABLE IF NOT EXISTS files (
   created_at TEXT NOT NULL
 );
 CREATE INDEX IF NOT EXISTS files_lead ON files(lead_id);
+
+-- Appointments booked through the calendar on the homepage. slot is Berlin local time "YYYY-MM-DDTHH:MM";
+-- the unique index makes a slot bookable only once.
+CREATE TABLE IF NOT EXISTS bookings (
+  id INTEGER PRIMARY KEY AUTOINCREMENT,
+  slot TEXT NOT NULL,
+  lead_id INTEGER REFERENCES leads(id) ON DELETE SET NULL,
+  name TEXT NOT NULL,
+  company TEXT,
+  email TEXT NOT NULL,
+  phone TEXT,
+  format TEXT NOT NULL,
+  topic TEXT NOT NULL,
+  note TEXT,
+  status TEXT NOT NULL DEFAULT 'booked',         -- 'booked' | 'cancelled'
+  created_at TEXT NOT NULL
+);
+CREATE UNIQUE INDEX IF NOT EXISTS bookings_slot ON bookings(slot) WHERE status = 'booked';

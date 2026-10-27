@@ -162,7 +162,9 @@ function mailText(content: MailContent) {
 }
 
 /** Sends a branded mail through Resend. Without a key (or on any error) it returns false and the caller falls back to the visible link. */
-async function sendMail(env: Env, to: string, subject: string, content: MailContent): Promise<boolean> {
+type Attachment = { filename: string; content: string; content_type?: string };
+
+async function sendMail(env: Env, to: string, subject: string, content: MailContent, attachments?: Attachment[]): Promise<boolean> {
   if (!env.RESEND_API_KEY) {
     console.warn("mail skipped: RESEND_API_KEY missing");
     return false;
@@ -171,7 +173,7 @@ async function sendMail(env: Env, to: string, subject: string, content: MailCont
     const response = await fetch("https://api.resend.com/emails", {
       method: "POST",
       headers: { authorization: `Bearer ${env.RESEND_API_KEY}`, "content-type": "application/json" },
-      body: JSON.stringify({ from: MAIL_FROM, to: [to], reply_to: MAIL_REPLY_TO, subject, html: mailHtml(content), text: mailText(content) }),
+      body: JSON.stringify({ from: MAIL_FROM, to: [to], reply_to: MAIL_REPLY_TO, subject, html: mailHtml(content), text: mailText(content), attachments }),
     });
     if (!response.ok) console.error("mail failed", response.status, await response.text());
     else console.log("mail sent", response.status);
@@ -196,7 +198,7 @@ const inviteMail = (env: Env, to: string, name: string, link: string, what: stri
  * Tells the owner about something new (lead, application). Lines of the form "Label: Wert" become table rows,
  * everything else the message block.
  */
-const notifyOwner = (env: Env, subject: string, lines: (string | false | undefined)[]) => {
+const notifyOwner = (env: Env, subject: string, lines: (string | false | undefined)[], attachments?: Attachment[]) => {
   const rows: [string, string][] = [];
   const text: string[] = [];
   for (const line of lines) {
@@ -211,8 +213,79 @@ const notifyOwner = (env: Env, subject: string, lines: (string | false | undefin
     rows,
     body: text.join("\n") || undefined,
     cta: { label: "Im Portal ansehen", url: PORTAL_URL },
-  });
+  }, attachments);
 };
+
+/* ---------- appointments ---------- */
+
+/** Bookable times: Monday to Friday, 30 minutes each, at least 18 hours ahead and up to four weeks out. Keep in sync with src/booking.ts. */
+const BOOKING_TIMES = ["09:00", "09:30", "10:00", "10:30", "11:00", "11:30", "13:00", "13:30", "14:00", "14:30", "15:00", "15:30", "16:00", "16:30"];
+const BOOKING_MINUTES = 30;
+const BOOKING_FORMATS = ["Telefon", "Microsoft Teams", "Vor Ort"];
+
+/** "YYYY-MM-DDTHH:MM" in Berlin time for a moment. */
+function berlinStamp(date: Date) {
+  const part = Object.fromEntries(
+    new Intl.DateTimeFormat("en-CA", { timeZone: "Europe/Berlin", year: "numeric", month: "2-digit", day: "2-digit", hour: "2-digit", minute: "2-digit", hourCycle: "h23" })
+      .formatToParts(date)
+      .map((p) => [p.type, p.value]),
+  );
+  return `${part.year}-${part.month}-${part.day}T${part.hour}:${part.minute}`;
+}
+
+/** The UTC moment of a Berlin local "YYYY-MM-DDTHH:MM". */
+function berlinToUtc(slot: string) {
+  const guess = new Date(`${slot}:00Z`);
+  const shown = new Date(`${berlinStamp(guess)}:00Z`);
+  return new Date(guess.getTime() - (shown.getTime() - guess.getTime()));
+}
+
+function bookableSlot(slot: string) {
+  const match = slot.match(/^(\d{4}-\d{2}-\d{2})T(\d{2}:\d{2})$/);
+  if (!match || !BOOKING_TIMES.includes(match[2])) return false;
+  const weekday = new Date(`${match[1]}T12:00:00Z`).getUTCDay();
+  if (weekday === 0 || weekday === 6) return false;
+  const earliest = berlinStamp(new Date(Date.now() + 18 * 3600000));
+  const latest = berlinStamp(new Date(Date.now() + 29 * 86400000));
+  return slot >= earliest && slot <= latest;
+}
+
+const slotLabel = (slot: string) =>
+  `${new Intl.DateTimeFormat("de-DE", { weekday: "long", day: "numeric", month: "long", year: "numeric", timeZone: "UTC" }).format(new Date(`${slot.slice(0, 10)}T12:00:00Z`))}, ${slot.slice(11)} Uhr`;
+
+const icsStamp = (date: Date) => date.toISOString().replace(/[-:]/g, "").replace(/\.\d{3}/, "");
+const icsText = (value: string) => value.replace(/[\\;,]/g, (c) => `\\${c}`).replace(/\n/g, "\\n");
+
+/** Calendar entry (base64) so the appointment lands in Outlook, Google or Apple with one click. */
+function bookingIcs(id: number, slot: string, summary: string, description: string): Attachment {
+  const start = berlinToUtc(slot);
+  const end = new Date(start.getTime() + BOOKING_MINUTES * 60000);
+  const ics = [
+    "BEGIN:VCALENDAR",
+    "VERSION:2.0",
+    "PRODID:-//tayyipuenal.de//Termin//DE",
+    "METHOD:PUBLISH",
+    "BEGIN:VEVENT",
+    `UID:termin-${id}@tayyipuenal.de`,
+    `DTSTAMP:${icsStamp(new Date())}`,
+    `DTSTART:${icsStamp(start)}`,
+    `DTEND:${icsStamp(end)}`,
+    `SUMMARY:${icsText(summary)}`,
+    `DESCRIPTION:${icsText(description)}`,
+    "STATUS:CONFIRMED",
+    "BEGIN:VALARM",
+    "TRIGGER:-PT30M",
+    "ACTION:DISPLAY",
+    `DESCRIPTION:${icsText(summary)}`,
+    "END:VALARM",
+    "END:VEVENT",
+    "END:VCALENDAR",
+    "",
+  ].join("\r\n");
+  let binary = "";
+  new TextEncoder().encode(ics).forEach((b) => (binary += String.fromCharCode(b)));
+  return { filename: "termin.ics", content: btoa(binary), content_type: "text/calendar; charset=utf-8" };
+}
 
 type Partner = {
   id: number;
@@ -661,6 +734,81 @@ async function handle(request: Request, env: Env): Promise<Response> {
   }
 
   /** The site's own consultation and quote forms (same payload as the old PHP endpoint). */
+  /** Taken appointment slots, so the calendar on the homepage can hide them. */
+  if (path === "/api/booking/slots" && method === "GET") {
+    const rows = await env.DB.prepare("SELECT slot FROM bookings WHERE status = 'booked' AND slot >= ?")
+      .bind(berlinStamp(new Date()))
+      .all<{ slot: string }>();
+    return json({ ok: true, taken: rows.results.map((r) => r.slot) }, 200, { "cache-control": "no-store" });
+  }
+
+  if (path === "/api/booking" && method === "POST") {
+    if (!(await limit(env, request, "booking", 6, 3600))) return fail("Zu viele Anfragen. Bitte später erneut versuchen.", 429);
+    const data = await body();
+    if (clean(data.website, 100)) return json({ ok: true });
+    const slot = clean(data.slot, 16);
+    const name = clean(data.name, 120);
+    const email = clean(data.email, 200).toLowerCase();
+    const company = clean(data.company, 160);
+    const phone = clean(data.phone, 60);
+    const format = BOOKING_FORMATS.includes(clean(data.format, 40)) ? clean(data.format, 40) : BOOKING_FORMATS[0];
+    const topic = clean(data.topic, 80) || "Erstgespräch";
+    const note = clean(data.note, 1000);
+    if (!bookableSlot(slot)) return fail("Dieser Termin ist nicht mehr verfügbar. Bitte wählen Sie eine andere Zeit.", 409);
+    if (!name || !validEmail(email)) return fail("Bitte Namen und eine gültige E-Mail-Adresse angeben.");
+    if (format === "Telefon" && !phone) return fail("Bitte geben Sie für ein Telefonat Ihre Nummer an.");
+    if (data.consent !== true) return fail("Bitte stimmen Sie der Datenschutzerklärung zu.");
+    let bookingId: number;
+    try {
+      const result = await env.DB.prepare(
+        "INSERT INTO bookings (slot, name, company, email, phone, format, topic, note, created_at) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?)",
+      )
+        .bind(slot, name, company, email, phone, format, topic, note, now())
+        .run();
+      bookingId = Number(result.meta.last_row_id);
+    } catch {
+      return fail("Dieser Termin wurde gerade vergeben. Bitte wählen Sie eine andere Zeit.", 409);
+    }
+    const when = slotLabel(slot);
+    const lead = await env.DB.prepare(
+      `INSERT INTO leads (source, contact_name, company, email, phone, topic, message, consent_at, request_id, created_at, updated_at)
+       VALUES ('site', ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)`,
+    )
+      .bind(name, company, email, phone, `Termin: ${topic}`, [`Termin: ${when} (${format})`, note].filter(Boolean).join("\n"), now(), `booking-${bookingId}`, now(), now())
+      .run();
+    await env.DB.prepare("UPDATE bookings SET lead_id = ? WHERE id = ?").bind(Number(lead.meta.last_row_id), bookingId).run();
+    const details = [`Thema: ${topic}`, `Art: ${format}`, phone && `Telefon: ${phone}`, note && `Nachricht: ${note}`].filter(Boolean).join("\n");
+    await Promise.all([
+      notifyOwner(
+        env,
+        `Neuer Termin: ${when} mit ${name}`,
+        [`Termin: ${when}`, `Art: ${format}`, `Thema: ${topic}`, `Name: ${name}`, `Firma: ${company || "–"}`, `E-Mail: ${email}`, `Telefon: ${phone || "–"}`, "", note],
+        [bookingIcs(bookingId, slot, `${format}: ${name}${company ? ` (${company})` : ""}`, `${details}\nE-Mail: ${email}`)],
+      ),
+      sendMail(
+        env,
+        email,
+        `Ihr Termin am ${when}`,
+        {
+          eyebrow: "Termin bestätigt",
+          title: "Wir sprechen uns bald",
+          intro: `Guten Tag ${name}, vielen Dank für Ihre Buchung. Ihr Termin ist fest eingetragen. Im Anhang finden Sie ihn für Ihren Kalender.`,
+          rows: [["Termin", when], ["Dauer", `${BOOKING_MINUTES} Minuten`], ["Art", format], ["Thema", topic]],
+          body:
+            format === "Telefon"
+              ? "Ich rufe Sie zur vereinbarten Zeit unter Ihrer Nummer an."
+              : format === "Microsoft Teams"
+                ? "Den Teams-Link erhalten Sie vor dem Termin per E-Mail."
+                : "Die Adresse stimmen wir vorab kurz per E-Mail oder Telefon ab.",
+          note: "Sie können nicht? Antworten Sie einfach auf diese E-Mail oder schreiben Sie per WhatsApp, dann finden wir einen neuen Termin.",
+          promo: true,
+        },
+        [bookingIcs(bookingId, slot, "Termin mit Tayyip Ünal", details)],
+      ),
+    ]);
+    return json({ ok: true, when });
+  }
+
   if (path === "/api/inquiry.php") {
     if (method !== "POST") return fail("Nur POST erlaubt.", 405);
     if (!(await limit(env, request, "inquiry", 10, 3600))) return json({ ok: false, message: "Zu viele Anfragen. Bitte später erneut versuchen." }, 429);

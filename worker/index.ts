@@ -734,6 +734,32 @@ async function handle(request: Request, env: Env): Promise<Response> {
   }
 
   /** The site's own consultation and quote forms (same payload as the old PHP endpoint). */
+  /** Counts a page view of the public site. Bots are skipped; nothing is stored on the visitor's device. */
+  if (path === "/api/visit" && method === "POST") {
+    const agent = request.headers.get("user-agent") ?? "";
+    if (!agent || /bot|crawl|spider|slurp|headless|preview|monitor|lighthouse|python|curl|wget/i.test(agent)) return json({ ok: true });
+    // Signed-in portal users (you, your team, partners) do not count as visitors.
+    if (cookieValue(request, "tu_session")) return json({ ok: true });
+    if (!(await limit(env, request, "visit", 120, 3600))) return json({ ok: true });
+    const day = berlinStamp(new Date()).slice(0, 10);
+    await env.DB.prepare("INSERT OR IGNORE INTO visit_salts (day, salt) VALUES (?, ?)").bind(day, randomToken(16)).run();
+    const salt = await env.DB.prepare("SELECT salt FROM visit_salts WHERE day = ?").bind(day).first<{ salt: string }>();
+    const hash = await sha256(`${salt?.salt}|${request.headers.get("cf-connecting-ip") ?? ""}|${agent}`);
+    const fresh = await env.DB.prepare("INSERT OR IGNORE INTO visit_hashes (day, hash) VALUES (?, ?)").bind(day, hash).run();
+    await env.DB.prepare(
+      "INSERT INTO site_visits (day, visitors, views) VALUES (?, ?, 1) ON CONFLICT(day) DO UPDATE SET visitors = visitors + excluded.visitors, views = views + 1",
+    )
+      .bind(day, fresh.meta.changes ? 1 : 0)
+      .run();
+    if (fresh.meta.changes) {
+      await env.DB.batch([
+        env.DB.prepare("DELETE FROM visit_hashes WHERE day < ?").bind(day),
+        env.DB.prepare("DELETE FROM visit_salts WHERE day < ?").bind(day),
+      ]);
+    }
+    return json({ ok: true });
+  }
+
   /** Taken appointment slots, so the calendar on the homepage can hide them. */
   if (path === "/api/booking/slots" && method === "GET") {
     const rows = await env.DB.prepare("SELECT slot FROM bookings WHERE status = 'booked' AND slot >= ?")
@@ -1113,6 +1139,13 @@ async function handle(request: Request, env: Env): Promise<Response> {
     await env.DB.prepare("UPDATE partners SET status = 'blocked', updated_at = ? WHERE id = ?").bind(now(), id).run();
     await env.DB.prepare("DELETE FROM sessions WHERE partner_id = ?").bind(id).run();
     return json({ ok: true });
+  }
+
+  /** Daily visitor numbers for the key figures, superadmin only. */
+  if (path === "/api/admin/visits" && method === "GET") {
+    if (!isSuper) return denied();
+    const rows = await env.DB.prepare("SELECT day, visitors, views FROM site_visits ORDER BY day").all<{ day: string; visitors: number; views: number }>();
+    return json({ ok: true, today: berlinStamp(new Date()).slice(0, 10), days: rows.results });
   }
 
   if (path === "/api/admin/overview" && method === "GET") {

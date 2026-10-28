@@ -116,3 +116,20 @@ CREATE TABLE IF NOT EXISTS bookings (
   created_at TEXT NOT NULL
 );
 CREATE UNIQUE INDEX IF NOT EXISTS bookings_slot ON bookings(slot) WHERE status = 'booked';
+
+-- Visitor counts per day (Berlin date). No IP addresses are stored: a visitor is recognised for one day by a
+-- hash of IP, browser and a random salt that changes daily; hashes and salts of past days are deleted.
+CREATE TABLE IF NOT EXISTS site_visits (
+  day TEXT PRIMARY KEY,
+  visitors INTEGER NOT NULL DEFAULT 0,
+  views INTEGER NOT NULL DEFAULT 0
+);
+CREATE TABLE IF NOT EXISTS visit_salts (
+  day TEXT PRIMARY KEY,
+  salt TEXT NOT NULL
+);
+CREATE TABLE IF NOT EXISTS visit_hashes (
+  day TEXT NOT NULL,
+  hash TEXT NOT NULL,
+  PRIMARY KEY (day, hash)
+);

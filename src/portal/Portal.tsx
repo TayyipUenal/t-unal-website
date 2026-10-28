@@ -6,6 +6,7 @@ import { DownloadsAdmin, FileLinks, OfferUpload, PartnerDownloads } from "./File
 import { AREAS, areaHint, areaLabel, noCommission } from "./areas";
 import { PARTNER_PAGES } from "./features";
 import { Kpis } from "./Kpis";
+import { Visits } from "./Visits";
 import { RequestForm } from "./RequestForm";
 import { PartnerMonths } from "./PartnerMonths";
 import { PartnerTree } from "./Tree";
@@ -727,6 +728,8 @@ function AdminDashboard({ user }: { user: User }) {
       )}
 
       {tab === "rechte" && user.role === "admin" && data && <RightsTab data={data} run={run} setInvite={setInvite} />}
+
+      {tab === "kennzahlen" && user.role === "admin" && <Visits />}
 
       {tab === "kennzahlen" && mine.manageLeads && data && <Kpis leads={data.leads} />}
 

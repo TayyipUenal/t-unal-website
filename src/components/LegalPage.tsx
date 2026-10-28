@@ -300,6 +300,17 @@ const privacySections: LegalSection[] = [
           verwendet keine Tracking-Pixel.
         </p>
         <p>
+          Um zu wissen, wie viele Menschen die Website besuchen, zählen wir
+          Besuche ohne Cookies und ohne Speicherung in Ihrem Browser. Dazu
+          bildet unser Server aus IP-Adresse, Browserkennung und einem
+          täglich wechselnden Zufallswert eine nicht umkehrbare Prüfsumme, mit
+          der ein Besuch nur am selben Tag wiedererkannt wird. Die IP-Adresse
+          selbst wird nicht gespeichert; Prüfsummen und Zufallswerte löschen
+          wir am Folgetag. Übrig bleiben nur Tageszahlen ohne Personenbezug.
+          Rechtsgrundlage ist unser berechtigtes Interesse an einer
+          bedarfsgerechten Gestaltung der Website (Art. 6 Abs. 1 lit. f DSGVO).
+        </p>
+        <p>
           Wenn Sie sich im Partnerportal anmelden, setzen wir ein technisch
           notwendiges Sitzungs-Cookie („tu_session“), damit Sie angemeldet
           bleiben. Es enthält nur eine zufällige Kennung, ist für Skripte nicht

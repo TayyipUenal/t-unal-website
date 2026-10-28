@@ -45,5 +45,6 @@ else createRoot(root).render(app);
 
 // Visitor count for the public site (not the portal). Nothing is stored in the browser.
 if (!dynamic && !/^\/partner-werden/.test(window.location.pathname)) {
-  fetch("/api/visit", { method: "POST", headers: { "Content-Type": "application/json" }, body: "{}", keepalive: true }).catch(() => {});
+  const body = JSON.stringify({ path: window.location.pathname, ref: document.referrer, q: window.location.search });
+  fetch("/api/visit", { method: "POST", headers: { "Content-Type": "text/plain" }, body, keepalive: true }).catch(() => {});
 }

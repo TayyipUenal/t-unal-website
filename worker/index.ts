@@ -591,6 +591,163 @@ async function partnerLeadEvents(env: Env, p: Partner, leadId: number) {
   return rows.results.filter((e) => (e.kind === "status" ? can.seeStatus : e.kind === "paid" ? can.seeAmounts : true));
 }
 
+/* ---------- visitor statistics ---------- */
+
+/** Sites whose pages report visits here, recognised by the Origin header of the beacon. */
+const VISIT_SITES: Record<string, string> = {
+  "https://www.tayyipuenal.de": "tu",
+  "https://tayyipuenal.de": "tu",
+  "https://www.arbeitssicherheitscout.de": "asc",
+  "https://arbeitssicherheitscout.de": "asc",
+};
+const VISIT_BOTS = /bot|crawl|spider|slurp|headless|preview|monitor|lighthouse|python|curl|wget|facebookexternalhit|whatsapp|telegram|slack|discord/i;
+
+/** Today's random salt; a visitor can only be recognised within one day. */
+async function visitSalt(env: Env, day: string) {
+  await env.DB.prepare("INSERT OR IGNORE INTO visit_salts (day, salt) VALUES (?, ?)").bind(day, randomToken(16)).run();
+  return (await env.DB.prepare("SELECT salt FROM visit_salts WHERE day = ?").bind(day).first<{ salt: string }>())?.salt ?? "";
+}
+
+function visitDevice(agent: string) {
+  const device = /iPad|Tablet|Android(?!.*Mobile)/i.test(agent) ? "Tablet" : /Mobi|iPhone|Android/i.test(agent) ? "Mobil" : "Desktop";
+  const browser = /Edg\//.test(agent)
+    ? "Edge"
+    : /OPR\/|Opera/.test(agent)
+      ? "Opera"
+      : /SamsungBrowser/.test(agent)
+        ? "Samsung Internet"
+        : /Firefox|FxiOS/.test(agent)
+          ? "Firefox"
+          : /Chrome|CriOS/.test(agent)
+            ? "Chrome"
+            : /Safari/.test(agent)
+              ? "Safari"
+              : "Andere";
+  const os = /Windows/.test(agent)
+    ? "Windows"
+    : /iPhone|iPad|iPod/.test(agent)
+      ? "iOS"
+      : /Android/.test(agent)
+        ? "Android"
+        : /Mac OS X|Macintosh/.test(agent)
+          ? "macOS"
+          : /Linux|CrOS/.test(agent)
+            ? "Linux"
+            : "Andere";
+  return { device, browser, os };
+}
+
+/** Where a visitor came from: campaign parameter first, then the referring site. */
+function visitSource(referrer: string, query: string, ownHost: string) {
+  const utm = new URLSearchParams(query).get("utm_source");
+  if (utm) return utm.slice(0, 40);
+  let host = "";
+  try {
+    host = new URL(referrer).hostname.replace(/^www\./, "");
+  } catch {
+    return "Direkt";
+  }
+  if (!host || host === ownHost.replace(/^www\./, "")) return "Direkt";
+  const known: [RegExp, string][] = [
+    [/google\./, "Google"],
+    [/bing\./, "Bing"],
+    [/duckduckgo\./, "DuckDuckGo"],
+    [/ecosia\./, "Ecosia"],
+    [/yahoo\./, "Yahoo"],
+    [/linkedin\.|lnkd\.in/, "LinkedIn"],
+    [/facebook\.|fb\.me/, "Facebook"],
+    [/instagram\./, "Instagram"],
+    [/whatsapp\./, "WhatsApp"],
+    [/provenexpert\./, "ProvenExpert"],
+    [/chatgpt\.|openai\./, "ChatGPT"],
+    [/tayyipuenal\.de/, "tayyipuenal.de"],
+    [/arbeitssicherheitscout\.de/, "arbeitssicherheitscout.de"],
+  ];
+  return known.find(([pattern]) => pattern.test(host))?.[1] ?? host.slice(0, 60);
+}
+
+/** Records a page view. One row per visitor and day; IP addresses are never stored. */
+async function recordVisit(request: Request, env: Env, site: string) {
+  const agent = request.headers.get("user-agent") ?? "";
+  if (!agent || VISIT_BOTS.test(agent)) return;
+  if (site === "tu" && cookieValue(request, "tu_session")) return; // signed-in portal users
+  if (!(await limit(env, request, "visit", 300, 3600))) return;
+  let data: Record<string, unknown> = {};
+  try {
+    data = JSON.parse(await request.text());
+  } catch {
+    /* empty beacon */
+  }
+  const day = berlinStamp(new Date()).slice(0, 10);
+  const salt = await visitSalt(env, day);
+  const ip = request.headers.get("cf-connecting-ip") ?? "";
+  const ipHash = await sha256(`${salt}|${ip}`);
+  if (await env.DB.prepare("SELECT 1 FROM owner_ips WHERE day = ? AND ip_hash = ?").bind(day, ipHash).first()) return;
+  const hash = await sha256(`${salt}|${site}|${ip}|${agent}`);
+  const pagePath = clean(data.path, 200) || "/";
+  const stamp = now();
+  const existing = await env.DB.prepare("SELECT id, pages FROM visits WHERE site = ? AND day = ? AND hash = ?").bind(site, day, hash).first<{ id: number; pages: string }>();
+  if (existing) {
+    const pages: string[] = JSON.parse(existing.pages || "[]");
+    if (pages[pages.length - 1] !== pagePath && pages.length < 40) pages.push(pagePath);
+    await env.DB.prepare("UPDATE visits SET views = views + 1, last_at = ?, exit_path = ?, pages = ? WHERE id = ?")
+      .bind(stamp, pagePath, JSON.stringify(pages), existing.id)
+      .run();
+    return;
+  }
+  const cf = (request as Request & { cf?: { city?: string; region?: string; country?: string } }).cf ?? {};
+  const origin = request.headers.get("origin") ?? "";
+  const { device, browser, os } = visitDevice(agent);
+  await env.DB.prepare(
+    `INSERT OR IGNORE INTO visits (site, day, hash, ip_hash, started_at, last_at, views, landing, exit_path, pages, source, referrer, city, region, country, device, browser, os)
+     VALUES (?, ?, ?, ?, ?, ?, 1, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)`,
+  )
+    .bind(
+      site,
+      day,
+      hash,
+      ipHash,
+      stamp,
+      stamp,
+      pagePath,
+      pagePath,
+      JSON.stringify([pagePath]),
+      visitSource(clean(data.ref, 500), clean(data.q, 300), origin ? new URL(origin).hostname : new URL(request.url).hostname),
+      (() => {
+        try {
+          return new URL(clean(data.ref, 500)).hostname;
+        } catch {
+          return "";
+        }
+      })(),
+      cf.city ?? "",
+      cf.region ?? "",
+      cf.country ?? "",
+      device,
+      browser,
+      os,
+    )
+    .run();
+  // Once a day: make older visits unlinkable and drop data older than 13 months.
+  const swept = await env.DB.prepare("SELECT 1 FROM visits WHERE day < ? AND hash IS NOT NULL LIMIT 1").bind(day).first();
+  if (swept) {
+    await env.DB.batch([
+      env.DB.prepare("UPDATE visits SET hash = NULL, ip_hash = NULL WHERE day < ?").bind(day),
+      env.DB.prepare("DELETE FROM visit_salts WHERE day < ?").bind(day),
+      env.DB.prepare("DELETE FROM owner_ips WHERE day < ?").bind(day),
+      env.DB.prepare("DELETE FROM visits WHERE day < date(?, '-400 days')").bind(day),
+    ]);
+  }
+}
+
+/** Your own internet connection does not count: called whenever the admin team opens the portal; also removes today's visits from it. */
+async function markOwnerIp(request: Request, env: Env) {
+  const day = berlinStamp(new Date()).slice(0, 10);
+  const ipHash = await sha256(`${await visitSalt(env, day)}|${request.headers.get("cf-connecting-ip") ?? ""}`);
+  const added = await env.DB.prepare("INSERT OR IGNORE INTO owner_ips (day, ip_hash) VALUES (?, ?)").bind(day, ipHash).run();
+  if (added.meta.changes) await env.DB.prepare("DELETE FROM visits WHERE day = ? AND ip_hash = ?").bind(day, ipHash).run();
+}
+
 /* ---------- routes ---------- */
 
 async function handle(request: Request, env: Env): Promise<Response> {
@@ -733,33 +890,6 @@ async function handle(request: Request, env: Env): Promise<Response> {
     return json({ ok: true, partner: { name: row.name, company: row.company, bio: row.bio, slug: row.slug } });
   }
 
-  /** The site's own consultation and quote forms (same payload as the old PHP endpoint). */
-  /** Counts a page view of the public site. Bots are skipped; nothing is stored on the visitor's device. */
-  if (path === "/api/visit" && method === "POST") {
-    const agent = request.headers.get("user-agent") ?? "";
-    if (!agent || /bot|crawl|spider|slurp|headless|preview|monitor|lighthouse|python|curl|wget/i.test(agent)) return json({ ok: true });
-    // Signed-in portal users (you, your team, partners) do not count as visitors.
-    if (cookieValue(request, "tu_session")) return json({ ok: true });
-    if (!(await limit(env, request, "visit", 120, 3600))) return json({ ok: true });
-    const day = berlinStamp(new Date()).slice(0, 10);
-    await env.DB.prepare("INSERT OR IGNORE INTO visit_salts (day, salt) VALUES (?, ?)").bind(day, randomToken(16)).run();
-    const salt = await env.DB.prepare("SELECT salt FROM visit_salts WHERE day = ?").bind(day).first<{ salt: string }>();
-    const hash = await sha256(`${salt?.salt}|${request.headers.get("cf-connecting-ip") ?? ""}|${agent}`);
-    const fresh = await env.DB.prepare("INSERT OR IGNORE INTO visit_hashes (day, hash) VALUES (?, ?)").bind(day, hash).run();
-    await env.DB.prepare(
-      "INSERT INTO site_visits (day, visitors, views) VALUES (?, ?, 1) ON CONFLICT(day) DO UPDATE SET visitors = visitors + excluded.visitors, views = views + 1",
-    )
-      .bind(day, fresh.meta.changes ? 1 : 0)
-      .run();
-    if (fresh.meta.changes) {
-      await env.DB.batch([
-        env.DB.prepare("DELETE FROM visit_hashes WHERE day < ?").bind(day),
-        env.DB.prepare("DELETE FROM visit_salts WHERE day < ?").bind(day),
-      ]);
-    }
-    return json({ ok: true });
-  }
-
   /** Taken appointment slots, so the calendar on the homepage can hide them. */
   if (path === "/api/booking/slots" && method === "GET") {
     const rows = await env.DB.prepare("SELECT slot FROM bookings WHERE status = 'booked' AND slot >= ?")
@@ -835,6 +965,7 @@ async function handle(request: Request, env: Env): Promise<Response> {
     return json({ ok: true, when });
   }
 
+  /** The site's own consultation and quote forms (same payload as the old PHP endpoint). */
   if (path === "/api/inquiry.php") {
     if (method !== "POST") return fail("Nur POST erlaubt.", 405);
     if (!(await limit(env, request, "inquiry", 10, 3600))) return json({ ok: false, message: "Zu viele Anfragen. Bitte später erneut versuchen." }, 429);
@@ -928,7 +1059,10 @@ async function handle(request: Request, env: Env): Promise<Response> {
   const user = await currentUser(request, env);
   if (!user) return fail("Bitte anmelden.", 401);
 
-  if (path === "/api/me" && method === "GET") return json({ ok: true, user: publicPartner(user) });
+  if (path === "/api/me" && method === "GET") {
+    if (user.role !== "partner") await markOwnerIp(request, env);
+    return json({ ok: true, user: publicPartner(user) });
+  }
 
   /** Download a file. Partners get downloads and the offers of their own customers; staff need a matching right. */
   const fileGet = path.match(/^\/api\/files\/(\d+)$/);
@@ -1141,11 +1275,23 @@ async function handle(request: Request, env: Env): Promise<Response> {
     return json({ ok: true });
   }
 
-  /** Daily visitor numbers for the key figures, superadmin only. */
+  /** Visitor statistics of one site, superadmin only. Every visit of the chosen range, newest first; the page groups and sums them. */
   if (path === "/api/admin/visits" && method === "GET") {
     if (!isSuper) return denied();
-    const rows = await env.DB.prepare("SELECT day, visitors, views FROM site_visits ORDER BY day").all<{ day: string; visitors: number; views: number }>();
-    return json({ ok: true, today: berlinStamp(new Date()).slice(0, 10), days: rows.results });
+    await markOwnerIp(request, env);
+    const site = url.searchParams.get("site") === "asc" ? "asc" : "tu";
+    const days = Math.min(400, Math.max(1, Number(url.searchParams.get("days")) || 30));
+    const today = berlinStamp(new Date()).slice(0, 10);
+    const [rows, totals] = await Promise.all([
+      env.DB.prepare(
+        `SELECT id, day, started_at, last_at, views, landing, exit_path, pages, source, referrer, city, region, country, device, browser, os
+         FROM visits WHERE site = ? AND day >= date(?, ?) ORDER BY started_at DESC LIMIT 5000`,
+      )
+        .bind(site, today, `-${days - 1} days`)
+        .all(),
+      env.DB.prepare("SELECT COUNT(*) AS visitors, COALESCE(SUM(views), 0) AS views, MIN(day) AS since FROM visits WHERE site = ?").bind(site).first(),
+    ]);
+    return json({ ok: true, site, today, days, visits: rows.results, totals });
   }
 
   if (path === "/api/admin/overview" && method === "GET") {
@@ -1461,6 +1607,21 @@ export default {
   async fetch(request: Request, env: Env): Promise<Response> {
     const url = new URL(request.url);
     if (!url.pathname.startsWith("/api/")) return env.ASSETS.fetch(request);
+    // Visit beacon, also called from other sites of yours (see VISIT_SITES), so it answers with CORS headers.
+    if (url.pathname === "/api/visit") {
+      const origin = request.headers.get("origin") ?? "";
+      const site = VISIT_SITES[origin];
+      const cors: Record<string, string> = site ? { "access-control-allow-origin": origin, "access-control-allow-methods": "POST", "access-control-allow-headers": "content-type", vary: "origin" } : {};
+      if (request.method === "OPTIONS") return new Response(null, { status: 204, headers: cors });
+      if (request.method === "POST" && site) {
+        try {
+          await recordVisit(request, env, site);
+        } catch (error) {
+          console.error("visit error", error);
+        }
+      }
+      return new Response(null, { status: 204, headers: cors });
+    }
     try {
       return await handle(request, env);
     } catch (error) {

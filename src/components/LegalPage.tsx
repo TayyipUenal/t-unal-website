@@ -300,14 +300,19 @@ const privacySections: LegalSection[] = [
           verwendet keine Tracking-Pixel.
         </p>
         <p>
-          Um zu wissen, wie viele Menschen die Website besuchen, zählen wir
-          Besuche ohne Cookies und ohne Speicherung in Ihrem Browser. Dazu
-          bildet unser Server aus IP-Adresse, Browserkennung und einem
-          täglich wechselnden Zufallswert eine nicht umkehrbare Prüfsumme, mit
-          der ein Besuch nur am selben Tag wiedererkannt wird. Die IP-Adresse
-          selbst wird nicht gespeichert; Prüfsummen und Zufallswerte löschen
-          wir am Folgetag. Übrig bleiben nur Tageszahlen ohne Personenbezug.
-          Rechtsgrundlage ist unser berechtigtes Interesse an einer
+          Um zu wissen, wie viele Menschen die Website besuchen und was sie
+          interessiert, erstellen wir eine Besucherstatistik ohne Cookies und
+          ohne Speicherung in Ihrem Browser. Erfasst werden die aufgerufenen
+          Seiten, die verweisende Website (z. B. eine Suchmaschine), Gerätetyp,
+          Browser und Betriebssystem sowie der ungefähre Ort (Stadt, Region,
+          Land), den unser Hosting-Anbieter Cloudflare aus der IP-Adresse
+          ableitet. Die IP-Adresse selbst wird nicht gespeichert. Damit
+          mehrere Seitenaufrufe am selben Tag als ein Besuch zählen, bildet
+          unser Server aus IP-Adresse, Browserkennung und einem täglich
+          wechselnden Zufallswert eine nicht umkehrbare Prüfsumme; Prüfsumme
+          und Zufallswert werden am Folgetag gelöscht, danach lässt sich ein
+          Besuch niemandem mehr zuordnen. Die Statistik bewahren wir 13 Monate
+          auf. Rechtsgrundlage ist unser berechtigtes Interesse an einer
           bedarfsgerechten Gestaltung der Website (Art. 6 Abs. 1 lit. f DSGVO).
         </p>
         <p>

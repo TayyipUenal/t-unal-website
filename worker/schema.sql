@@ -117,19 +117,39 @@ CREATE TABLE IF NOT EXISTS bookings (
 );
 CREATE UNIQUE INDEX IF NOT EXISTS bookings_slot ON bookings(slot) WHERE status = 'booked';
 
--- Visitor counts per day (Berlin date). No IP addresses are stored: a visitor is recognised for one day by a
--- hash of IP, browser and a random salt that changes daily; hashes and salts of past days are deleted.
-CREATE TABLE IF NOT EXISTS site_visits (
-  day TEXT PRIMARY KEY,
-  visitors INTEGER NOT NULL DEFAULT 0,
-  views INTEGER NOT NULL DEFAULT 0
+-- Website visits (one row per visitor and day, for tayyipuenal.de and arbeitssicherheitscout.de). IP addresses are
+-- never stored: hash and ip_hash come from IP, browser and a salt that changes daily, and are cleared the next day,
+-- after which a row cannot be linked to anyone. Location is the city Cloudflare derives from the IP. Kept 13 months.
+CREATE TABLE IF NOT EXISTS visits (
+  id INTEGER PRIMARY KEY AUTOINCREMENT,
+  site TEXT NOT NULL,                            -- 'tu' | 'asc'
+  day TEXT NOT NULL,                             -- Berlin date
+  hash TEXT,
+  ip_hash TEXT,
+  started_at TEXT NOT NULL,
+  last_at TEXT NOT NULL,
+  views INTEGER NOT NULL DEFAULT 1,
+  landing TEXT,
+  exit_path TEXT,
+  pages TEXT,                                    -- JSON list of paths in order
+  source TEXT,
+  referrer TEXT,
+  city TEXT,
+  region TEXT,
+  country TEXT,
+  device TEXT,
+  browser TEXT,
+  os TEXT
 );
+CREATE UNIQUE INDEX IF NOT EXISTS visits_hash ON visits(site, day, hash);
+CREATE INDEX IF NOT EXISTS visits_site_day ON visits(site, day);
 CREATE TABLE IF NOT EXISTS visit_salts (
   day TEXT PRIMARY KEY,
   salt TEXT NOT NULL
 );
-CREATE TABLE IF NOT EXISTS visit_hashes (
+-- Connections of the admin team today, so their own visits do not count.
+CREATE TABLE IF NOT EXISTS owner_ips (
   day TEXT NOT NULL,
-  hash TEXT NOT NULL,
-  PRIMARY KEY (day, hash)
+  ip_hash TEXT NOT NULL,
+  PRIMARY KEY (day, ip_hash)
 );

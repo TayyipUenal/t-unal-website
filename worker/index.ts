@@ -1869,6 +1869,8 @@ async function handle(request: Request, env: Env): Promise<Response> {
 export default {
   async fetch(request: Request, env: Env): Promise<Response> {
     const url = new URL(request.url);
+    // QR code on the pens points to /k (short, so the code stays tiny); the source shows up in the visitor stats.
+    if (url.pathname.toLowerCase() === "/k") return Response.redirect(`${SITE}/?utm_source=Kugelschreiber`, 302);
     if (!url.pathname.startsWith("/api/")) return env.ASSETS.fetch(request);
     // Visit beacon, also called from other sites of yours (see VISIT_SITES), so it answers with CORS headers.
     if (url.pathname === "/api/visit") {

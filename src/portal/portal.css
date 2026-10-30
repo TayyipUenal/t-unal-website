@@ -2454,3 +2454,75 @@ button.text-link {
 .pt-seen.is-away {
   color: #e57373;
 }
+
+/* Commission invoices partners sent in (Provisionen tab). */
+.pt-invoice-form,
+.pt-invoice-filter {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(170px, 1fr));
+  gap: 10px;
+  align-items: center;
+  margin: 18px 0;
+}
+.pt-invoice-form input,
+.pt-invoice-form select,
+.pt-invoice-filter select {
+  width: 100%;
+  min-height: 48px;
+  padding: 12px 14px;
+  border: 1px solid var(--line-strong);
+  border-radius: 6px;
+  background: var(--white);
+  color: var(--ink);
+  font: inherit;
+}
+.pt-invoice-form input:focus,
+.pt-invoice-form select:focus,
+.pt-invoice-filter select:focus {
+  border-color: var(--gold);
+  outline: 2px solid color-mix(in srgb, var(--gold) 35%, transparent);
+  outline-offset: 0;
+}
+.pt-invoice-form input[type="file"] {
+  padding: 10px;
+}
+.pt-invoice-filter span {
+  color: var(--muted, rgba(255, 255, 255, 0.6));
+  font-size: 0.9rem;
+}
+.pt-invoice-filter b {
+  color: #e8c35a;
+}
+.pt-invoice-link {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  color: var(--gold);
+}
+.pt-paid {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  white-space: nowrap;
+  font-size: 0.85rem;
+}
+.pt-paid::before {
+  content: "";
+  width: 7px;
+  height: 7px;
+  border-radius: 50%;
+  background: currentColor;
+}
+.pt-paid.is-paid {
+  color: #6fcf8f;
+}
+.pt-paid.is-open {
+  color: #e8c35a;
+}
+.pt-invoice-actions {
+  white-space: nowrap;
+  text-align: right;
+}
+.pt-invoice-actions button + button {
+  margin-left: 14px;
+}

@@ -73,6 +73,15 @@ export type PartnerLead = {
 
 export type FileInfo = { id: number; title: string; filename: string; size: number; created_at: string };
 
+/** A commission invoice a partner sent in, kept on the admin side. */
+export type InvoiceInfo = FileInfo & {
+  partner_id: number | null;
+  partner_name: string | null;
+  amount_cents: number | null;
+  doc_date: string | null;
+  paid_at: string | null;
+};
+
 export type LeadEvent = {
   kind: "status" | "note" | "paid";
   status: LeadStatus | null;

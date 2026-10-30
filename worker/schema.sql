@@ -85,20 +85,26 @@ CREATE TABLE IF NOT EXISTS lead_events (
 );
 CREATE INDEX IF NOT EXISTS lead_events_lead ON lead_events(lead_id);
 
--- Files: offers uploaded for a customer (kind 'offer', lead_id set) and downloads for all partners (kind 'download').
+-- Files: offers uploaded for a customer (kind 'offer', lead_id set), downloads for all partners (kind 'download') and
+-- commission invoices a partner sent in (kind 'invoice', partner_id set; only the admin side sees them).
 -- Stored in the database until R2 is enabled; the API limits a file to about 1.8 MB.
 CREATE TABLE IF NOT EXISTS files (
   id INTEGER PRIMARY KEY AUTOINCREMENT,
-  kind TEXT NOT NULL,                            -- 'offer' | 'download'
+  kind TEXT NOT NULL,                            -- 'offer' | 'download' | 'invoice'
   lead_id INTEGER REFERENCES leads(id) ON DELETE CASCADE,
+  partner_id INTEGER REFERENCES partners(id) ON DELETE SET NULL,
   title TEXT NOT NULL,
   filename TEXT NOT NULL,
   mime TEXT NOT NULL,
   size INTEGER NOT NULL,
   data BLOB NOT NULL,
+  amount_cents INTEGER,                          -- invoice: gross amount
+  doc_date TEXT,                                 -- invoice: date on the invoice, YYYY-MM-DD
+  paid_at TEXT,                                  -- invoice: when it was paid
   created_at TEXT NOT NULL
 );
 CREATE INDEX IF NOT EXISTS files_lead ON files(lead_id);
+CREATE INDEX IF NOT EXISTS files_partner ON files(partner_id);
 
 -- Appointments booked through the calendar on the homepage. slot is Berlin local time "YYYY-MM-DDTHH:MM";
 -- the unique index makes a slot bookable only once.

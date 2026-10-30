@@ -2,7 +2,7 @@ import { Check, Copy, LogOut, Mail, Pencil, Plus, ShieldCheck } from "lucide-rea
 import qrcode from "qrcode-generator";
 import { WhatsAppIcon } from "../components/WhatsAppIcon";
 import { contact } from "../content";
-import { DownloadsAdmin, FileLinks, OfferUpload, PartnerDownloads } from "./Files";
+import { DownloadsAdmin, FileLinks, InvoicesAdmin, OfferUpload, PartnerDownloads } from "./Files";
 import { AREAS, areaHint, areaLabel, noCommission } from "./areas";
 import { PARTNER_PAGES } from "./features";
 import { Kpis } from "./Kpis";
@@ -28,6 +28,7 @@ import {
   type Perms,
   type StaffMember,
   type FileInfo,
+  type InvoiceInfo,
   type Summary,
   type User,
 } from "./api";
@@ -598,7 +599,11 @@ function PartnerDashboard({ user, preview, onExit }: { user: User; preview?: Par
 /* ---------- admin dashboard ---------- */
 
 type Tab = "bewerbungen" | "partner" | "leads" | "provisionen" | "kennzahlen" | "downloads" | "rechte";
-type AdminData = { downloads?: FileInfo[]; isSuper: boolean; partnerOptions: { id: number; name: string }[]; permissions: Perms; partners: AdminPartner[]; staff: StaffMember[]; leads: AdminLead[] };
+type AdminData = {
+  downloads?: FileInfo[];
+  invoices?: InvoiceInfo[];
+  invoicePartners?: { id: number; name: string }[];
+  isSuper: boolean; partnerOptions: { id: number; name: string }[]; permissions: Perms; partners: AdminPartner[]; staff: StaffMember[]; leads: AdminLead[] };
 
 function AdminDashboard({ user }: { user: User }) {
   const [data, setData] = useState<AdminData | null>(null);
@@ -885,6 +890,9 @@ function AdminDashboard({ user }: { user: User }) {
             {wonCommissions.length === 0 && <p className="pt-empty">Noch keine Provisionen.</p>}
           </div>
         </section>
+      )}
+      {tab === "provisionen" && mine.managePayouts && data && (
+        <InvoicesAdmin invoices={data.invoices ?? []} partners={data.invoicePartners ?? []} onChange={load} />
       )}
     </>
   );

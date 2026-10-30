@@ -2434,14 +2434,23 @@ button.text-link {
   font-size: 0.78rem;
   white-space: nowrap;
 }
+.pt-seen::before {
+  content: "";
+  flex: none;
+  width: 7px;
+  height: 7px;
+  border-radius: 50%;
+  background: currentColor;
+}
 .pt-seen.is-online {
   color: #6fcf8f;
 }
 .pt-seen.is-online::before {
-  content: "";
-  width: 7px;
-  height: 7px;
-  border-radius: 50%;
-  background: #6fcf8f;
-  box-shadow: 0 0 0 3px rgba(111, 207, 143, 0.18);
+  box-shadow: 0 0 0 3px rgba(111, 207, 143, 0.2);
+}
+.pt-seen.is-recent {
+  color: #e8c35a;
+}
+.pt-seen.is-away {
+  color: #e57373;
 }

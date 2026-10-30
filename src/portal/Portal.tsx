@@ -1162,9 +1162,9 @@ function ApplicationRow({
   );
 }
 
-/** When a partner was last in the portal: "online" within 5 minutes, then minutes, hours, yesterday or a date. */
+/** When a partner was last in the portal: green within 5 minutes, yellow within a day, red after that or never. */
 function LastSeen({ at }: { at: string | null }) {
-  if (!at) return <small className="pt-seen">noch nie online</small>;
+  if (!at) return <small className="pt-seen is-away">noch nie online</small>;
   const date = new Date(at);
   const minutes = Math.floor((Date.now() - date.getTime()) / 60000);
   const time = date.toLocaleTimeString("de-DE", { hour: "2-digit", minute: "2-digit", timeZone: "Europe/Berlin" });
@@ -1178,7 +1178,7 @@ function LastSeen({ at }: { at: string | null }) {
   else text = `${day(date)}, ${time} Uhr`;
   const full = date.toLocaleString("de-DE", { dateStyle: "full", timeStyle: "short", timeZone: "Europe/Berlin" });
   return (
-    <small className={minutes < 5 ? "pt-seen is-online" : "pt-seen"} title={`Zuletzt im Portal: ${full}`}>
+    <small className={`pt-seen ${minutes < 5 ? "is-online" : minutes < 1440 ? "is-recent" : "is-away"}`} title={`Zuletzt im Portal: ${full}`}>
       {minutes < 5 ? text : `zuletzt ${text}`}
     </small>
   );

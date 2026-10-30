@@ -310,6 +310,16 @@ type Partner = {
 const SEEN_EVERY_MS = 2 * 60000;
 
 const SESSION_DAYS = 14;
+
+/** Invoice amount in cents from "120,42", "1.250,00" or "120.42"; null when empty, undefined when invalid. */
+function invoiceAmount(value: unknown): number | null | undefined {
+  const text = String(value ?? "").replace(/\s|€/g, "");
+  if (!text) return null;
+  const cents = Math.round(Number(text.replace(/\.(?=\d{3}(\D|$))/g, "").replace(",", ".")) * 100);
+  return Number.isFinite(cents) && cents >= 0 ? cents : undefined;
+}
+
+const invoiceDate = (value: unknown) => (/^\d{4}-\d{2}-\d{2}$/.test(String(value ?? "")) ? String(value) : null);
 const encoder = new TextEncoder();
 
 /* ---------- helpers ---------- */
@@ -1084,7 +1094,7 @@ async function handle(request: Request, env: Env): Promise<Response> {
     const allowed =
       file &&
       (user.role === "admin" ||
-        (user.role === "staff" && (file.kind === "offer" ? p.manageLeads : file.kind === "invoice" ? p.managePayouts : p.managePartners)) ||
+        (user.role === "staff" && (file.kind === "offer" ? p.manageLeads : file.kind === "invoice" ? false : p.managePartners)) ||
         (user.role === "partner" && (file.kind === "download" || (file.kind === "offer" && file.partner_id === user.id))));
     if (!file || !allowed) return fail("Datei nicht gefunden.", 404);
     const bytes = file.data instanceof ArrayBuffer ? new Uint8Array(file.data) : new Uint8Array(file.data);
@@ -1328,7 +1338,7 @@ async function handle(request: Request, env: Env): Promise<Response> {
       }>()
     ).results;
     const leadsWithFiles = leads.results.map((lead) => ({ ...lead, files: fileRows.filter((f) => f.kind === "offer" && f.lead_id === lead.id) }));
-    const invoices = !can.managePayouts ? { results: [] } : await env.DB.prepare(
+    const invoices = !isSuper ? { results: [] } : await env.DB.prepare(
       `SELECT f.id, f.partner_id, p.name AS partner_name, f.title, f.filename, f.size, f.amount_cents, f.doc_date, f.paid_at, f.created_at
        FROM files f LEFT JOIN partners p ON p.id = f.partner_id WHERE f.kind = 'invoice' ORDER BY COALESCE(f.doc_date, f.created_at) DESC, f.id DESC`,
     ).all();
@@ -1347,14 +1357,14 @@ async function handle(request: Request, env: Env): Promise<Response> {
       leads: leadsWithFiles,
       downloads: fileRows.filter((f) => f.kind === "download"),
       invoices: invoices.results,
-      invoicePartners: !can.managePayouts
+      invoicePartners: !isSuper
         ? []
         : (await env.DB.prepare("SELECT id, name FROM partners WHERE role = 'partner' ORDER BY name").all()).results,
     });
   }
 
   /** Who may add or remove a file of this kind. */
-  const mayFile = (kind: string) => (kind === "offer" ? can.manageLeads : kind === "invoice" ? can.managePayouts : isSuper || can.managePartners);
+  const mayFile = (kind: string) => (kind === "offer" ? can.manageLeads : kind === "invoice" ? isSuper : isSuper || can.managePartners);
 
   /** Upload a file: an offer for one customer, a download for all partners, or a partner's commission invoice. Sent as JSON with base64 data. */
   if (path === "/api/admin/files" && method === "POST") {
@@ -1383,9 +1393,9 @@ async function handle(request: Request, env: Env): Promise<Response> {
     if (kind === "invoice") {
       const partnerId = Number(data.partnerId);
       if (!(await env.DB.prepare("SELECT id FROM partners WHERE id = ? AND role = 'partner'").bind(partnerId).first())) return fail("Bitte einen Partner wählen.");
-      const amount = data.amount === undefined || data.amount === "" ? null : Math.round(Number(String(data.amount).replace(",", ".")) * 100);
-      if (amount !== null && (!Number.isFinite(amount) || amount < 0)) return fail("Bitte einen gültigen Betrag angeben.");
-      const docDate = /^\d{4}-\d{2}-\d{2}$/.test(clean(data.docDate, 10)) ? clean(data.docDate, 10) : null;
+      const amount = invoiceAmount(data.amount);
+      if (amount === undefined) return fail("Bitte einen gültigen Betrag angeben.");
+      const docDate = invoiceDate(data.docDate);
       await env.DB.prepare(
         "INSERT INTO files (kind, partner_id, title, filename, mime, size, data, amount_cents, doc_date, created_at) VALUES ('invoice', ?, ?, ?, ?, ?, ?, ?, ?, ?)",
       )
@@ -1433,10 +1443,28 @@ async function handle(request: Request, env: Env): Promise<Response> {
     return json({ ok: true });
   }
 
+  /** Correct partner, number, amount or date of a commission invoice. */
+  const invoiceEdit = path.match(/^\/api\/admin\/invoices\/(\d+)$/);
+  if (invoiceEdit && method === "POST") {
+    if (!isSuper) return denied();
+    const data = await body();
+    const partnerId = Number(data.partnerId);
+    if (!(await env.DB.prepare("SELECT id FROM partners WHERE id = ? AND role = 'partner'").bind(partnerId).first())) return fail("Bitte einen Partner wählen.");
+    const amount = invoiceAmount(data.amount);
+    if (amount === undefined) return fail("Bitte einen gültigen Betrag angeben.");
+    const title = clean(data.title, 120);
+    if (!title) return fail("Bitte eine Rechnungsnummer angeben.");
+    const result = await env.DB.prepare("UPDATE files SET partner_id = ?, title = ?, amount_cents = ?, doc_date = ? WHERE id = ? AND kind = 'invoice'")
+      .bind(partnerId, title, amount, invoiceDate(data.docDate), Number(invoiceEdit[1]))
+      .run();
+    if (!result.meta.changes) return fail("Rechnung nicht gefunden.", 404);
+    return json({ ok: true });
+  }
+
   /** Mark a commission invoice as paid, or back to open. */
   const invoicePaid = path.match(/^\/api\/admin\/invoices\/(\d+)\/paid$/);
   if (invoicePaid && method === "POST") {
-    if (!can.managePayouts) return denied();
+    if (!isSuper) return denied();
     const data = await body();
     const result = await env.DB.prepare("UPDATE files SET paid_at = ? WHERE id = ? AND kind = 'invoice'")
       .bind(data.paid ? now() : null, Number(invoicePaid[1]))

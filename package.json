@@ -20,6 +20,7 @@
     "claude": "^0.1.1",
     "framer-motion": "latest",
     "lucide-react": "latest",
+    "pdfjs-dist": "6.4.299",
     "qrcode-generator": "^2.0.4",
     "react": "latest",
     "react-dom": "latest",

@@ -891,7 +891,7 @@ function AdminDashboard({ user }: { user: User }) {
           </div>
         </section>
       )}
-      {tab === "provisionen" && mine.managePayouts && data && (
+      {tab === "provisionen" && user.role === "admin" && data && (
         <InvoicesAdmin invoices={data.invoices ?? []} partners={data.invoicePartners ?? []} onChange={load} />
       )}
     </>

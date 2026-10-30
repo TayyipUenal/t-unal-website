@@ -1,29 +1,51 @@
-import { Download, Trash2, Upload } from "lucide-react";
+import { Download, Pencil, Trash2, Upload } from "lucide-react";
 import { useEffect, useState, type FormEvent } from "react";
 import { api, dateDe, euro, type FileInfo, type InvoiceInfo } from "./api";
+import { readInvoice } from "./readInvoice";
 
 const MAX_BYTES = 1_800_000;
 const ACCEPT = ".pdf,.png,.jpg,.jpeg,.svg,.zip,.doc,.docx,.pptx,.xlsx";
 
-const size = (bytes: number) => (bytes < 1_000_000 ? `${Math.max(1, Math.round(bytes / 1000))} KB` : `${(bytes / 1_000_000).toFixed(1).replace(".", ",")} MB`);
+const size = (bytes: number) =>
+  bytes < 1_000_000
+    ? `${Math.max(1, Math.round(bytes / 1000))} KB`
+    : `${(bytes / 1_000_000).toFixed(1).replace(".", ",")} MB`;
 
 function toBase64(file: File) {
   return new Promise<string>((resolve, reject) => {
     const reader = new FileReader();
     reader.onload = () => resolve(String(reader.result).split(",")[1] ?? "");
-    reader.onerror = () => reject(new Error("Die Datei konnte nicht gelesen werden."));
+    reader.onerror = () =>
+      reject(new Error("Die Datei konnte nicht gelesen werden."));
     reader.readAsDataURL(file);
   });
 }
 
 /** Sends one file to the worker; offers need the customer, downloads a title. */
-async function upload(kind: "offer" | "download" | "invoice", file: File, extra: Record<string, string | number | undefined>) {
-  if (file.size > MAX_BYTES) throw new Error("Die Datei darf höchstens 1,8 MB groß sein.");
-  await api("/api/admin/files", { kind, filename: file.name, mime: file.type || "application/octet-stream", data: await toBase64(file), ...extra });
+async function upload(
+  kind: "offer" | "download" | "invoice",
+  file: File,
+  extra: Record<string, string | number | undefined>,
+) {
+  if (file.size > MAX_BYTES)
+    throw new Error("Die Datei darf höchstens 1,8 MB groß sein.");
+  await api("/api/admin/files", {
+    kind,
+    filename: file.name,
+    mime: file.type || "application/octet-stream",
+    data: await toBase64(file),
+    ...extra,
+  });
 }
 
 /** Links to files; with onDelete the admin can remove them. */
-export function FileLinks({ files, onDelete }: { files: FileInfo[]; onDelete?: (id: number) => void }) {
+export function FileLinks({
+  files,
+  onDelete,
+}: {
+  files: FileInfo[];
+  onDelete?: (id: number) => void;
+}) {
   if (!files.length) return null;
   return (
     <ul className="pt-files">
@@ -36,7 +58,12 @@ export function FileLinks({ files, onDelete }: { files: FileInfo[]; onDelete?: (
             {size(file.size)} · {dateDe(file.created_at)}
           </small>
           {onDelete && (
-            <button type="button" className="text-link" onClick={() => onDelete(file.id)} aria-label={`${file.title} löschen`}>
+            <button
+              type="button"
+              className="text-link"
+              onClick={() => onDelete(file.id)}
+              aria-label={`${file.title} löschen`}
+            >
               <Trash2 size={14} aria-hidden="true" />
             </button>
           )}
@@ -47,7 +74,13 @@ export function FileLinks({ files, onDelete }: { files: FileInfo[]; onDelete?: (
 }
 
 /** Admin: upload the offer for one customer. The partner is notified and the customer moves to "Angebot". */
-export function OfferUpload({ leadId, onDone }: { leadId: number; onDone: () => void }) {
+export function OfferUpload({
+  leadId,
+  onDone,
+}: {
+  leadId: number;
+  onDone: () => void;
+}) {
   const [busy, setBusy] = useState(false);
   const [error, setError] = useState("");
   async function submit(event: FormEvent<HTMLFormElement>) {
@@ -59,21 +92,38 @@ export function OfferUpload({ leadId, onDone }: { leadId: number; onDone: () => 
     setBusy(true);
     setError("");
     try {
-      await upload("offer", file, { leadId, title: String(data.get("title") || "") || "Angebot" });
+      await upload("offer", file, {
+        leadId,
+        title: String(data.get("title") || "") || "Angebot",
+      });
       form.reset();
       onDone();
     } catch (cause) {
-      setError(cause instanceof Error ? cause.message : "Hochladen nicht möglich.");
+      setError(
+        cause instanceof Error ? cause.message : "Hochladen nicht möglich.",
+      );
     } finally {
       setBusy(false);
     }
   }
   return (
     <form className="pt-note" onSubmit={submit}>
-      <input name="title" placeholder="Bezeichnung, zum Beispiel Angebot ISO 9001" maxLength={120} aria-label="Bezeichnung des Angebots" />
-      <input name="file" type="file" accept={ACCEPT} required aria-label="Angebotsdatei" />
+      <input
+        name="title"
+        placeholder="Bezeichnung, zum Beispiel Angebot ISO 9001"
+        maxLength={120}
+        aria-label="Bezeichnung des Angebots"
+      />
+      <input
+        name="file"
+        type="file"
+        accept={ACCEPT}
+        required
+        aria-label="Angebotsdatei"
+      />
       <button className="button button-light pt-small" disabled={busy}>
-        <Upload size={14} aria-hidden="true" /> {busy ? "Lädt …" : "Angebot hochladen"}
+        <Upload size={14} aria-hidden="true" />{" "}
+        {busy ? "Lädt …" : "Angebot hochladen"}
       </button>
       {error && (
         <p className="pa-error" role="alert">
@@ -85,7 +135,13 @@ export function OfferUpload({ leadId, onDone }: { leadId: number; onDone: () => 
 }
 
 /** Admin tab: material every partner can download (flyer, logos, text blocks). */
-export function DownloadsAdmin({ files, onChange }: { files: FileInfo[]; onChange: () => void }) {
+export function DownloadsAdmin({
+  files,
+  onChange,
+}: {
+  files: FileInfo[];
+  onChange: () => void;
+}) {
   const [busy, setBusy] = useState(false);
   const [error, setError] = useState("");
   async function submit(event: FormEvent<HTMLFormElement>) {
@@ -97,11 +153,15 @@ export function DownloadsAdmin({ files, onChange }: { files: FileInfo[]; onChang
     setBusy(true);
     setError("");
     try {
-      await upload("download", file, { title: String(data.get("title") || "") || file.name });
+      await upload("download", file, {
+        title: String(data.get("title") || "") || file.name,
+      });
       form.reset();
       onChange();
     } catch (cause) {
-      setError(cause instanceof Error ? cause.message : "Hochladen nicht möglich.");
+      setError(
+        cause instanceof Error ? cause.message : "Hochladen nicht möglich.",
+      );
     } finally {
       setBusy(false);
     }
@@ -114,12 +174,27 @@ export function DownloadsAdmin({ files, onChange }: { files: FileInfo[]; onChang
   return (
     <section className="pt-card">
       <h2>Downloads für Partner</h2>
-      <p className="pt-hint">Flyer, Logos, Präsentationen oder Textbausteine. Alle Partner sehen diese Dateien in ihrem Portal. Höchstens 1,8 MB pro Datei.</p>
+      <p className="pt-hint">
+        Flyer, Logos, Präsentationen oder Textbausteine. Alle Partner sehen
+        diese Dateien in ihrem Portal. Höchstens 1,8 MB pro Datei.
+      </p>
       <form className="pt-note" onSubmit={submit}>
-        <input name="title" placeholder="Titel, zum Beispiel Flyer Arbeitsschutz" maxLength={120} aria-label="Titel" />
-        <input name="file" type="file" accept={ACCEPT} required aria-label="Datei" />
+        <input
+          name="title"
+          placeholder="Titel, zum Beispiel Flyer Arbeitsschutz"
+          maxLength={120}
+          aria-label="Titel"
+        />
+        <input
+          name="file"
+          type="file"
+          accept={ACCEPT}
+          required
+          aria-label="Datei"
+        />
         <button className="button button-primary pt-small" disabled={busy}>
-          <Upload size={14} aria-hidden="true" /> {busy ? "Lädt …" : "Hochladen"}
+          <Upload size={14} aria-hidden="true" />{" "}
+          {busy ? "Lädt …" : "Hochladen"}
         </button>
       </form>
       {error && (
@@ -127,7 +202,11 @@ export function DownloadsAdmin({ files, onChange }: { files: FileInfo[]; onChang
           {error}
         </p>
       )}
-      {files.length ? <FileLinks files={files} onDelete={remove} /> : <p className="pt-empty">Noch keine Dateien hochgeladen.</p>}
+      {files.length ? (
+        <FileLinks files={files} onDelete={remove} />
+      ) : (
+        <p className="pt-empty">Noch keine Dateien hochgeladen.</p>
+      )}
     </section>
   );
 }
@@ -146,6 +225,8 @@ export function InvoicesAdmin({
   const [error, setError] = useState("");
   const [partnerFilter, setPartnerFilter] = useState("");
   const [statusFilter, setStatusFilter] = useState("");
+  const [read, setRead] = useState("");
+  const [editing, setEditing] = useState<number | null>(null);
   async function submit(event: FormEvent<HTMLFormElement>) {
     event.preventDefault();
     const form = event.currentTarget;
@@ -162,11 +243,43 @@ export function InvoicesAdmin({
         docDate: String(data.get("docDate") || ""),
       });
       form.reset();
+      setRead("");
       onChange();
     } catch (cause) {
-      setError(cause instanceof Error ? cause.message : "Hochladen nicht möglich.");
+      setError(
+        cause instanceof Error ? cause.message : "Hochladen nicht möglich.",
+      );
     } finally {
       setBusy(false);
+    }
+  }
+  /** Fills the empty fields from the chosen PDF; the date is always taken from the invoice. */
+  async function readFile(input: HTMLInputElement) {
+    const file = input.files?.[0];
+    const form = input.form;
+    if (!file || !form) return;
+    setRead("Rechnung wird gelesen …");
+    try {
+      const guess = await readInvoice(file, partners);
+      const field = (name: string) =>
+        form.elements.namedItem(name) as HTMLInputElement | HTMLSelectElement;
+      const filled: string[] = [];
+      if (guess.partnerId && !field("partnerId").value)
+        ((field("partnerId").value = String(guess.partnerId)),
+          filled.push("Partner"));
+      if (guess.number && !field("title").value)
+        ((field("title").value = guess.number), filled.push("Rechnungsnummer"));
+      if (guess.amount && !field("amount").value)
+        ((field("amount").value = guess.amount), filled.push("Betrag"));
+      if (guess.date)
+        ((field("docDate").value = guess.date), filled.push("Datum"));
+      setRead(
+        filled.length
+          ? `Aus der Rechnung gelesen: ${filled.join(", ")}. Bitte kurz prüfen.`
+          : "Konnte nichts auslesen. Bitte die Felder selbst ausfüllen.",
+      );
+    } catch {
+      setRead("Konnte nichts auslesen. Bitte die Felder selbst ausfüllen.");
     }
   }
   const act = async (action: () => Promise<unknown>) => {
@@ -175,24 +288,41 @@ export function InvoicesAdmin({
       await action();
       onChange();
     } catch (cause) {
-      setError(cause instanceof Error ? cause.message : "Aktion nicht möglich.");
+      setError(
+        cause instanceof Error ? cause.message : "Aktion nicht möglich.",
+      );
     }
   };
   const remove = (invoice: InvoiceInfo) => {
-    if (window.confirm(`Rechnung „${invoice.title}“ wirklich löschen?`)) act(() => api(`/api/admin/files/${invoice.id}/delete`, {}));
+    if (window.confirm(`Rechnung „${invoice.title}“ wirklich löschen?`))
+      act(() => api(`/api/admin/files/${invoice.id}/delete`, {}));
   };
   const shown = invoices.filter(
     (invoice) =>
       (!partnerFilter || String(invoice.partner_id) === partnerFilter) &&
-      (!statusFilter || (statusFilter === "paid" ? invoice.paid_at : !invoice.paid_at)),
+      (!statusFilter ||
+        (statusFilter === "paid" ? invoice.paid_at : !invoice.paid_at)),
   );
-  const sum = (list: InvoiceInfo[]) => list.reduce((total, invoice) => total + (invoice.amount_cents ?? 0), 0);
+  const sum = (list: InvoiceInfo[]) =>
+    list.reduce((total, invoice) => total + (invoice.amount_cents ?? 0), 0);
   const open = shown.filter((invoice) => !invoice.paid_at);
   return (
     <section className="pt-card">
       <h2>Provisionsrechnungen</h2>
-      <p className="pt-hint">Die Rechnungen, die Ihre Partner Ihnen für ihre Provision schicken. Partner sehen diesen Bereich nicht. PDF oder Bild, höchstens 1,8 MB.</p>
+      <p className="pt-hint">
+        Die Rechnungen, die Ihre Partner Ihnen für ihre Provision schicken. Nur
+        Sie sehen diesen Bereich. Wählen Sie zuerst die PDF: Partner, Nummer,
+        Betrag und Datum werden daraus gelesen. Höchstens 1,8 MB.
+      </p>
       <form className="pt-invoice-form" onSubmit={submit}>
+        <input
+          name="file"
+          type="file"
+          accept=".pdf,.png,.jpg,.jpeg"
+          required
+          aria-label="Rechnungsdatei"
+          onChange={(event) => readFile(event.currentTarget)}
+        />
         <select name="partnerId" required defaultValue="" aria-label="Partner">
           <option value="" disabled>
             Partner wählen
@@ -203,14 +333,35 @@ export function InvoicesAdmin({
             </option>
           ))}
         </select>
-        <input name="title" placeholder="Rechnungsnummer, z. B. RE-2026-014" maxLength={120} aria-label="Rechnungsnummer oder Bezeichnung" />
-        <input name="amount" inputMode="decimal" placeholder="Betrag in €" pattern="[0-9]+([,.][0-9]{1,2})?" aria-label="Betrag in Euro" />
-        <input name="docDate" type="date" aria-label="Rechnungsdatum" defaultValue={new Date().toISOString().slice(0, 10)} />
-        <input name="file" type="file" accept=".pdf,.png,.jpg,.jpeg" required aria-label="Rechnungsdatei" />
+        <input
+          name="title"
+          placeholder="Rechnungsnummer, z. B. RE-2026-014"
+          maxLength={120}
+          aria-label="Rechnungsnummer oder Bezeichnung"
+        />
+        <input
+          name="amount"
+          inputMode="decimal"
+          placeholder="Betrag in €"
+          pattern="[0-9]+([,.][0-9]{1,2})?"
+          aria-label="Betrag in Euro"
+        />
+        <input
+          name="docDate"
+          type="date"
+          aria-label="Rechnungsdatum"
+          defaultValue={new Date().toISOString().slice(0, 10)}
+        />
         <button className="button button-primary pt-small" disabled={busy}>
-          <Upload size={14} aria-hidden="true" /> {busy ? "Lädt …" : "Rechnung speichern"}
+          <Upload size={14} aria-hidden="true" />{" "}
+          {busy ? "Lädt …" : "Rechnung speichern"}
         </button>
       </form>
+      {read && (
+        <p className="pt-invoice-read" role="status">
+          {read}
+        </p>
+      )}
       {error && (
         <p className="pa-error" role="alert">
           {error}
@@ -218,7 +369,11 @@ export function InvoicesAdmin({
       )}
       {invoices.length > 0 && (
         <div className="pt-invoice-filter">
-          <select value={partnerFilter} onChange={(event) => setPartnerFilter(event.target.value)} aria-label="Nach Partner filtern">
+          <select
+            value={partnerFilter}
+            onChange={(event) => setPartnerFilter(event.target.value)}
+            aria-label="Nach Partner filtern"
+          >
             <option value="">Alle Partner</option>
             {partners.map((partner) => (
               <option key={partner.id} value={partner.id}>
@@ -226,13 +381,18 @@ export function InvoicesAdmin({
               </option>
             ))}
           </select>
-          <select value={statusFilter} onChange={(event) => setStatusFilter(event.target.value)} aria-label="Nach Status filtern">
+          <select
+            value={statusFilter}
+            onChange={(event) => setStatusFilter(event.target.value)}
+            aria-label="Nach Status filtern"
+          >
             <option value="">Offen und bezahlt</option>
             <option value="open">Nur offen</option>
             <option value="paid">Nur bezahlt</option>
           </select>
           <span>
-            {shown.length} {shown.length === 1 ? "Rechnung" : "Rechnungen"} · {euro(sum(shown))}
+            {shown.length} {shown.length === 1 ? "Rechnung" : "Rechnungen"} ·{" "}
+            {euro(sum(shown))}
             {open.length > 0 && <b> · offen {euro(sum(open))}</b>}
           </span>
         </div>
@@ -251,41 +411,181 @@ export function InvoicesAdmin({
               </tr>
             </thead>
             <tbody>
-              {shown.map((invoice) => (
-                <tr key={invoice.id}>
-                  <td>{dateDe(invoice.doc_date ?? invoice.created_at)}</td>
-                  <td>{invoice.partner_name ?? "–"}</td>
-                  <td>
-                    <a className="pt-invoice-link" href={`/api/files/${invoice.id}`}>
-                      <Download size={15} aria-hidden="true" /> {invoice.title}
-                    </a>
-                    <small>
-                      {invoice.filename} · {size(invoice.size)}
-                    </small>
-                  </td>
-                  <td>
-                    <b>{euro(invoice.amount_cents)}</b>
-                  </td>
-                  <td>
-                    <span className={invoice.paid_at ? "pt-paid is-paid" : "pt-paid is-open"}>{invoice.paid_at ? `bezahlt ${dateDe(invoice.paid_at)}` : "offen"}</span>
-                  </td>
-                  <td className="pt-invoice-actions">
-                    <button className="text-link" onClick={() => act(() => api(`/api/admin/invoices/${invoice.id}/paid`, { paid: !invoice.paid_at }))}>
-                      {invoice.paid_at ? "Wieder offen" : "Als bezahlt markieren"}
-                    </button>
-                    <button className="text-link pt-delete" onClick={() => remove(invoice)} aria-label={`${invoice.title} löschen`}>
-                      <Trash2 size={14} aria-hidden="true" />
-                    </button>
-                  </td>
-                </tr>
-              ))}
+              {shown.map((invoice) =>
+                editing === invoice.id ? (
+                  <InvoiceEditRow
+                    key={invoice.id}
+                    invoice={invoice}
+                    partners={partners}
+                    onCancel={() => setEditing(null)}
+                    onSave={(values) =>
+                      act(() =>
+                        api(`/api/admin/invoices/${invoice.id}`, values),
+                      ).then(() => setEditing(null))
+                    }
+                  />
+                ) : (
+                  <tr key={invoice.id}>
+                    <td>{dateDe(invoice.doc_date ?? invoice.created_at)}</td>
+                    <td>{invoice.partner_name ?? "–"}</td>
+                    <td>
+                      <a
+                        className="pt-invoice-link"
+                        href={`/api/files/${invoice.id}`}
+                      >
+                        <Download size={15} aria-hidden="true" />{" "}
+                        {invoice.title}
+                      </a>
+                      <small>
+                        {invoice.filename} · {size(invoice.size)}
+                      </small>
+                    </td>
+                    <td>
+                      <b>{euro(invoice.amount_cents)}</b>
+                    </td>
+                    <td>
+                      <span
+                        className={
+                          invoice.paid_at
+                            ? "pt-paid is-paid"
+                            : "pt-paid is-open"
+                        }
+                      >
+                        {invoice.paid_at
+                          ? `bezahlt ${dateDe(invoice.paid_at)}`
+                          : "offen"}
+                      </span>
+                    </td>
+                    <td className="pt-invoice-actions">
+                      <button
+                        className="text-link"
+                        onClick={() =>
+                          act(() =>
+                            api(`/api/admin/invoices/${invoice.id}/paid`, {
+                              paid: !invoice.paid_at,
+                            }),
+                          )
+                        }
+                      >
+                        {invoice.paid_at
+                          ? "Wieder offen"
+                          : "Als bezahlt markieren"}
+                      </button>
+                      <button
+                        className="text-link"
+                        onClick={() => setEditing(invoice.id)}
+                        aria-label={`${invoice.title} bearbeiten`}
+                      >
+                        <Pencil size={14} aria-hidden="true" />
+                      </button>
+                      <button
+                        className="text-link pt-delete"
+                        onClick={() => remove(invoice)}
+                        aria-label={`${invoice.title} löschen`}
+                      >
+                        <Trash2 size={14} aria-hidden="true" />
+                      </button>
+                    </td>
+                  </tr>
+                ),
+              )}
             </tbody>
           </table>
         </div>
       ) : (
-        <p className="pt-empty">{invoices.length ? "Keine Rechnung passt zum Filter." : "Noch keine Rechnungen gespeichert."}</p>
+        <p className="pt-empty">
+          {invoices.length
+            ? "Keine Rechnung passt zum Filter."
+            : "Noch keine Rechnungen gespeichert."}
+        </p>
       )}
     </section>
+  );
+}
+
+/** One invoice row in edit mode: partner, number, amount and date. */
+function InvoiceEditRow({
+  invoice,
+  partners,
+  onSave,
+  onCancel,
+}: {
+  invoice: InvoiceInfo;
+  partners: { id: number; name: string }[];
+  onSave: (values: {
+    partnerId: number;
+    title: string;
+    amount: string;
+    docDate: string;
+  }) => void;
+  onCancel: () => void;
+}) {
+  const [values, setValues] = useState({
+    partnerId: invoice.partner_id ?? 0,
+    title: invoice.title,
+    amount:
+      invoice.amount_cents === null
+        ? ""
+        : (invoice.amount_cents / 100).toFixed(2).replace(".", ","),
+    docDate: invoice.doc_date ?? "",
+  });
+  return (
+    <tr className="pt-invoice-edit">
+      <td>
+        <input
+          type="date"
+          value={values.docDate}
+          onChange={(event) =>
+            setValues({ ...values, docDate: event.target.value })
+          }
+          aria-label="Rechnungsdatum"
+        />
+      </td>
+      <td>
+        <select
+          value={values.partnerId}
+          onChange={(event) =>
+            setValues({ ...values, partnerId: Number(event.target.value) })
+          }
+          aria-label="Partner"
+        >
+          {partners.map((partner) => (
+            <option key={partner.id} value={partner.id}>
+              {partner.name}
+            </option>
+          ))}
+        </select>
+      </td>
+      <td>
+        <input
+          value={values.title}
+          maxLength={120}
+          onChange={(event) =>
+            setValues({ ...values, title: event.target.value })
+          }
+          aria-label="Rechnungsnummer"
+        />
+      </td>
+      <td>
+        <input
+          value={values.amount}
+          inputMode="decimal"
+          onChange={(event) =>
+            setValues({ ...values, amount: event.target.value })
+          }
+          aria-label="Betrag in Euro"
+        />
+      </td>
+      <td />
+      <td className="pt-invoice-actions">
+        <button className="text-link" onClick={() => onSave(values)}>
+          Speichern
+        </button>
+        <button className="text-link" onClick={onCancel}>
+          Abbrechen
+        </button>
+      </td>
+    </tr>
   );
 }
 
@@ -302,7 +602,9 @@ export function PartnerDownloads({ preset }: { preset?: FileInfo[] }) {
   return (
     <section className="pt-card">
       <h2>Unterlagen zum Weitergeben</h2>
-      <p className="pt-hint">Flyer, Logos und Texte, die Sie für Ihre Empfehlungen nutzen können.</p>
+      <p className="pt-hint">
+        Flyer, Logos und Texte, die Sie für Ihre Empfehlungen nutzen können.
+      </p>
       <FileLinks files={files} />
     </section>
   );

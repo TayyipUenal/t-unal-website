@@ -766,6 +766,65 @@ async function markOwnerIp(request: Request, env: Env) {
   if (added.meta.changes) await env.DB.prepare("DELETE FROM visits WHERE day = ? AND ip_hash = ?").bind(day, ipHash).run();
 }
 
+/* ---------- tools ("Werkzeuge" menu on the site) ---------- */
+
+const TOOL_LABELS: Record<string, string> = {
+  reife: "Audit-Reife-Check",
+  angebote: "Mehrere Angebote",
+  fahrplan: "Fahrplan zum Zertifikat",
+  countdown: "Zertifikats-Erinnerung",
+  checkliste: "Audit-Checkliste",
+};
+/** Tools that lead to a personal reply need a name; the others only send something by mail. */
+const TOOLS_NEED_NAME = ["angebote", "fahrplan"];
+
+const germanDate = (iso: string) => `${iso.slice(8, 10)}.${iso.slice(5, 7)}.${iso.slice(0, 4)}`;
+const addMonths = (iso: string, months: number) => {
+  const date = new Date(`${iso}T12:00:00Z`);
+  date.setUTCMonth(date.getUTCMonth() + months);
+  return date.toISOString().slice(0, 10);
+};
+
+/**
+ * Daily job: certificate reminders 6 and 3 months before expiry. Each stage is sent once; a reminder
+ * that was set up late (expiry already within 3 months) only gets the 3-month mail.
+ */
+async function sendReminders(env: Env) {
+  const today = berlinStamp(new Date()).slice(0, 10);
+  const rows = await env.DB.prepare(
+    `SELECT id, email, name, company, norm, expires, token, sent_6, sent_3 FROM tool_reminders
+     WHERE cancelled_at IS NULL AND expires >= ? AND ((sent_6 IS NULL AND expires <= ?) OR (sent_3 IS NULL AND expires <= ?))`,
+  )
+    .bind(today, addMonths(today, 6), addMonths(today, 3))
+    .all<{ id: number; email: string; name: string; company: string; norm: string; expires: string; token: string; sent_6: string | null; sent_3: string | null }>();
+  for (const row of rows.results) {
+    const stage = row.expires <= addMonths(today, 3) ? 3 : 6;
+    const months = stage === 3 ? "3 Monaten" : "6 Monaten";
+    const sent = await sendMail(env, row.email, `Ihr Zertifikat läuft in ${months} ab`, {
+      eyebrow: "Zertifikats-Erinnerung",
+      title: `Noch ${stage} Monate bis zur Rezertifizierung`,
+      intro: `${row.name ? `Guten Tag ${row.name}` : "Guten Tag"}, wie gewünscht erinnern wir Sie: Ihr Zertifikat${row.norm ? ` (${row.norm})` : ""} läuft am ${germanDate(row.expires)} ab.`,
+      body: "Jetzt ist ein guter Zeitpunkt, die Rezertifizierung zu planen. Gern hole ich für Sie mehrere Angebote akkreditierter Zertifizierungsstellen ein, damit Sie vergleichen können.",
+      cta: { label: "Erstgespräch buchen", url: `${SITE}/#termin` },
+      note: `Sie möchten keine Erinnerung mehr? Hier abmelden: ${SITE}/api/tools/reminder/stop?token=${row.token}`,
+      promo: true,
+    });
+    if (!sent) continue;
+    await env.DB.prepare(`UPDATE tool_reminders SET ${stage === 3 ? "sent_3 = ?, sent_6 = COALESCE(sent_6, ?)" : "sent_6 = ?"} WHERE id = ?`)
+      .bind(...(stage === 3 ? [now(), now(), row.id] : [now(), row.id]))
+      .run();
+    await notifyOwner(env, `Erinnerung verschickt: Zertifikat läuft in ${months} ab (${row.company || row.name || row.email})`, [
+      `Name: ${row.name || "–"}`,
+      `Firma: ${row.company || "–"}`,
+      `E-Mail: ${row.email}`,
+      `Norm: ${row.norm || "–"}`,
+      `Gültig bis: ${germanDate(row.expires)}`,
+      "",
+      "Guter Zeitpunkt für einen Anruf.",
+    ]);
+  }
+}
+
 /* ---------- routes ---------- */
 
 async function handle(request: Request, env: Env): Promise<Response> {
@@ -981,6 +1040,115 @@ async function handle(request: Request, env: Env): Promise<Response> {
       ),
     ]);
     return json({ ok: true, when });
+  }
+
+  /** Requests from the tools in the "Werkzeuge" menu: gap report, offers, roadmap, expiry reminder, checklist. */
+  if (path === "/api/tools/request" && method === "POST") {
+    if (!(await limit(env, request, "tools", 8, 3600))) return fail("Zu viele Anfragen. Bitte später erneut versuchen.", 429);
+    const data = await body();
+    if (clean(data.website, 100)) return json({ ok: true });
+    const tool = clean(data.tool, 20);
+    const label = TOOL_LABELS[tool];
+    if (!label) return fail("Unbekanntes Werkzeug.");
+    const email = clean(data.email, 200).toLowerCase();
+    const name = clean(data.name, 120);
+    const company = clean(data.company, 160);
+    const phone = clean(data.phone, 60);
+    if (!validEmail(email)) return fail("Bitte eine gültige E-Mail-Adresse angeben.");
+    if (TOOLS_NEED_NAME.includes(tool) && !name) return fail("Bitte Ihren Namen angeben.");
+    if (data.consent !== true) return fail("Bitte stimmen Sie der Datenschutzerklärung zu.");
+    const details: [string, string][] = Object.entries(data.details && typeof data.details === "object" ? data.details : {})
+      .slice(0, 12)
+      .map(([key, value]) => [clean(key, 60), clean(value, 300)] as [string, string])
+      .filter(([key, value]) => key && value);
+    const gaps = Array.isArray(data.gaps) ? data.gaps.slice(0, 12).map((gap) => clean(gap, 120)).filter(Boolean) : [];
+    const expires = tool === "countdown" ? clean(data.expires, 10) : "";
+    if (tool === "countdown" && (!/^\d{4}-\d{2}-\d{2}$/.test(expires) || expires < berlinStamp(new Date()).slice(0, 10))) {
+      return fail("Bitte ein Ablaufdatum in der Zukunft angeben.");
+    }
+    const message = [...details.map(([key, value]) => `${key}: ${value}`), ...(gaps.length ? ["Offene Punkte:", ...gaps.map((gap) => `- ${gap}`)] : [])].join("\n");
+    const lead = await env.DB.prepare(
+      `INSERT INTO leads (source, contact_name, company, email, phone, topic, message, consent_at, created_at, updated_at)
+       VALUES ('site', ?, ?, ?, ?, ?, ?, ?, ?, ?)`,
+    )
+      .bind(name || email, company, email, phone, `Werkzeug: ${label}`, message.slice(0, 2000), now(), now(), now())
+      .run();
+    const leadId = Number(lead.meta.last_row_id);
+    const hello = name ? `Guten Tag ${name}` : "Guten Tag";
+    let customer: MailContent;
+    let subject: string;
+    if (tool === "reife") {
+      const score = details.find(([key]) => key === "Ergebnis")?.[1] ?? "";
+      subject = `Ihr Audit-Reife-Check${score ? `: ${score}` : ""}`;
+      customer = {
+        eyebrow: "Audit-Reife-Check",
+        title: score ? `${score} auditreif` : "Ihr Ergebnis",
+        intro: `${hello}, hier ist Ihr vollständiger Lücken-Report. Diese Punkte fehlen noch bis zum Zertifizierungsaudit:`,
+        rows: gaps.map((gap, index) => [`${index + 1}.`, gap] as [string, string]),
+        body: "Jeder dieser Punkte lässt sich mit klarer Anleitung schließen. In einem kostenlosen Erstgespräch gehen wir Ihr Ergebnis gemeinsam durch und legen die Reihenfolge fest.",
+        cta: { label: "Erstgespräch buchen", url: `${SITE}/#termin` },
+        promo: true,
+      };
+    } else if (tool === "checkliste") {
+      subject = "Ihre Audit-Checkliste: 27 Punkte, die jeder Auditor prüft";
+      customer = {
+        eyebrow: "Audit-Checkliste",
+        title: "Ihre Checkliste ist da",
+        intro: `${hello}, vielen Dank für Ihr Interesse. Über den Button öffnen Sie die Checkliste. Sie lässt sich direkt ausdrucken oder als PDF speichern.`,
+        cta: { label: "Checkliste öffnen", url: `${SITE}/checkliste` },
+        body: "Bei Fragen zu einzelnen Punkten antworten Sie einfach auf diese E-Mail.",
+        promo: true,
+      };
+    } else if (tool === "countdown") {
+      const token = randomToken(24);
+      await env.DB.prepare(
+        "INSERT INTO tool_reminders (email, name, company, norm, expires, lead_id, token, created_at) VALUES (?, ?, ?, ?, ?, ?, ?, ?)",
+      )
+        .bind(email, name, company, details.find(([key]) => key === "Norm")?.[1] ?? "", expires, leadId, token, now())
+        .run();
+      subject = "Ihre Erinnerung zur Rezertifizierung ist eingerichtet";
+      customer = {
+        eyebrow: "Zertifikats-Erinnerung",
+        title: "Wir denken rechtzeitig daran",
+        intro: `${hello}, Ihre Erinnerung ist eingerichtet. Wir melden uns 6 Monate und 3 Monate vor dem Ablauf Ihres Zertifikats.`,
+        rows: [["Zertifikat gültig bis", germanDate(expires)]],
+        body: "Auf Wunsch holen wir für die Rezertifizierung mehrere Angebote akkreditierter Zertifizierungsstellen ein, damit Sie vergleichen können.",
+        note: `Sie möchten keine Erinnerung mehr? Hier abmelden: ${SITE}/api/tools/reminder/stop?token=${token}`,
+      };
+    } else {
+      subject = tool === "angebote" ? "Ihre Anfrage: Angebote für Ihre Zertifizierung" : "Ihre Anfrage: Fahrplan zum Zertifikat";
+      customer = {
+        eyebrow: label,
+        title: "Vielen Dank für Ihre Anfrage",
+        intro: `${hello}, Ihre Anfrage ist bei mir angekommen. Ich melde mich in Kürze persönlich bei Ihnen.`,
+        rows: details,
+        promo: true,
+      };
+    }
+    await Promise.all([
+      notifyOwner(env, `Neue Anfrage über Werkzeug „${label}“: ${name || email}`, [
+        `Werkzeug: ${label}`,
+        `Name: ${name || "–"}`,
+        `Firma: ${company || "–"}`,
+        `E-Mail: ${email}`,
+        `Telefon: ${phone || "–"}`,
+        ...(expires ? [`Zertifikat gültig bis: ${germanDate(expires)}`] : []),
+        "",
+        message,
+      ]),
+      sendMail(env, email, subject, customer),
+    ]);
+    return json({ ok: true });
+  }
+
+  /** Unsubscribe link from the reminder mails. */
+  if (path === "/api/tools/reminder/stop" && method === "GET") {
+    const token = clean(url.searchParams.get("token"), 64);
+    if (token) await env.DB.prepare("UPDATE tool_reminders SET cancelled_at = ? WHERE token = ? AND cancelled_at IS NULL").bind(now(), token).run();
+    return new Response(
+      `<!doctype html><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1"><meta name="robots" content="noindex"><title>Erinnerung abbestellt</title><body style="margin:0;min-height:100vh;display:grid;place-items:center;background:#0e0e0e;color:#f5f2ec;font:16px/1.6 system-ui,sans-serif;text-align:center;padding:24px"><div><p style="color:#b08d57;letter-spacing:.16em;font-size:12px;font-weight:700;text-transform:uppercase">Tayyip Ünal</p><h1 style="margin:0 0 12px">Erinnerung abbestellt</h1><p style="color:#bdb7ab">Sie erhalten keine weiteren Erinnerungen zu Ihrem Zertifikat.</p><p><a style="color:#d6bb85" href="${SITE}">Zur Startseite</a></p></div></body>`,
+      { headers: { "content-type": "text/html; charset=utf-8", "cache-control": "no-store" } },
+    );
   }
 
   /** The site's own consultation and quote forms (same payload as the old PHP endpoint). */
@@ -1722,6 +1890,14 @@ export default {
     } catch (error) {
       console.error("api error", error);
       return fail("Es ist ein Fehler aufgetreten. Bitte später erneut versuchen.", 500);
+    }
+  },
+  /** Cron trigger (wrangler.jsonc), once a day: certificate reminders. */
+  async scheduled(_event: unknown, env: Env): Promise<void> {
+    try {
+      await sendReminders(env);
+    } catch (error) {
+      console.error("reminder error", error);
     }
   },
 };

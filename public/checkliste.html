@@ -1,0 +1,118 @@
+<!doctype html>
+<html lang="de">
+<head>
+<meta charset="utf-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1" />
+<meta name="robots" content="noindex" />
+<title>Audit-Checkliste · Tayyip Ünal</title>
+<link rel="icon" href="/favicon.ico" />
+<style>
+  :root { --gold: #b08d57; --gold-deep: #7a5f2c; --ink: #1b1813; --muted: #6b655b; --line: #e4dfd5; --paper: #faf8f4; }
+  * { box-sizing: border-box; }
+  body { margin: 0; background: #eeeae2; color: var(--ink); font: 15px/1.55 "DM Sans", system-ui, -apple-system, "Segoe UI", sans-serif; }
+  .sheet { width: min(860px, 100% - 24px); margin: 24px auto; background: var(--paper); border-radius: 14px; padding: clamp(22px, 5vw, 56px); box-shadow: 0 30px 60px -40px #0006; }
+  .brand { color: var(--gold-deep); font-size: 12px; font-weight: 800; letter-spacing: .16em; text-transform: uppercase; margin: 0 0 10px; }
+  h1 { font-size: clamp(26px, 4vw, 38px); line-height: 1.1; margin: 0 0 10px; letter-spacing: -.02em; }
+  .lead { color: var(--muted); margin: 0 0 18px; max-width: 640px; }
+  .bar { display: flex; flex-wrap: wrap; gap: 10px; align-items: center; margin: 0 0 26px; }
+  .bar button, .bar a { border: 0; border-radius: 10px; padding: 11px 16px; font: 700 14px inherit; cursor: pointer; text-decoration: none; }
+  .bar button { background: var(--gold); color: #14110a; }
+  .bar a { background: transparent; color: var(--ink); border: 1px solid var(--line); }
+  .legend { color: var(--muted); font-size: 13px; }
+  .tag { display: inline-block; border: 1px solid var(--line); border-radius: 999px; padding: 0 7px; font-size: 11px; font-weight: 700; color: var(--gold-deep); margin-left: 4px; white-space: nowrap; }
+  h2 { font-size: 17px; margin: 26px 0 8px; padding-bottom: 6px; border-bottom: 2px solid var(--gold); display: flex; gap: 10px; align-items: baseline; }
+  h2 span { color: var(--gold-deep); font-size: 13px; }
+  ol { list-style: none; margin: 0; padding: 0; counter-reset: item var(--start, 0); }
+  li { display: grid; grid-template-columns: 22px 30px 1fr; gap: 6px; padding: 10px 0; border-bottom: 1px solid var(--line); break-inside: avoid; }
+  li::after { content: ""; }
+  li input { width: 18px; height: 18px; margin: 2px 0 0; accent-color: var(--gold); }
+  li .no { color: var(--gold-deep); font-weight: 800; font-size: 13px; padding-top: 1px; }
+  li b { display: block; }
+  li small { color: var(--muted); display: block; }
+  .end { margin-top: 30px; padding: 18px; border-radius: 12px; background: #f1e9d8; }
+  .end b { display: block; font-size: 16px; margin-bottom: 4px; }
+  .end a { color: var(--gold-deep); font-weight: 700; }
+  footer { color: var(--muted); font-size: 12px; margin-top: 22px; }
+  @media print {
+    body { background: #fff; }
+    .sheet { box-shadow: none; margin: 0; width: 100%; padding: 0; }
+    .bar { display: none; }
+    li input { appearance: none; -webkit-appearance: none; border: 1.5px solid var(--gold-deep); border-radius: 3px; }
+  }
+</style>
+</head>
+<body>
+<main class="sheet">
+  <p class="brand">Tayyip Ünal · Audit · Zertifizierung · Schulung</p>
+  <h1>27 Punkte, die jeder Auditor prüft</h1>
+  <p class="lead">ISO 9001, ISO 14001 und ISO 45001 sind gleich aufgebaut. Diese Checkliste folgt dieser Struktur. Haken Sie ab, was bei Ihnen schon nachweisbar ist. Was offen bleibt, ist Ihre Aufgabenliste bis zum Audit.</p>
+  <div class="bar">
+    <button type="button" onclick="window.print()">Drucken oder als PDF speichern</button>
+    <a href="/#werkzeug-reife">Online-Reife-Check machen</a>
+    <span class="legend">Kennzeichnung: <span class="tag">alle</span> gilt für alle drei Normen, sonst nur für die genannten.</span>
+  </div>
+
+  <h2>Kontext der Organisation <span>Kapitel 4</span></h2>
+  <ol>
+    <li><input type="checkbox" aria-label="Punkt 1 erledigt"><span class="no">01</span><div><b>Interne und externe Themen bestimmt <span class="tag">alle</span></b><small>Welche Einflüsse wirken auf Ihren Betrieb? Der Auditor möchte sehen, dass Sie das bewusst betrachtet haben.</small></div></li>
+    <li><input type="checkbox" aria-label="Punkt 2 erledigt"><span class="no">02</span><div><b>Interessierte Parteien und ihre Anforderungen <span class="tag">alle</span></b><small>Kunden, Behörden, Mitarbeitende, Nachbarn: Wer erwartet was von Ihnen, und was davon verpflichtet Sie?</small></div></li>
+    <li><input type="checkbox" aria-label="Punkt 3 erledigt"><span class="no">03</span><div><b>Anwendungsbereich festgelegt <span class="tag">alle</span></b><small>Für welche Standorte, Tätigkeiten und Produkte gilt das System? Schriftlich und nachvollziehbar.</small></div></li>
+    <li><input type="checkbox" aria-label="Punkt 4 erledigt"><span class="no">04</span><div><b>Prozesse und ihre Wechselwirkungen beschrieben <span class="tag">alle</span></b><small>Eine Prozesslandkarte oder Übersicht, die zeigt, wie die Abläufe zusammenhängen.</small></div></li>
+  </ol>
+
+  <h2>Führung <span>Kapitel 5</span></h2>
+  <ol>
+    <li><input type="checkbox" aria-label="Punkt 5 erledigt"><span class="no">05</span><div><b>Verantwortung der Leitung nachweisbar <span class="tag">alle</span></b><small>Die Geschäftsleitung muss im Audit zeigen können, dass sie hinter dem System steht und es steuert.</small></div></li>
+    <li><input type="checkbox" aria-label="Punkt 6 erledigt"><span class="no">06</span><div><b>Politik festgelegt und bekannt gemacht <span class="tag">alle</span></b><small>Qualitäts-, Umwelt- oder Arbeitsschutzpolitik: aufgeschrieben, aktuell und im Team bekannt.</small></div></li>
+    <li><input type="checkbox" aria-label="Punkt 7 erledigt"><span class="no">07</span><div><b>Rollen, Verantwortungen und Befugnisse geregelt <span class="tag">alle</span></b><small>Wer ist wofür zuständig? Ein Organigramm und klare Zuständigkeiten.</small></div></li>
+    <li><input type="checkbox" aria-label="Punkt 8 erledigt"><span class="no">08</span><div><b>Beteiligung der Beschäftigten <span class="tag">45001</span></b><small>Mitarbeitende werden zu Arbeitsschutzthemen gefragt und einbezogen, und das ist belegt.</small></div></li>
+  </ol>
+
+  <h2>Planung <span>Kapitel 6</span></h2>
+  <ol>
+    <li><input type="checkbox" aria-label="Punkt 9 erledigt"><span class="no">09</span><div><b>Risiken und Chancen bewertet <span class="tag">alle</span></b><small>Bewertet und mit Maßnahmen hinterlegt, nicht nur aufgelistet.</small></div></li>
+    <li><input type="checkbox" aria-label="Punkt 10 erledigt"><span class="no">10</span><div><b>Umweltaspekte oder Gefährdungen ermittelt <span class="tag">14001</span><span class="tag">45001</span></b><small>Umweltaspekte mit ihrer Bedeutung, Gefährdungsbeurteilungen für Tätigkeiten und Arbeitsplätze.</small></div></li>
+    <li><input type="checkbox" aria-label="Punkt 11 erledigt"><span class="no">11</span><div><b>Rechtliche Verpflichtungen ermittelt <span class="tag">14001</span><span class="tag">45001</span></b><small>Ein Rechtskataster oder eine Übersicht der für Sie geltenden Vorschriften, regelmäßig geprüft.</small></div></li>
+    <li><input type="checkbox" aria-label="Punkt 12 erledigt"><span class="no">12</span><div><b>Messbare Ziele mit Plan <span class="tag">alle</span></b><small>Ziele mit Kennzahl, Verantwortlichem und Termin, und Sie verfolgen den Stand.</small></div></li>
+    <li><input type="checkbox" aria-label="Punkt 13 erledigt"><span class="no">13</span><div><b>Änderungen geplant umgesetzt <span class="tag">alle</span></b><small>Neue Abläufe, Maschinen oder Strukturen werden vorher durchdacht, nicht nebenbei eingeführt.</small></div></li>
+  </ol>
+
+  <h2>Unterstützung <span>Kapitel 7</span></h2>
+  <ol>
+    <li><input type="checkbox" aria-label="Punkt 14 erledigt"><span class="no">14</span><div><b>Ressourcen und Infrastruktur bereitgestellt <span class="tag">alle</span></b><small>Personal, Ausstattung und Arbeitsumgebung passen zu den Anforderungen.</small></div></li>
+    <li><input type="checkbox" aria-label="Punkt 15 erledigt"><span class="no">15</span><div><b>Kompetenzen nachgewiesen <span class="tag">alle</span></b><small>Qualifikationen, Schulungen und Unterweisungen sind dokumentiert, nicht nur erledigt.</small></div></li>
+    <li><input type="checkbox" aria-label="Punkt 16 erledigt"><span class="no">16</span><div><b>Bewusstsein im Team <span class="tag">alle</span></b><small>Mitarbeitende kennen die Politik, ihren Beitrag und die Folgen, wenn Vorgaben nicht eingehalten werden. Der Auditor fragt nach.</small></div></li>
+    <li><input type="checkbox" aria-label="Punkt 17 erledigt"><span class="no">17</span><div><b>Kommunikation geregelt <span class="tag">alle</span></b><small>Was wird wann an wen kommuniziert, intern und extern?</small></div></li>
+    <li><input type="checkbox" aria-label="Punkt 18 erledigt"><span class="no">18</span><div><b>Dokumente und Nachweise gelenkt <span class="tag">alle</span></b><small>Aktuelle Fassungen, klare Ablage, Aufbewahrungsfristen. Alte Versionen sind nicht mehr im Umlauf.</small></div></li>
+    <li><input type="checkbox" aria-label="Punkt 19 erledigt"><span class="no">19</span><div><b>Mess- und Prüfmittel überwacht <span class="tag">alle</span></b><small>Wo gemessen wird: Kalibrierung oder Prüfung ist geplant und belegt.</small></div></li>
+  </ol>
+
+  <h2>Betrieb <span>Kapitel 8</span></h2>
+  <ol>
+    <li><input type="checkbox" aria-label="Punkt 20 erledigt"><span class="no">20</span><div><b>Abläufe geplant und gesteuert <span class="tag">alle</span></b><small>Vom Auftrag bis zur Auslieferung: Vorgaben, Freigaben und Kontrollen sind festgelegt und werden gelebt.</small></div></li>
+    <li><input type="checkbox" aria-label="Punkt 21 erledigt"><span class="no">21</span><div><b>Lieferanten und Fremdfirmen bewertet <span class="tag">alle</span></b><small>Auswahl und Bewertung externer Anbieter nach festen Kriterien, mit Nachweis.</small></div></li>
+    <li><input type="checkbox" aria-label="Punkt 22 erledigt"><span class="no">22</span><div><b>Notfallvorsorge geübt <span class="tag">14001</span><span class="tag">45001</span></b><small>Notfallpläne gibt es nicht nur auf Papier. Übungen sind geplant und ausgewertet.</small></div></li>
+    <li><input type="checkbox" aria-label="Punkt 23 erledigt"><span class="no">23</span><div><b>Fehlerhafte Ergebnisse gesteuert <span class="tag">9001</span></b><small>Fehlerhafte Produkte oder Leistungen werden erkannt, gekennzeichnet und behandelt.</small></div></li>
+  </ol>
+
+  <h2>Bewertung der Leistung <span>Kapitel 9</span></h2>
+  <ol>
+    <li><input type="checkbox" aria-label="Punkt 24 erledigt"><span class="no">24</span><div><b>Überwachung und Messung <span class="tag">alle</span></b><small>Kennzahlen, Kundenzufriedenheit oder Einhaltung der Vorschriften werden regelmäßig ausgewertet.</small></div></li>
+    <li><input type="checkbox" aria-label="Punkt 25 erledigt"><span class="no">25</span><div><b>Internes Audit durchgeführt <span class="tag">alle</span></b><small>Vor dem Zertifizierungsaudit mindestens einmal komplett, mit Bericht und Maßnahmen.</small></div></li>
+    <li><input type="checkbox" aria-label="Punkt 26 erledigt"><span class="no">26</span><div><b>Managementbewertung vorhanden <span class="tag">alle</span></b><small>Die Leitung bewertet das System mindestens jährlich, mit festgelegten Inhalten und Ergebnissen.</small></div></li>
+  </ol>
+
+  <h2>Verbesserung <span>Kapitel 10</span></h2>
+  <ol>
+    <li><input type="checkbox" aria-label="Punkt 27 erledigt"><span class="no">27</span><div><b>Korrekturmaßnahmen und Verbesserung <span class="tag">alle</span></b><small>Fehler und Vorfälle werden bis zur Ursache verfolgt. Die Maßnahmen sind wirksam und belegt.</small></div></li>
+  </ol>
+
+  <div class="end">
+    <b>Noch offene Punkte?</b>
+    Gemeinsam schließen wir sie Schritt für Schritt. Kostenloses Erstgespräch:
+    <a href="/#termin">Termin wählen</a> · <a href="tel:+4915563084795">0155 63084795</a> · <a href="mailto:info@tayyipuenal.de">info@tayyipuenal.de</a>
+  </div>
+  <footer>Diese Checkliste ersetzt nicht die Normtexte. Sie hilft bei der Vorbereitung auf das Zertifizierungsaudit. © Tayyip Ünal</footer>
+</main>
+</body>
+</html>

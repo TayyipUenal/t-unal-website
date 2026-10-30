@@ -40,6 +40,20 @@ export function HeroBooking() {
     }
   }, [firstOpen, weeks, day]);
 
+  // The "Freie Termine" tool asks for a week: jump there and pick its first open day.
+  useEffect(() => {
+    const onWeek = (event: Event) => {
+      const index = (event as CustomEvent<number>).detail;
+      if (!weeks[index]) return;
+      setWeek(index);
+      setDay(weeks[index].find((d) => d.slots.length)?.date ?? null);
+      setSlot(null);
+      setStep("pick");
+    };
+    window.addEventListener("booking:week", onWeek);
+    return () => window.removeEventListener("booking:week", onWeek);
+  }, [weeks]);
+
   const days = weeks[week] ?? [];
   const open = days.find((d) => d.date === day)?.slots ?? [];
   const lastWeek = weeks.length - 1;
@@ -89,7 +103,7 @@ export function HeroBooking() {
   }
 
   return (
-    <div className="hb" aria-labelledby="hb-title">
+    <div className="hb" id="termin" aria-labelledby="hb-title">
       <div className="hb-head">
         <span className="hb-icon" aria-hidden="true">
           <CalendarCheck size={20} strokeWidth={1.7} />

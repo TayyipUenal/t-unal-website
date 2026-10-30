@@ -30,6 +30,7 @@ import "./studio.css";
 import "./whatsapp.css";
 import "./booking.css";
 import "./nationwide.css";
+import "./tools/tools.css";
 import "./portal/portal.css";
 
 const root = document.getElementById("root")!;

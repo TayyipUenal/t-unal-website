@@ -1,7 +1,9 @@
-import { ArrowDown, ArrowUpRight, Award, BadgeCheck, GraduationCap, HardHat } from "lucide-react";
+import { ArrowRight, ArrowUpRight, Award, BadgeCheck, GraduationCap, HardHat } from "lucide-react";
 import { useEffect, useState } from "react";
 import { contact } from "../content";
 import { HeroBooking } from "./HeroBooking";
+import { OfferCard } from "../tools/OfferCard";
+import { openTool } from "../tools/tools";
 import { LinkedInIcon } from "./LinkedInIcon";
 import { WhatsAppIcon } from "./WhatsAppIcon";
 
@@ -42,6 +44,7 @@ export function Hero({ onConsultation }: { onConsultation: () => void }) {
 
       <div className="hero-foot">
         <div className="hero-foot-copy">
+          <OfferCard />
           <p className="hero-lead">
             Wir auditieren, zertifizieren und schulen Betriebe nach ISO 9001, 14001, 45001 und SCC.
             Persönlich, klar und mit Verantwortung bis zum dokumentierten Ergebnis.
@@ -50,9 +53,9 @@ export function Hero({ onConsultation }: { onConsultation: () => void }) {
             <button type="button" className="button button-primary" onClick={onConsultation}>
               Erstgespräch vereinbaren <ArrowUpRight size={17} aria-hidden="true" />
             </button>
-            <a className="text-link hero-secondary" href="#audits">
-              Angebot konfigurieren <ArrowDown size={16} aria-hidden="true" />
-            </a>
+            <button type="button" className="text-link hero-secondary" onClick={() => openTool("preis")}>
+              Angebot konfigurieren <ArrowRight size={16} aria-hidden="true" />
+            </button>
           </div>
         </div>
 

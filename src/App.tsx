@@ -1,5 +1,4 @@
 import { MotionConfig, motion, useScroll, useSpring } from "framer-motion";
-import { QuoteConfigurator } from "./components/QuoteConfigurator";
 import { Contact } from "./components/Contact";
 import { Expertise } from "./components/Expertise";
 import { Footer } from "./components/Footer";
@@ -8,13 +7,13 @@ import { Hero } from "./components/Hero";
 import { Nationwide } from "./components/Nationwide";
 import { Bento } from "./components/Bento";
 import { Services, Specialty, Statement } from "./components/Studio";
-import { NormCheck } from "./components/NormCheck";
 import { NightGlobe } from "./components/NightGlobe";
 import { Story } from "./components/Story";
 import { SccJourney } from "./components/SccJourney";
 import { LegalPage } from "./components/LegalPage";
 import { useState } from "react";
-import { WhatsAppButton } from "./components/WhatsAppButton";
+import { StickyBar } from "./tools/StickyBar";
+import { ToolsModal } from "./tools/ToolsModal";
 import { audits } from "./audits";
 import { AuditPage } from "./components/AuditPage";
 import { PartnerApply } from "./portal/PartnerApply";
@@ -77,11 +76,9 @@ function App({ path = "/" }: { path?: string }) {
             <Specialty />
             <Nationwide />
             <NightGlobe />
-            <QuoteConfigurator onConsultation={() => openConsultation()} />
             <SccJourney onRequest={openConsultation} />
             <Story />
             <Bento />
-            <NormCheck onRequest={() => openConsultation()} />
             <Expertise />
             <PartnerTeaser />
             <Contact onConsultation={() => openConsultation()} />
@@ -89,7 +86,8 @@ function App({ path = "/" }: { path?: string }) {
         )}
       </main>
       <Footer />
-      <WhatsAppButton />
+      <StickyBar />
+      <ToolsModal onConsultation={() => openConsultation()} />
       {consultation && (
         <ConsultationModal preset={consultation} onClose={() => setConsultation(null)} />
       )}

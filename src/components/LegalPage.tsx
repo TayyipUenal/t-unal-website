@@ -316,6 +316,25 @@ const privacySections: LegalSection[] = [
           bedarfsgerechten Gestaltung der Website (Art. 6 Abs. 1 lit. f DSGVO).
         </p>
         <p>
+          Schließen Sie die Kontaktleiste am unteren Bildschirmrand, merkt sich
+          Ihr Browser das bis zum Ende des Besuchs im Sitzungsspeicher
+          („tu-bar-closed“), damit die Leiste nicht wieder erscheint. Der
+          Eintrag wird beim Schließen des Tabs gelöscht und nicht an uns
+          übertragen (§ 25 Abs. 2 Nr. 2 TDDDG).
+        </p>
+        <p>
+          Die Werkzeuge unter „Werkzeuge“ (z. B. Reife-Check, Rechner,
+          Fahrplan) rechnen in Ihrem Browser; Ihre Eingaben werden erst
+          übertragen, wenn Sie ein Ergebnis, eine Checkliste, eine Erinnerung
+          oder ein Angebot anfordern. Dann speichern wir Ihre Kontaktdaten und
+          die Angaben aus dem Werkzeug als Anfrage und senden Ihnen die
+          angeforderte E-Mail (Art. 6 Abs. 1 lit. b DSGVO). Für die
+          Zertifikats-Erinnerung speichern wir zusätzlich das Ablaufdatum und
+          schreiben Ihnen 6 und 3 Monate vorher; jede Erinnerung enthält einen
+          Link zum Abmelden. Nach Ablauf des Zertifikats senden wir keine
+          weiteren Erinnerungen.
+        </p>
+        <p>
           Wenn Sie sich im Partnerportal anmelden, setzen wir ein technisch
           notwendiges Sitzungs-Cookie („tu_session“), damit Sie angemeldet
           bleiben. Es enthält nur eine zufällige Kennung, ist für Skripte nicht

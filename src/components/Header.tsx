@@ -4,9 +4,10 @@ import { useEffect, useState } from "react";
 import { watchVisibility } from "../reveal";
 import { BrandLogo } from "./BrandLogo";
 import { ThemeToggle } from "./ThemeToggle";
+import { ToolsMobileList, ToolsNavItem } from "../tools/ToolsMenu";
 
 const navLinks = [
-  { id: "audits", label: "Audits" },
+  { id: "leistungen", label: "Audits" },
   { id: "schulungen", label: "Schulungen" },
   { id: "ablauf", label: "Ablauf" },
   { id: "kontakt", label: "Kontakt" },
@@ -103,6 +104,7 @@ export function Header({
             </a>
           );
         })}
+        <ToolsNavItem />
       </nav>
 
       <div className="header-actions">
@@ -164,6 +166,7 @@ export function Header({
             >
               Erstgespräch anfragen
             </button>
+            <ToolsMobileList onPick={closeMenu} />
           </motion.nav>
         )}
       </AnimatePresence>

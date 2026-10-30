@@ -160,3 +160,20 @@ CREATE TABLE IF NOT EXISTS owner_ips (
   ip_hash TEXT NOT NULL,
   PRIMARY KEY (day, ip_hash)
 );
+
+-- Certificate reminders from the "Countdown" tool: mails 6 and 3 months before expiry (daily cron, sendReminders()).
+CREATE TABLE IF NOT EXISTS tool_reminders (
+  id INTEGER PRIMARY KEY AUTOINCREMENT,
+  email TEXT NOT NULL,
+  name TEXT,
+  company TEXT,
+  norm TEXT,
+  expires TEXT NOT NULL,                         -- YYYY-MM-DD
+  lead_id INTEGER REFERENCES leads(id) ON DELETE SET NULL,
+  token TEXT NOT NULL UNIQUE,                    -- unsubscribe link
+  sent_6 TEXT,
+  sent_3 TEXT,
+  cancelled_at TEXT,
+  created_at TEXT NOT NULL
+);
+CREATE INDEX IF NOT EXISTS tool_reminders_expires ON tool_reminders(expires);

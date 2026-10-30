@@ -1162,6 +1162,28 @@ function ApplicationRow({
   );
 }
 
+/** When a partner was last in the portal: "online" within 5 minutes, then minutes, hours, yesterday or a date. */
+function LastSeen({ at }: { at: string | null }) {
+  if (!at) return <small className="pt-seen">noch nie online</small>;
+  const date = new Date(at);
+  const minutes = Math.floor((Date.now() - date.getTime()) / 60000);
+  const time = date.toLocaleTimeString("de-DE", { hour: "2-digit", minute: "2-digit", timeZone: "Europe/Berlin" });
+  const day = (d: Date) => d.toLocaleDateString("de-DE", { timeZone: "Europe/Berlin" });
+  const yesterday = new Date(Date.now() - 86400000);
+  let text: string;
+  if (minutes < 5) text = "gerade online";
+  else if (minutes < 60) text = `vor ${minutes} Min.`;
+  else if (day(date) === day(new Date())) text = `heute ${time} Uhr`;
+  else if (day(date) === day(yesterday)) text = `gestern ${time} Uhr`;
+  else text = `${day(date)}, ${time} Uhr`;
+  const full = date.toLocaleString("de-DE", { dateStyle: "full", timeStyle: "short", timeZone: "Europe/Berlin" });
+  return (
+    <small className={minutes < 5 ? "pt-seen is-online" : "pt-seen"} title={`Zuletzt im Portal: ${full}`}>
+      {minutes < 5 ? text : `zuletzt ${text}`}
+    </small>
+  );
+}
+
 function PartnerRow({
   partner,
   onRate,
@@ -1229,7 +1251,10 @@ function PartnerRow({
           </small>
         )}
       </td>
-      <td>{label}</td>
+      <td>
+        {label}
+        <LastSeen at={partner.last_seen_at} />
+      </td>
       <td>
         <span className="pt-inline">
           <input type="number" min={0} max={50} step={0.5} value={rate} onChange={(event) => setRate(event.target.value)} aria-label="Anteil in Prozent" />

@@ -101,6 +101,7 @@ export type AdminPartner = {
   pitch: string;
   slug: string | null;
   rate_percent: number;
+  last_seen_at: string | null;
   created_at: string;
   leads: number;
   won: number;

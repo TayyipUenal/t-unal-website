@@ -2423,3 +2423,25 @@ button.text-link {
 .pt-mail-form .pt-mail-send {
   color: var(--gold);
 }
+
+/* Last time a partner was in the portal, under the status. */
+.pt-seen {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  margin-top: 4px;
+  color: var(--muted, rgba(255, 255, 255, 0.55));
+  font-size: 0.78rem;
+  white-space: nowrap;
+}
+.pt-seen.is-online {
+  color: #6fcf8f;
+}
+.pt-seen.is-online::before {
+  content: "";
+  width: 7px;
+  height: 7px;
+  border-radius: 50%;
+  background: #6fcf8f;
+  box-shadow: 0 0 0 3px rgba(111, 207, 143, 0.18);
+}

@@ -19,6 +19,7 @@ CREATE TABLE IF NOT EXISTS partners (
   invite_hash TEXT,
   invite_expires TEXT,
   consent_at TEXT,
+  last_seen_at TEXT,                             -- last request with a valid session, written at most every 2 minutes
   created_at TEXT NOT NULL,
   updated_at TEXT NOT NULL
 );

@@ -302,8 +302,12 @@ type Partner = {
   permissions: string;
   password_hash: string | null;
   password_salt: string | null;
+  last_seen_at: string | null;
   created_at: string;
 };
+
+/** How often last_seen_at is written at most, so not every request costs a database write. */
+const SEEN_EVERY_MS = 2 * 60000;
 
 const SESSION_DAYS = 14;
 const encoder = new TextEncoder();
@@ -400,6 +404,10 @@ async function currentUser(request: Request, env: Env): Promise<Partner | null> 
   )
     .bind(hash, now())
     .first<Partner>();
+  if (row && (!row.last_seen_at || Date.now() - Date.parse(row.last_seen_at) > SEEN_EVERY_MS)) {
+    row.last_seen_at = now();
+    await env.DB.prepare("UPDATE partners SET last_seen_at = ? WHERE id = ?").bind(row.last_seen_at, row.id).run();
+  }
   return row;
 }
 
@@ -1301,7 +1309,7 @@ async function handle(request: Request, env: Env): Promise<Response> {
     const wantsPartners = can.managePartners || can.managePayouts;
     const wantsLeads = can.manageLeads || can.managePayouts;
     const partners = !wantsPartners ? { results: [] } : await env.DB.prepare(
-      `SELECT p.id, p.status, p.email, p.name, p.company, p.phone, p.pitch, p.slug, p.rate_percent, p.permissions, p.created_at,
+      `SELECT p.id, p.status, p.email, p.name, p.company, p.phone, p.pitch, p.slug, p.rate_percent, p.permissions, p.last_seen_at, p.created_at,
               (SELECT COUNT(*) FROM leads l WHERE l.partner_id = p.id) AS leads,
               (SELECT COUNT(*) FROM leads l WHERE l.partner_id = p.id AND l.status = 'won') AS won,
               COALESCE((SELECT SUM(amount_cents) FROM commissions c WHERE c.partner_id = p.id AND c.status = 'open'), 0) AS open_cents,

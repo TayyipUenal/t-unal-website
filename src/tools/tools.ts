@@ -5,7 +5,7 @@ export type ToolId = "reife" | "angebote" | "fahrplan" | "norm" | "preis" | "cou
 
 export const TOOLS: { id: ToolId; label: string; hint: string; icon: LucideIcon }[] = [
   { id: "reife", label: "Reife-Check", hint: "Wie auditreif sind Sie?", icon: ClipboardCheck },
-  { id: "angebote", label: "Umsatz & Angebote", hint: "Mehrere Angebote, akkreditiert ab 2.450 €", icon: TrendingUp },
+  { id: "angebote", label: "Umsatz & Angebote", hint: "Mehrere Angebote, ISO 9001 akkreditiert ab 2.450 €", icon: TrendingUp },
   { id: "fahrplan", label: "Fahrplan", hint: "Zertifikat bis zum Wunschtermin", icon: CalendarRange },
   { id: "norm", label: "Welche Norm?", hint: "Die passende Norm in 1 Minute", icon: Compass },
   { id: "preis", label: "Preis berechnen", hint: "Ihr Angebot in 2 Minuten", icon: Calculator },

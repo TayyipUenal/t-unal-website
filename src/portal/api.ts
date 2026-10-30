@@ -93,7 +93,7 @@ export type Summary = {
 
 export type AdminPartner = {
   id: number;
-  status: "pending" | "approved" | "active" | "blocked";
+  status: "pending" | "approved" | "active" | "blocked" | "archived";
   email: string;
   name: string;
   company: string;

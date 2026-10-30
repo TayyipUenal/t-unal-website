@@ -4,7 +4,7 @@
 CREATE TABLE IF NOT EXISTS partners (
   id INTEGER PRIMARY KEY AUTOINCREMENT,
   role TEXT NOT NULL DEFAULT 'partner',          -- 'partner' | 'staff' | 'admin' (superadmin)
-  status TEXT NOT NULL DEFAULT 'pending',        -- 'pending' | 'approved' | 'active' | 'blocked'
+  status TEXT NOT NULL DEFAULT 'pending',        -- 'pending' | 'approved' | 'active' | 'blocked' | 'archived'
   email TEXT NOT NULL UNIQUE,
   name TEXT NOT NULL,
   company TEXT NOT NULL DEFAULT '',

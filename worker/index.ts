@@ -1436,7 +1436,7 @@ async function handle(request: Request, env: Env): Promise<Response> {
     return json({ ok: true, user: publicPartner(target), summary: await partnerSummary(env, target), leads, events });
   }
 
-  const partnerAction = path.match(/^\/api\/admin\/partners\/(\d+)\/(approve|invite|block|rate|profile)$/);
+  const partnerAction = path.match(/^\/api\/admin\/partners\/(\d+)\/(approve|invite|block|rate|profile|archive|restore)$/);
   if (partnerAction && method === "POST") {
     if (!can.managePartners) return denied();
     const id = Number(partnerAction[1]);
@@ -1444,6 +1444,20 @@ async function handle(request: Request, env: Env): Promise<Response> {
     const data = await body();
     const target = await env.DB.prepare("SELECT * FROM partners WHERE id = ? AND role = 'partner'").bind(id).first<Partner>();
     if (!target) return fail("Partner nicht gefunden.", 404);
+    // Deleting moves a partner to the archive: no login, no invite link, and a new application with the same address is ignored.
+    if (action === "archive") {
+      await env.DB.prepare("UPDATE partners SET status = 'archived', invite_hash = NULL, invite_expires = NULL, updated_at = ? WHERE id = ?").bind(now(), id).run();
+      await env.DB.prepare("DELETE FROM sessions WHERE partner_id = ?").bind(id).run();
+      return json({ ok: true });
+    }
+    if (action === "restore") {
+      if (target.status !== "archived") return fail("Dieser Partner ist nicht im Archiv.");
+      await env.DB.prepare("UPDATE partners SET status = ?, updated_at = ? WHERE id = ?")
+        .bind(target.password_hash ? "active" : "approved", now(), id)
+        .run();
+      return json({ ok: true });
+    }
+    if (target.status === "archived") return fail("Dieser Partner ist im Archiv. Bitte zuerst wiederherstellen.", 409);
     if (action === "approve" || action === "invite") {
       const rate = Math.min(50, Math.max(0, Number(data.ratePercent ?? target.rate_percent)));
       const token = randomToken(24);

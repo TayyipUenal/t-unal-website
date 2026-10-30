@@ -637,7 +637,8 @@ function AdminDashboard({ user }: { user: User }) {
   if (user.role === "admin") tabs.push(["rechte", "Team und Rechte"]);
 
   const pending = data?.partners.filter((p) => p.status === "pending") ?? [];
-  const others = data?.partners.filter((p) => p.status !== "pending") ?? [];
+  const others = data?.partners.filter((p) => p.status !== "pending" && p.status !== "archived") ?? [];
+  const archived = data?.partners.filter((p) => p.status === "archived") ?? [];
   const wonCommissions = data?.leads.filter((l) => l.commission_id) ?? [];
   const openSum = wonCommissions.filter((l) => l.commission_status === "open").reduce((sum, l) => sum + (l.commission_cents ?? 0), 0);
   const paidSum = wonCommissions.filter((l) => l.commission_status === "paid").reduce((sum, l) => sum + (l.commission_cents ?? 0), 0);
@@ -773,6 +774,10 @@ function AdminDashboard({ user }: { user: User }) {
                     partner={partner}
                     onRate={(rate) => run(() => api(`/api/admin/partners/${partner.id}/rate`, { ratePercent: rate }))}
                     onBlock={() => run(() => api(`/api/admin/partners/${partner.id}/block`, {}))}
+                    onArchive={() => {
+                      if (window.confirm(`${partner.name} löschen? Der Zugang wird sofort gesperrt und der Partner kommt ins Archiv. Kunden und Provisionen bleiben erhalten.`))
+                        run(() => api(`/api/admin/partners/${partner.id}/archive`, {}));
+                    }}
                     onInvite={() => approve(partner, partner.rate_percent)}
                     onPreview={() => run(async () => setViewAs({ ...(await api<{ user: User } & PartnerPreview>(`/api/admin/partners/${partner.id}/preview`)), downloads: data?.downloads ?? [] }))}
                   />
@@ -781,6 +786,31 @@ function AdminDashboard({ user }: { user: User }) {
             </table>
             {others.length === 0 && <p className="pt-empty">Noch keine Partner.</p>}
           </div>
+          {archived.length > 0 && (
+            <details className="pt-archive">
+              <summary>Archiv ({archived.length})</summary>
+              <p className="pt-hint">
+                Gelöschte Partner. Sie können sich nicht anmelden, ihr Einladungslink gilt nicht mehr und eine neue Bewerbung mit derselben E-Mail wird ignoriert, bis Sie
+                sie wiederherstellen.
+              </p>
+              <ul>
+                {archived.map((partner) => (
+                  <li key={partner.id}>
+                    <span>
+                      <b>{partner.name}</b>
+                      <small>{partner.company || partner.email}</small>
+                    </span>
+                    <small>
+                      {partner.leads} Kunden · {euro(partner.open_cents)} offen
+                    </small>
+                    <button className="text-link" onClick={() => run(() => api(`/api/admin/partners/${partner.id}/restore`, {}))}>
+                      Wiederherstellen
+                    </button>
+                  </li>
+                ))}
+              </ul>
+            </details>
+          )}
         </section>
       )}
 
@@ -919,7 +949,7 @@ function RightsTab({
       setCreating(false);
     });
   }
-  const statusLabel = { approved: "eingeladen", active: "aktiv", blocked: "gesperrt", pending: "offen" };
+  const statusLabel = { approved: "eingeladen", active: "aktiv", blocked: "gesperrt", pending: "offen", archived: "archiviert" };
   return (
     <section className="pt-card pt-table-card">
       <div className="pt-create">
@@ -1130,17 +1160,19 @@ function PartnerRow({
   partner,
   onRate,
   onBlock,
+  onArchive,
   onInvite,
   onPreview,
 }: {
   partner: AdminPartner;
   onRate: (rate: number) => void;
   onBlock: () => void;
+  onArchive: () => void;
   onInvite: () => void;
   onPreview: () => void;
 }) {
   const [rate, setRate] = useState(String(partner.rate_percent));
-  const label = { approved: "eingeladen", active: "aktiv", blocked: "gesperrt", pending: "offen" }[partner.status];
+  const label = { approved: "eingeladen", active: "aktiv", blocked: "gesperrt", pending: "offen", archived: "archiviert" }[partner.status];
   return (
     <tr>
       <td>
@@ -1185,6 +1217,9 @@ function PartnerRow({
             Sperren
           </button>
         )}
+        <button className="text-link pt-delete" onClick={onArchive}>
+          Löschen
+        </button>
       </td>
     </tr>
   );

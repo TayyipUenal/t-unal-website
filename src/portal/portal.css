@@ -2310,3 +2310,51 @@ button.text-link {
     gap: 2px;
   }
 }
+
+/* ---------- Partner archive ---------- */
+.pt-actions .pt-delete {
+  color: #d9534f;
+}
+
+.pt-archive {
+  margin: 0 24px 24px;
+  padding-top: 16px;
+  border-top: 1px solid var(--line);
+}
+
+.pt-archive summary {
+  color: var(--ink);
+  font-weight: 700;
+  cursor: pointer;
+}
+
+.pt-archive .pt-hint {
+  margin: 10px 0 12px;
+}
+
+.pt-archive ul {
+  display: grid;
+  margin: 0;
+  padding: 0;
+  gap: 8px;
+  list-style: none;
+}
+
+.pt-archive li {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 8px 20px;
+  padding: 12px 14px;
+  border: 1px dashed var(--line);
+  border-radius: 10px;
+}
+
+.pt-archive li span {
+  display: grid;
+  margin-right: auto;
+}
+
+.pt-archive small {
+  color: var(--ink-soft);
+}

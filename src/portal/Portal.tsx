@@ -1,4 +1,4 @@
-import { Check, Copy, LogOut, Mail, Plus, ShieldCheck } from "lucide-react";
+import { Check, Copy, LogOut, Mail, Pencil, Plus, ShieldCheck } from "lucide-react";
 import qrcode from "qrcode-generator";
 import { WhatsAppIcon } from "../components/WhatsAppIcon";
 import { contact } from "../content";
@@ -779,6 +779,12 @@ function AdminDashboard({ user }: { user: User }) {
                         run(() => api(`/api/admin/partners/${partner.id}/archive`, {}));
                     }}
                     onInvite={() => approve(partner, partner.rate_percent)}
+                    onEmail={(email, send) =>
+                      run(async () => {
+                        await api(`/api/admin/partners/${partner.id}/email`, { email });
+                        if (send) await approve({ ...partner, email }, partner.rate_percent);
+                      })
+                    }
                     onPreview={() => run(async () => setViewAs({ ...(await api<{ user: User } & PartnerPreview>(`/api/admin/partners/${partner.id}/preview`)), downloads: data?.downloads ?? [] }))}
                   />
                 ))}
@@ -1162,6 +1168,7 @@ function PartnerRow({
   onBlock,
   onArchive,
   onInvite,
+  onEmail,
   onPreview,
 }: {
   partner: AdminPartner;
@@ -1169,15 +1176,51 @@ function PartnerRow({
   onBlock: () => void;
   onArchive: () => void;
   onInvite: () => void;
+  onEmail: (email: string, send: boolean) => Promise<void>;
   onPreview: () => void;
 }) {
   const [rate, setRate] = useState(String(partner.rate_percent));
+  const [mail, setMail] = useState<string | null>(null);
   const label = { approved: "eingeladen", active: "aktiv", blocked: "gesperrt", pending: "offen", archived: "archiviert" }[partner.status];
+  const saveMail = async (send: boolean) => {
+    if (mail === null) return;
+    await onEmail(mail.trim(), send);
+    setMail(null);
+  };
   return (
     <tr>
       <td>
         <b>{partner.name}</b>
-        <small>{partner.company || partner.email}</small>
+        {partner.company && <small>{partner.company}</small>}
+        {mail === null ? (
+          <button type="button" className="pt-mail-edit" title="E-Mail-Adresse ändern" onClick={() => setMail(partner.email)}>
+            <span>{partner.email}</span>
+            <Pencil size={13} aria-hidden="true" />
+          </button>
+        ) : (
+          <form
+            className="pt-mail-form"
+            onSubmit={(event) => {
+              event.preventDefault();
+              saveMail(false);
+            }}
+          >
+            <input type="email" required value={mail} autoFocus aria-label="E-Mail-Adresse" onChange={(event) => setMail(event.target.value)} />
+            <span>
+              <button type="submit" className="text-link">
+                Speichern
+              </button>
+              {partner.status !== "blocked" && (
+                <button type="button" className="text-link pt-mail-send" onClick={() => saveMail(true)}>
+                  Speichern und Login senden
+                </button>
+              )}
+              <button type="button" className="text-link" onClick={() => setMail(null)}>
+                Abbrechen
+              </button>
+            </span>
+          </form>
+        )}
         {PARTNER_PAGES && partner.slug && partner.status !== "blocked" && (
           <small>
             <a href={`/partner/${partner.slug}`} target="_blank" rel="noreferrer">
@@ -1208,8 +1251,8 @@ function PartnerRow({
           Als Partner ansehen
         </button>
         {partner.status !== "blocked" && (
-          <button className="text-link" onClick={onInvite}>
-            Neuer Link
+          <button className="text-link" onClick={onInvite} title={`Login-Link per E-Mail an ${partner.email} senden`}>
+            Login senden
           </button>
         )}
         {partner.status !== "blocked" && (

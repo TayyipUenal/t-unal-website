@@ -1436,7 +1436,7 @@ async function handle(request: Request, env: Env): Promise<Response> {
     return json({ ok: true, user: publicPartner(target), summary: await partnerSummary(env, target), leads, events });
   }
 
-  const partnerAction = path.match(/^\/api\/admin\/partners\/(\d+)\/(approve|invite|block|rate|profile|archive|restore)$/);
+  const partnerAction = path.match(/^\/api\/admin\/partners\/(\d+)\/(approve|invite|block|rate|profile|archive|restore|email)$/);
   if (partnerAction && method === "POST") {
     if (!can.managePartners) return denied();
     const id = Number(partnerAction[1]);
@@ -1480,6 +1480,15 @@ async function handle(request: Request, env: Env): Promise<Response> {
         .bind(clean(data.bio, 1200), clean(data.company, 160), clean(data.phone, 60), now(), id)
         .run();
       return json({ ok: true });
+    }
+    if (action === "email") {
+      const email = clean(data.email, 200).toLowerCase();
+      if (!validEmail(email)) return fail("Bitte eine gültige E-Mail-Adresse angeben.");
+      if (await env.DB.prepare("SELECT id FROM partners WHERE email = ? AND id != ?").bind(email, id).first()) {
+        return fail("Diese E-Mail-Adresse gehört schon zu einem anderen Zugang.", 409);
+      }
+      await env.DB.prepare("UPDATE partners SET email = ?, updated_at = ? WHERE id = ?").bind(email, now(), id).run();
+      return json({ ok: true, email });
     }
     if (action === "rate") {
       const rate = Number(data.ratePercent);

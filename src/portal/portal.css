@@ -2358,3 +2358,68 @@ button.text-link {
 .pt-archive small {
   color: var(--ink-soft);
 }
+
+/* ---------- Partner e-mail, editable in the list ---------- */
+.pt-mail-edit {
+  display: inline-flex;
+  max-width: 100%;
+  align-items: center;
+  gap: 6px;
+  margin-top: 2px;
+  padding: 0;
+  border: 0;
+  background: none;
+  color: var(--ink-soft);
+  font: inherit;
+  font-size: 0.85rem;
+  text-align: left;
+  cursor: pointer;
+}
+
+.pt-mail-edit span {
+  overflow-wrap: anywhere;
+}
+
+.pt-mail-edit svg {
+  flex: none;
+  color: var(--gold);
+  opacity: 0.6;
+  transition: opacity 0.2s;
+}
+
+.pt-mail-edit:hover {
+  color: var(--ink);
+}
+
+.pt-mail-edit:hover svg {
+  opacity: 1;
+}
+
+.pt-mail-form {
+  display: grid;
+  margin-top: 6px;
+  gap: 6px;
+}
+
+.pt-mail-form input {
+  width: 100%;
+  min-width: 220px;
+  padding: 8px 10px;
+  border: 1px solid var(--gold);
+  border-radius: 8px;
+  background: transparent;
+  color: var(--ink);
+  font: inherit;
+  font-size: 0.88rem;
+}
+
+.pt-mail-form span {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 4px 12px;
+  font-size: 0.85rem;
+}
+
+.pt-mail-form .pt-mail-send {
+  color: var(--gold);
+}

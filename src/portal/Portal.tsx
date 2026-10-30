@@ -2,6 +2,7 @@ import { Check, Copy, LogOut, Mail, Pencil, Plus, ShieldCheck } from "lucide-rea
 import qrcode from "qrcode-generator";
 import { WhatsAppIcon } from "../components/WhatsAppIcon";
 import { contact } from "../content";
+import { Backfill } from "./Backfill";
 import { DownloadsAdmin, FileLinks, InvoicesAdmin, OfferUpload, PartnerDownloads } from "./Files";
 import { AREAS, areaHint, areaLabel, noCommission } from "./areas";
 import { PARTNER_PAGES } from "./features";
@@ -612,6 +613,7 @@ function AdminDashboard({ user }: { user: User }) {
   const [tab, setTab] = useState<Tab>(mine.managePartners ? "bewerbungen" : mine.manageLeads ? "leads" : mine.managePayouts ? "provisionen" : "rechte");
   const [error, setError] = useState("");
   const [viewAs, setViewAs] = useState<({ user: User } & PartnerPreview) | null>(null);
+  const [backfillFor, setBackfillFor] = useState<number | null>(null);
   const [invite, setInvite] = useState<{ url: string; email: string; name: string; mailed?: boolean } | null>(null);
   const { copied, copy } = useCopy();
 
@@ -759,6 +761,12 @@ function AdminDashboard({ user }: { user: User }) {
               load();
             }}
           />
+          {(() => {
+            const target = data?.partners.find((p) => p.id === backfillFor);
+            return target && mine.manageLeads ? (
+              <Backfill partner={target} leads={data?.leads ?? []} canPayout={mine.managePayouts} onDone={load} onClose={() => setBackfillFor(null)} />
+            ) : null;
+          })()}
           <div className="pt-scroll">
             <table className="pt-table">
               <thead>
@@ -789,6 +797,14 @@ function AdminDashboard({ user }: { user: User }) {
                         await api(`/api/admin/partners/${partner.id}/email`, { email });
                         if (send) await approve({ ...partner, email }, partner.rate_percent);
                       })
+                    }
+                    onBackfill={
+                      mine.manageLeads
+                        ? () => {
+                            setBackfillFor(partner.id);
+                            window.scrollTo({ top: 0, behavior: "smooth" });
+                          }
+                        : undefined
                     }
                     onPreview={() => run(async () => setViewAs({ ...(await api<{ user: User } & PartnerPreview>(`/api/admin/partners/${partner.id}/preview`)), downloads: data?.downloads ?? [] }))}
                   />
@@ -1199,6 +1215,7 @@ function PartnerRow({
   onArchive,
   onInvite,
   onEmail,
+  onBackfill,
   onPreview,
 }: {
   partner: AdminPartner;
@@ -1207,6 +1224,7 @@ function PartnerRow({
   onArchive: () => void;
   onInvite: () => void;
   onEmail: (email: string, send: boolean) => Promise<void>;
+  onBackfill?: () => void;
   onPreview: () => void;
 }) {
   const [rate, setRate] = useState(String(partner.rate_percent));
@@ -1283,6 +1301,11 @@ function PartnerRow({
         <button className="text-link" onClick={onPreview}>
           Als Partner ansehen
         </button>
+        {onBackfill && (
+          <button className="text-link" onClick={onBackfill}>
+            Kunden nachtragen
+          </button>
+        )}
         {partner.status !== "blocked" && (
           <button className="text-link" onClick={onInvite} title={`Login-Link per E-Mail an ${partner.email} senden`}>
             Login senden

@@ -1783,6 +1783,100 @@ async function handle(request: Request, env: Env): Promise<Response> {
     return json({ ok: true });
   }
 
+  /**
+   * Retroactive entry for one partner: several past orders at once, with order date, value, whether the customer
+   * paid and whether the commission was already paid out. Each row becomes a won lead with its commission.
+   */
+  if (path === "/api/admin/leads/backfill" && method === "POST") {
+    if (!can.manageLeads) return denied();
+    const data = await body();
+    const partner = await env.DB.prepare("SELECT id, name, rate_percent FROM partners WHERE id = ? AND role = 'partner'")
+      .bind(Number(data.partnerId))
+      .first<{ id: number; name: string; rate_percent: number }>();
+    if (!partner) return fail("Bitte einen Partner wählen.");
+    const rows = Array.isArray(data.rows) ? data.rows.slice(0, 100) : [];
+    if (!rows.length) return fail("Bitte mindestens einen Kunden eintragen.");
+    const today = berlinStamp(new Date()).slice(0, 10);
+    const checked = [];
+    for (const [index, raw] of rows.entries()) {
+      const row = raw && typeof raw === "object" ? (raw as Record<string, unknown>) : {};
+      const line = `Zeile ${index + 1}`;
+      const company = clean(row.company, 160);
+      const name = clean(row.name, 120);
+      if (!company && !name) return fail(`${line}: Bitte Firma oder Ansprechpartner angeben.`);
+      const category = clean(row.category, 30);
+      if (!CATEGORIES.includes(category)) return fail(`${line}: Ungültiger Bereich.`);
+      const euro = Number(String(row.dealEuro ?? "").replace(/\./g, "").replace(",", "."));
+      if (!Number.isFinite(euro) || euro <= 0 || euro > 10000000) return fail(`${line}: Bitte den Auftragswert netto angeben.`);
+      const date = clean(row.date, 10);
+      if (!/^\d{4}-\d{2}-\d{2}$/.test(date) || date > today) return fail(`${line}: Bitte ein Auftragsdatum angeben, das nicht in der Zukunft liegt.`);
+      const rateText = String(row.ratePercent ?? "").replace(",", ".").trim();
+      const rate = rateText === "" ? null : Number(rateText);
+      if (rate !== null && (!Number.isFinite(rate) || rate < 0 || rate > 50)) return fail(`${line}: Der Prozentsatz muss zwischen 0 und 50 liegen.`);
+      const commissionPaid = row.commissionPaid === true;
+      if (commissionPaid && !can.managePayouts) return denied();
+      checked.push({ company, name, category, cents: Math.round(euro * 100), date, rate, customerPaid: row.customerPaid === true || commissionPaid, commissionPaid, note: clean(row.note, 500) });
+    }
+    let open = 0;
+    let paidOut = 0;
+    for (const row of checked) {
+      const stamp = `${row.date}T12:00:00.000Z`;
+      const result = await env.DB.prepare(
+        `INSERT INTO leads (partner_id, source, contact_name, company, email, phone, topic, message, status, deal_cents, category, customer_paid_at, created_at, updated_at)
+         VALUES (?, 'admin', ?, ?, '', '', ?, ?, 'won', ?, ?, ?, ?, ?)`,
+      )
+        .bind(partner.id, row.name || row.company, row.company, "Nachgetragen", row.note, row.cents, row.category, row.customerPaid ? stamp : null, stamp, now())
+        .run();
+      const id = Number(result.meta.last_row_id);
+      await env.DB.prepare("INSERT INTO lead_events (lead_id, kind, status, visible, created_at) VALUES (?, 'status', 'won', 1, ?)").bind(id, stamp).run();
+      await env.DB.prepare("INSERT INTO lead_events (lead_id, kind, note, visible, created_at) VALUES (?, 'note', ?, 1, ?)")
+        .bind(id, `Rückwirkend eingetragen (Auftrag vom ${germanDate(row.date)})`, now())
+        .run();
+      if (row.customerPaid) {
+        await env.DB.prepare("INSERT INTO lead_events (lead_id, kind, note, visible, created_at) VALUES (?, 'paid', 'Kunde hat bezahlt', 1, ?)").bind(id, stamp).run();
+      }
+      await syncCommission(env, id);
+      if (row.rate !== null) {
+        await env.DB.prepare("UPDATE commissions SET rate_percent = ?, amount_cents = ? WHERE lead_id = ? AND status = 'open'")
+          .bind(row.rate, Math.round((row.cents * row.rate) / 100), id)
+          .run();
+      }
+      if (row.commissionPaid) {
+        await env.DB.prepare("UPDATE commissions SET status = 'paid', paid_at = ? WHERE lead_id = ?").bind(now(), id).run();
+      }
+      const commission = await env.DB.prepare("SELECT amount_cents, status FROM commissions WHERE lead_id = ?").bind(id).first<{ amount_cents: number; status: string }>();
+      if (commission?.status === "open") open += commission.amount_cents;
+      if (commission?.status === "paid") paidOut += commission.amount_cents;
+    }
+    return json({ ok: true, created: checked.length, openCents: open, paidCents: paidOut });
+  }
+
+  /** Existing customers without a partner (or with another one) are assigned to a partner in one go. */
+  if (path === "/api/admin/leads/assign" && method === "POST") {
+    if (!can.manageLeads) return denied();
+    const data = await body();
+    const partner = await env.DB.prepare("SELECT id, name FROM partners WHERE id = ? AND role = 'partner'").bind(Number(data.partnerId)).first<{ id: number; name: string }>();
+    if (!partner) return fail("Bitte einen Partner wählen.");
+    const ids = Array.isArray(data.leadIds) ? data.leadIds.map(Number).filter((n) => Number.isInteger(n) && n > 0).slice(0, 200) : [];
+    if (!ids.length) return fail("Bitte mindestens einen Kunden auswählen.");
+    let moved = 0;
+    for (const id of ids) {
+      if (await env.DB.prepare("SELECT id FROM commissions WHERE lead_id = ? AND status = 'paid'").bind(id).first()) continue;
+      const result = await env.DB.prepare("UPDATE leads SET partner_id = ?, updated_at = ? WHERE id = ? AND (partner_id IS NULL OR partner_id != ?)")
+        .bind(partner.id, now(), id, partner.id)
+        .run();
+      if (!result.meta.changes) continue;
+      // A commission of the previous partner that is still open moves with the customer.
+      await env.DB.prepare("DELETE FROM commissions WHERE lead_id = ? AND status = 'open'").bind(id).run();
+      await env.DB.prepare("INSERT INTO lead_events (lead_id, kind, note, visible, created_at) VALUES (?, 'note', ?, 1, ?)")
+        .bind(id, `Rückwirkend ${partner.name} zugeordnet`, now())
+        .run();
+      await syncCommission(env, id);
+      moved++;
+    }
+    return json({ ok: true, moved });
+  }
+
   /** The admin enters a customer by hand and assigns it to a partner and an area. */
   if (path === "/api/admin/leads/create" && method === "POST") {
     if (!can.manageLeads) return denied();
